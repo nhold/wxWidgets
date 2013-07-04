@@ -28,7 +28,6 @@ inline void wxVectorSort(wxVector<T>& v)
 
 #else // !wxUSE_STD_CONTAINERS
 
-#include "wx/utils.h"
 #include "wx/scopeguard.h"
 #include "wx/meta/movable.h"
 #include "wx/meta/if.h"
@@ -36,6 +35,15 @@ inline void wxVectorSort(wxVector<T>& v)
 #include "wx/beforestd.h"
 #include <new> // for placement new
 #include "wx/afterstd.h"
+
+// wxQsort is declared in wx/utils.h, but can't include that file here,
+// it indirectly includes this file. Just lovely...
+typedef int (*wxSortCallback)(const void* pItem1,
+                              const void* pItem2,
+                              const void* user_data);
+WXDLLIMPEXP_BASE void wxQsort(void* pbase, size_t total_elems,
+                              size_t size, wxSortCallback cmp,
+                              const void* user_data);
 
 namespace wxPrivate
 {
@@ -205,6 +213,14 @@ public:
         clear();
     }
 
+    void assign(size_type p_size, const value_type& v)
+    {
+        clear();
+        reserve(p_size);
+        for ( size_t n = 0; n < p_size; n++ )
+            push_back(v);
+    }
+
     void swap(wxVector& v)
     {
         wxSwap(m_size, v.m_size);
@@ -234,10 +250,12 @@ public:
         // increase the size twice, unless we're already too big or unless
         // more is requested
         //
-        // NB: casts to size_type are needed to suppress mingw32 warnings about
-        //     mixing enums and ints in the same expression
+        // NB: casts to size_type are needed to suppress warnings about
+        //     mixing enumeral and non-enumeral type in conditional expression
         const size_type increment = m_size > 0
-                                     ? wxMin(m_size, (size_type)ALLOC_MAX_SIZE)
+                                     ? m_size < ALLOC_MAX_SIZE
+                                        ? m_size
+                                        : (size_type)ALLOC_MAX_SIZE
                                      : (size_type)ALLOC_INITIAL_SIZE;
         if ( m_capacity + increment > n )
             n = m_capacity + increment;

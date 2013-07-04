@@ -372,7 +372,7 @@ public:
     virtual wxString GetPageText() const = 0;
 
     /**
-        Returns whether the web control is currently busy (e.g. loading a page).
+        Returns whether the web control is currently busy (e.g.\ loading a page).
     */
     virtual bool IsBusy() const = 0;
 
@@ -410,6 +410,8 @@ public:
 
     /**
         Runs the given javascript code.
+        @note When using wxWEB_VIEW_BACKEND_IE you must wait for the current
+              page to finish loading before calling RunScript().
     */
     virtual void RunScript(const wxString& javascript) = 0;
 
@@ -425,6 +427,8 @@ public:
         @param html    The string that contains the HTML data to display.
         @param baseUrl URL assigned to the HTML data, to be used to resolve
                     relative paths, for instance.
+        @note When using wxWEB_VIEW_BACKEND_IE you must wait for the current
+              page to finish loading before calling SetPage().
     */
     virtual void SetPage(const wxString& html, const wxString& baseUrl) = 0;
 

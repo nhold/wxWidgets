@@ -302,7 +302,7 @@ bool wxFile::ReadAll(wxString *str, const wxMBConv& conv)
     char* p = buf.data();
     for ( ;; )
     {
-        static const unsigned READSIZE = 4096;
+        static const ssize_t READSIZE = 4096;
 
         ssize_t nread = Read(p, length > READSIZE ? READSIZE : length);
         if ( nread == wxInvalidOffset )
@@ -510,10 +510,6 @@ bool wxFile::Eof() const
     if ( iRc == wxInvalidOffset )
     {
         wxLogSysError(_("can't determine if the end of file is reached on descriptor %d"), m_fd);
-    }
-    else if ( iRc != 1 )
-    {
-        wxFAIL_MSG(wxT("invalid eof() return value."));
     }
 
     return true;

@@ -10,20 +10,14 @@
 
 @page overview_i18n Internationalization
 
-@li @ref overview_i18n_intro
-@li @ref overview_i18n_menuaccel
-
-<hr>
-
-
-@section overview_i18n_intro Introduction
+@tableofcontents
 
 Although internationalization of an application (i18n for short) involves far
 more than just translating its text messages to another message - date, time
 and currency formats need changing too, some languages are written left to
 right and others right to left, character encoding may differ and many other
 things may need changing too - it is a necessary first step. wxWidgets provides
-facilities for message translation with it's wxLocale class and is itself fully
+facilities for message translation with its wxLocale class and is itself fully
 translated into several languages. Please consult wxWidgets home page for the
 most up-to-date translations - and if you translate it into one of the
 languages not done yet, your translations would be gratefully accepted for
@@ -70,6 +64,7 @@ Translating your application involves several steps:
     given language: see wxLocale.
 
 
+
 @section overview_i18n_menuaccel Translating Menu Accelerators
 
 If you translate the accelerator modifier names (Ctrl, Alt and Shift) in your
@@ -87,4 +82,3 @@ translated special key names such as Backspace, End, Insert, etc.
 @li @ref page_samples_internat - Shows you how all this looks in practice.
 
 */
-

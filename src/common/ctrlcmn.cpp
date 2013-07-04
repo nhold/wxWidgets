@@ -149,6 +149,12 @@ void wxControlBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 #endif // wxUSE_RADIOBTN
 }
 
+wxSize wxControlBase::DoGetSizeFromTextSize(int WXUNUSED(xlen),
+                                            int WXUNUSED(ylen)) const
+{
+    return wxSize(-1, -1);
+}
+
 /* static */
 wxString wxControlBase::GetLabelText(const wxString& label)
 {
@@ -534,15 +540,10 @@ wxString wxControlBase::Ellipsize(const wxString& label, const wxDC& dc,
             // add this (ellipsized) row to the rest of the label
             ret << curLine;
             if ( pc == label.end() )
-            {
-                // NOTE: this is the return which always exits the function
-                return ret;
-            }
-            else
-            {
-                ret << *pc;
-                curLine.clear();
-            }
+                break;
+
+            ret << *pc;
+            curLine.clear();
         }
         // we need to remove mnemonics from the label for correct calculations
         else if ( *pc == wxS('&') && (flags & wxELLIPSIZE_FLAGS_PROCESS_MNEMONICS) )
@@ -565,13 +566,8 @@ wxString wxControlBase::Ellipsize(const wxString& label, const wxDC& dc,
         }
     }
 
-    // this return would generate a
-    //  warning C4702: unreachable code
-    // with MSVC since the function always exits from inside the loop
-    //return ret;
+    return ret;
 }
-
-
 
 // ----------------------------------------------------------------------------
 // wxStaticBitmap

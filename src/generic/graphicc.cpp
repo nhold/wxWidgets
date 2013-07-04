@@ -25,7 +25,9 @@
 // the wx dll in order to load them dynamically.
 #define cairo_public 
 
-#include "wx/cairo.h"
+#include <cairo.h>
+
+bool wxCairoInit();
 
 #ifndef WX_PRECOMP
     #include "wx/bitmap.h"
@@ -2394,13 +2396,6 @@ public :
     // create a subimage from a native image representation
     virtual wxGraphicsBitmap CreateSubBitmap( const wxGraphicsBitmap &bitmap, wxDouble x, wxDouble y, wxDouble w, wxDouble h  );
 
-protected :
-    bool EnsureIsLoaded();
-    void Load();
-    void Unload();
-    friend class wxCairoModule;
-private :
-    int m_loaded;
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxCairoRenderer)
 } ;
 
@@ -2411,34 +2406,14 @@ private :
 IMPLEMENT_DYNAMIC_CLASS(wxCairoRenderer,wxGraphicsRenderer)
 
 static wxCairoRenderer gs_cairoGraphicsRenderer;
-// temporary hack to allow creating a cairo context on any platform
-extern wxGraphicsRenderer* gCairoRenderer;
-wxGraphicsRenderer* gCairoRenderer = &gs_cairoGraphicsRenderer;
 
-bool wxCairoRenderer::EnsureIsLoaded()
-{
-#ifndef __WXGTK__
-    Load();
-    return wxCairoInit();
+#ifdef __WXGTK__
+    #define ENSURE_LOADED_OR_RETURN(returnOnFail)
 #else
-    return true;
+    #define ENSURE_LOADED_OR_RETURN(returnOnFail)  \
+        if (!wxCairoInit())                        \
+            return returnOnFail
 #endif
-}
-
-void wxCairoRenderer::Load()
-{
-    wxCairoInit();
-}
-
-void wxCairoRenderer::Unload()
-{
-    wxCairoCleanUp();
-}
-
-// call EnsureIsLoaded() and return returnOnFail value if it fails
-#define ENSURE_LOADED_OR_RETURN(returnOnFail)  \
-    if ( !EnsureIsLoaded() )                   \
-        return (returnOnFail)
 
 wxGraphicsContext * wxCairoRenderer::CreateContext( const wxWindowDC& dc)
 {
@@ -2462,7 +2437,6 @@ wxGraphicsContext * wxCairoRenderer::CreateContext( const wxPrinterDC& dc)
 #if wxUSE_ENH_METAFILE
 wxGraphicsContext * wxCairoRenderer::CreateContext( const wxEnhMetaFileDC& WXUNUSED(dc) )
 {
-    ENSURE_LOADED_OR_RETURN(NULL);
     return NULL;
 }
 #endif
@@ -2481,7 +2455,6 @@ wxGraphicsContext * wxCairoRenderer::CreateContextFromNativeContext( void * cont
 
 wxGraphicsContext * wxCairoRenderer::CreateContextFromNativeWindow( void * window )
 {
-    ENSURE_LOADED_OR_RETURN(NULL);
 #ifdef __WXGTK__
     return new wxCairoContext(this, static_cast<GdkWindow*>(window));
 #else
@@ -2493,13 +2466,13 @@ wxGraphicsContext * wxCairoRenderer::CreateContextFromNativeWindow( void * windo
 #if wxUSE_IMAGE
 wxGraphicsContext * wxCairoRenderer::CreateContextFromImage(wxImage& image)
 {
+    ENSURE_LOADED_OR_RETURN(NULL);
     return new wxCairoImageContext(this, image);
 }
 #endif // wxUSE_IMAGE
 
 wxGraphicsContext * wxCairoRenderer::CreateMeasuringContext()
 {
-    ENSURE_LOADED_OR_RETURN(NULL);
 #ifdef __WXGTK__
     return CreateContextFromNativeWindow(gdk_get_default_root_window());
 #else
@@ -2518,8 +2491,8 @@ wxGraphicsContext * wxCairoRenderer::CreateContext( wxWindow* window )
 
 wxGraphicsPath wxCairoRenderer::CreatePath()
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsPath);
     wxGraphicsPath path;
+    ENSURE_LOADED_OR_RETURN(path);
     path.SetRefData( new wxCairoPathData(this) );
     return path;
 }
@@ -2531,8 +2504,8 @@ wxGraphicsMatrix wxCairoRenderer::CreateMatrix( wxDouble a, wxDouble b, wxDouble
                                                 wxDouble tx, wxDouble ty)
 
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsMatrix);
     wxGraphicsMatrix m;
+    ENSURE_LOADED_OR_RETURN(m);
     wxCairoMatrixData* data = new wxCairoMatrixData( this );
     data->Set( a,b,c,d,tx,ty ) ;
     m.SetRefData(data);
@@ -2541,28 +2514,24 @@ wxGraphicsMatrix wxCairoRenderer::CreateMatrix( wxDouble a, wxDouble b, wxDouble
 
 wxGraphicsPen wxCairoRenderer::CreatePen(const wxPen& pen)
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsPen);
-    if ( !pen.IsOk() || pen.GetStyle() == wxPENSTYLE_TRANSPARENT )
-        return wxNullGraphicsPen;
-    else
+    wxGraphicsPen p;
+    ENSURE_LOADED_OR_RETURN(p);
+    if (pen.IsOk() && pen.GetStyle() != wxPENSTYLE_TRANSPARENT)
     {
-        wxGraphicsPen p;
         p.SetRefData(new wxCairoPenData( this, pen ));
-        return p;
     }
+    return p;
 }
 
 wxGraphicsBrush wxCairoRenderer::CreateBrush(const wxBrush& brush )
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBrush);
-    if ( !brush.IsOk() || brush.GetStyle() == wxBRUSHSTYLE_TRANSPARENT )
-        return wxNullGraphicsBrush;
-    else
+    wxGraphicsBrush p;
+    ENSURE_LOADED_OR_RETURN(p);
+    if (brush.IsOk() && brush.GetStyle() != wxBRUSHSTYLE_TRANSPARENT)
     {
-        wxGraphicsBrush p;
         p.SetRefData(new wxCairoBrushData( this, brush ));
-        return p;
     }
+    return p;
 }
 
 wxGraphicsBrush
@@ -2570,8 +2539,8 @@ wxCairoRenderer::CreateLinearGradientBrush(wxDouble x1, wxDouble y1,
                                            wxDouble x2, wxDouble y2,
                                            const wxGraphicsGradientStops& stops)
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBrush);
     wxGraphicsBrush p;
+    ENSURE_LOADED_OR_RETURN(p);
     wxCairoBrushData* d = new wxCairoBrushData( this );
     d->CreateLinearGradientBrush(x1, y1, x2, y2, stops);
     p.SetRefData(d);
@@ -2583,8 +2552,8 @@ wxCairoRenderer::CreateRadialGradientBrush(wxDouble xo, wxDouble yo,
                                            wxDouble xc, wxDouble yc, wxDouble r,
                                            const wxGraphicsGradientStops& stops)
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBrush);
     wxGraphicsBrush p;
+    ENSURE_LOADED_OR_RETURN(p);
     wxCairoBrushData* d = new wxCairoBrushData( this );
     d->CreateRadialGradientBrush(xo, yo, xc, yc, r, stops);
     p.SetRefData(d);
@@ -2593,15 +2562,13 @@ wxCairoRenderer::CreateRadialGradientBrush(wxDouble xo, wxDouble yo,
 
 wxGraphicsFont wxCairoRenderer::CreateFont( const wxFont &font , const wxColour &col )
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsFont);
+    wxGraphicsFont p;
+    ENSURE_LOADED_OR_RETURN(p);
     if ( font.IsOk() )
     {
-        wxGraphicsFont p;
         p.SetRefData(new wxCairoFontData( this , font, col ));
-        return p;
     }
-    else
-        return wxNullGraphicsFont;
+    return p;
 }
 
 wxGraphicsFont
@@ -2610,24 +2577,21 @@ wxCairoRenderer::CreateFont(double sizeInPixels,
                             int flags,
                             const wxColour& col)
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsFont);
-
     wxGraphicsFont font;
+    ENSURE_LOADED_OR_RETURN(font);
     font.SetRefData(new wxCairoFontData(this, sizeInPixels, facename, flags, col));
     return font;
 }
 
 wxGraphicsBitmap wxCairoRenderer::CreateBitmap( const wxBitmap& bmp )
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBitmap);
+    wxGraphicsBitmap p;
+    ENSURE_LOADED_OR_RETURN(p);
     if ( bmp.IsOk() )
     {
-        wxGraphicsBitmap p;
         p.SetRefData(new wxCairoBitmapData( this , bmp ));
-        return p;
     }
-    else
-        return wxNullGraphicsBitmap;
+    return p;
 }
 
 #if wxUSE_IMAGE
@@ -2648,12 +2612,15 @@ wxGraphicsBitmap wxCairoRenderer::CreateBitmapFromImage(const wxImage& image)
 
 wxImage wxCairoRenderer::CreateImageFromBitmap(const wxGraphicsBitmap& bmp)
 {
-    ENSURE_LOADED_OR_RETURN(wxNullImage);
+    wxImage image;
+    ENSURE_LOADED_OR_RETURN(image);
 
     const wxCairoBitmapData* const
         data = static_cast<wxCairoBitmapData*>(bmp.GetGraphicsData());
+    if (data)
+        image = data->ConvertToImage();
 
-    return data ? data->ConvertToImage() : wxNullImage;
+    return image;
 }
 
 #endif // wxUSE_IMAGE
@@ -2661,15 +2628,13 @@ wxImage wxCairoRenderer::CreateImageFromBitmap(const wxGraphicsBitmap& bmp)
 
 wxGraphicsBitmap wxCairoRenderer::CreateBitmapFromNativeBitmap( void* bitmap )
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBitmap);
+    wxGraphicsBitmap p;
+    ENSURE_LOADED_OR_RETURN(p);
     if ( bitmap != NULL )
     {
-        wxGraphicsBitmap p;
         p.SetRefData(new wxCairoBitmapData( this , (cairo_surface_t*) bitmap ));
-        return p;
     }
-    else
-        return wxNullGraphicsBitmap;
+    return p;
 }
 
 wxGraphicsBitmap
@@ -2679,9 +2644,9 @@ wxCairoRenderer::CreateSubBitmap(const wxGraphicsBitmap& WXUNUSED(bitmap),
                                  wxDouble WXUNUSED(w),
                                  wxDouble WXUNUSED(h))
 {
-    ENSURE_LOADED_OR_RETURN(wxNullGraphicsBitmap);
+    wxGraphicsBitmap p;
     wxFAIL_MSG("wxCairoRenderer::CreateSubBitmap is not implemented.");
-    return wxNullGraphicsBitmap;
+    return p;
 }
 
 wxGraphicsRenderer* wxGraphicsRenderer::GetCairoRenderer()

@@ -57,7 +57,7 @@ enum
 
     @library{wxcore}
     @category{ctrl}
-    @appearance{filectrl.png}
+    @appearance{filectrl}
 
     @nativeimpl{wxgtk}
 
@@ -118,7 +118,7 @@ public:
                 const wxString& name = wxFileCtrlNameStr);
 
     /**
-        Returns the current directory of the file control (i.e. the directory shown by it).
+        Returns the current directory of the file control (i.e.\ the directory shown by it).
     */
     virtual wxString GetDirectory() const;
 

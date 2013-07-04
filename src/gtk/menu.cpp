@@ -30,6 +30,9 @@
 #include "wx/gtk/private/gtk2-compat.h"
 #include "wx/gtk/private/mnemonics.h"
 
+// Number of currently open modal dialogs, defined in src/gtk/toplevel.cpp.
+extern int wxOpenModalDialogsCount;
+
 // we use normal item but with a special id for the menu title
 static const int wxGTK_TITLE_ID = -3;
 
@@ -45,6 +48,10 @@ static void wxGetGtkAccel(const wxMenuItem*, guint*, GdkModifierType*);
 
 static void DoCommonMenuCallbackCode(wxMenu *menu, wxMenuEvent& event)
 {
+    // See the comment about Ubuntu Unity in menuitem_activate().
+    if ( wxOpenModalDialogsCount )
+        return;
+
     event.SetEventObject( menu );
 
     wxEvtHandler* handler = menu->GetEventHandler();
@@ -63,16 +70,6 @@ static void DoCommonMenuCallbackCode(wxMenu *menu, wxMenuEvent& event)
 
 wxMenuBar::~wxMenuBar()
 {
-    if (m_widget && IsAttached())
-    {
-        // Work around a probable bug in Ubuntu 12.04 which causes a warning if
-        // gtk_widget_destroy() is called on a wxMenuBar attached to a frame
-        GtkWidget* widget = m_widget;
-        m_focusWidget =
-        m_widget = NULL;
-        GTKDisconnect(widget);
-        g_object_unref(widget);
-    }
 }
 
 void wxMenuBar::Init(size_t n, wxMenu *menus[], const wxString titles[], long style)
@@ -294,6 +291,7 @@ void wxMenuBar::GtkAppend(wxMenu* menu, const wxString& title, int pos)
 
         gtk_menu_item_set_submenu( GTK_MENU_ITEM(menu->m_owner), menu->m_menu );
     }
+    g_object_ref(menu->m_owner);
 
     gtk_widget_show( menu->m_owner );
 
@@ -335,10 +333,18 @@ wxMenu *wxMenuBar::Remove(size_t pos)
     if ( !menu )
         return NULL;
 
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu->m_owner), NULL);
+    // remove item from menubar before destroying item to avoid spurious
+    // warnings from Ubuntu libdbusmenu
     gtk_container_remove(GTK_CONTAINER(m_menubar), menu->m_owner);
+    // remove submenu to avoid destroying it when item is destroyed
+#ifdef __WXGTK3__
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu->m_owner), NULL);
+#else
+    gtk_menu_item_remove_submenu(GTK_MENU_ITEM(menu->m_owner));
+#endif
 
     gtk_widget_destroy( menu->m_owner );
+    g_object_unref(menu->m_owner);
     menu->m_owner = NULL;
 
     if ( m_menuBarFrame )
@@ -480,6 +486,16 @@ static void menuitem_activate(GtkWidget*, wxMenuItem* item)
     if (!item->IsEnabled())
         return;
 
+    // Unity hack: under Ubuntu Unity the global menu bar is not affected by a
+    // modal dialog being shown, so the user can select a menu item before
+    // hiding the dialog and, in particular, a new instance of the same dialog
+    // can be shown again, breaking a lot of programs not expecting this.
+    //
+    // So explicitly ignore any menu events generated while any modal dialogs
+    // are opened.
+    if ( wxOpenModalDialogsCount )
+        return;
+
     int id = item->GetId();
     if (id == wxGTK_TITLE_ID)
     {
@@ -581,7 +597,18 @@ wxMenuItem::wxMenuItem(wxMenu *parentMenu,
 
 wxMenuItem::~wxMenuItem()
 {
+    if (m_menuItem)
+        g_object_unref(m_menuItem);
    // don't delete menu items, the menus take care of that
+}
+
+void wxMenuItem::SetMenuItem(GtkWidget* menuItem)
+{
+    if (m_menuItem)
+        g_object_unref(m_menuItem);
+    m_menuItem = menuItem;
+    if (menuItem)
+        g_object_ref(menuItem);
 }
 
 void wxMenuItem::SetItemLabel( const wxString& str )
@@ -716,8 +743,6 @@ void wxMenu::Init()
 
     m_accel = gtk_accel_group_new();
     m_menu = gtk_menu_new();
-    // NB: keep reference to the menu so that it is not destroyed behind
-    //     our back by GTK+ e.g. when it is removed from menubar:
     g_object_ref_sink(m_menu);
 
     m_owner = NULL;
@@ -752,14 +777,15 @@ wxMenu::~wxMenu()
     g_signal_handlers_disconnect_matched(m_menu,
         GSignalMatchType(G_SIGNAL_MATCH_DATA), 0, 0, NULL, NULL, this);
 
-    // see wxMenu::Init
-    g_object_unref(m_menu);
-
-    // if the menu is inserted in another menu at this time, there was
-    // one more reference to it:
     if (m_owner)
-       gtk_widget_destroy(m_menu);
+    {
+        gtk_widget_destroy(m_owner);
+        g_object_unref(m_owner);
+    }
+    else
+        gtk_widget_destroy(m_menu);
 
+    g_object_unref(m_menu);
     g_object_unref(m_accel);
 }
 
@@ -920,20 +946,7 @@ wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
 #ifdef __WXGTK3__
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(mitem), NULL);
 #else
-    if (!gtk_check_version(2,12,0))
-    {
-        // gtk_menu_item_remove_submenu() is deprecated since 2.12, but
-        // gtk_menu_item_set_submenu() can now be used with NULL submenu now so
-        // just do use it.
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(mitem), NULL);
-    }
-    else // GTK+ < 2.12
-    {
-        // In 2.10 calling gtk_menu_item_set_submenu() with NULL submenu
-        // results in critical GTK+ error messages so use the old function
-        // instead.
-        gtk_menu_item_remove_submenu(GTK_MENU_ITEM(mitem));
-    }
+    gtk_menu_item_remove_submenu(GTK_MENU_ITEM(mitem));
 #endif
 
     gtk_widget_destroy(mitem);

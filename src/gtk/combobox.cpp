@@ -187,8 +187,6 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
                           G_CALLBACK (gtkcombobox_popupshown_callback), this);
     }
 
-    SetInitialSize(size); // need this too because this is a wxControlWithItems
-
     return true;
 }
 
@@ -292,9 +290,9 @@ wxVisualAttributes
 wxComboBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
 #ifdef __WXGTK3__
-    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_new_with_entry, true);
+    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_new_with_entry(), true);
 #else
-    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_entry_new, true);
+    return GetDefaultAttributesFromGTKWidget(gtk_combo_box_entry_new(), true);
 #endif
 }
 
@@ -406,4 +404,21 @@ void wxComboBox::Dismiss()
 {
     gtk_combo_box_popdown( GTK_COMBO_BOX(m_widget) );
 }
+
+wxSize wxComboBox::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
+    wxSize tsize( wxChoice::DoGetSizeFromTextSize(xlen, ylen) );
+
+    GtkEntry* entry = GetEntry();
+    if (entry)
+    {
+        // Add the margins we have previously set, but only the horizontal border
+        // as vertical one has been taken account in the previous call.
+        // Also get other GTK+ margins.
+        tsize.IncBy(GTKGetEntryMargins(entry).x, 0);
+    }
+
+    return tsize;
+}
+
 #endif // wxUSE_COMBOBOX

@@ -60,37 +60,51 @@ public:
         to this directory itself or its immediate children will generate the
         events. Use AddTree() to monitor the directory recursively.
 
+        Note that on platforms that use symbolic links, you should consider the
+        possibility that @a path is a symlink. To watch the symlink itself and
+        not its target you may call wxFileName::DontFollowLink() on @a path.
+
         @param path
             The name of the path to watch.
         @param events
             An optional filter to receive only events of particular types.
+            This is currently implemented only for GTK.
      */
     virtual bool Add(const wxFileName& path, int events = wxFSW_EVENT_ALL);
 
     /**
-        This is the same as Add(), but recursively adds every file/directory in
-        the tree rooted at @a path.
+        This is the same as Add(), but also recursively adds every
+        file/directory in the tree rooted at @a path.
 
         Additionally a file mask can be specified to include only files
         matching that particular mask.
 
-        This method is implemented efficiently under MSW but shouldn't be used
-        for the directories with a lot of children (such as e.g. the root
-        directory) under the other platforms as it calls Add() there for each
-        subdirectory potentially creating a lot of watches and taking a long
-        time to execute.
+        This method is implemented efficiently on MSW, but should be used with
+        care on other platforms for directories with lots of children (e.g. the
+        root directory) as it calls Add() for each subdirectory, potentially
+        creating a lot of watches and taking a long time to execute.
+
+        Note that on platforms that use symbolic links, you will probably want
+        to have called wxFileName::DontFollowLink on @a path. This is especially
+        important if the symlink targets may themselves be watched.
      */
     virtual bool AddTree(const wxFileName& path, int events = wxFSW_EVENT_ALL,
                          const wxString& filter = wxEmptyString);
 
     /**
         Removes @a path from the list of watched paths.
+
+        See the comment in Add() about symbolic links. @a path should treat
+        symbolic links in the same way as in the original Add() call.
      */
     virtual bool Remove(const wxFileName& path);
 
     /**
-        Same as Remove(), but also removes every file/directory belonging to
-        the tree rooted at @a path.
+        This is the same as Remove(), but also removes every file/directory
+        belonging to the tree rooted at @a path.
+
+        See the comment in AddTree() about symbolic links. @a path should treat
+        symbolic links in the same way as in the original AddTree() call.
      */
     virtual bool RemoveTree(const wxFileName& path);
 
@@ -235,6 +249,27 @@ enum wxFSWFlags
     wxFSW_EVENT_ACCESS = 0x10,
 
     /**
+        The item's metadata was changed, e.g.\ its permissions or timestamps.
+
+        This event is currently only detected under Linux.
+
+        @since 2.9.5
+     */
+    wxFSW_EVENT_ATTRIB = 0x20,
+
+    /**
+        The file system containing a watched item was unmounted.
+
+        wxFSW_EVENT_UNMOUNT cannot be set; unmount events are produced automatically. This flag
+        is therefore not included in wxFSW_EVENT_ALL.
+
+        This event is currently only detected under Linux.
+
+        @since 2.9.5
+    */
+    wxFSW_EVENT_UNMOUNT = 0x2000,
+
+    /**
         A warning condition arose.
 
         This is something that probably needs to be shown to the user in an
@@ -243,7 +278,7 @@ enum wxFSWFlags
         more events will still be coming in the future, unlike for the error
         condition below.
      */
-    wxFSW_EVENT_WARNING = 0x20,
+    wxFSW_EVENT_WARNING = 0x40,
 
     /**
         An error condition arose.
@@ -252,11 +287,11 @@ enum wxFSWFlags
         and the program can stop watching the directories currently being
         monitored.
     */
-    wxFSW_EVENT_ERROR = 0x40,
+    wxFSW_EVENT_ERROR = 0x80,
 
     wxFSW_EVENT_ALL = wxFSW_EVENT_CREATE | wxFSW_EVENT_DELETE |
                          wxFSW_EVENT_RENAME | wxFSW_EVENT_MODIFY |
-                         wxFSW_EVENT_ACCESS |
+                         wxFSW_EVENT_ACCESS | wxFSW_EVENT_ATTRIB |
                          wxFSW_EVENT_WARNING | wxFSW_EVENT_ERROR
 };
 

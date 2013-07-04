@@ -26,11 +26,12 @@
 
     @library{wxcore}
     @category{ctrl}
-    @appearance{choice.png}
+    @appearance{choice}
 
     @see wxListBox, wxComboBox, wxCommandEvent
 */
-class wxChoice : public wxControlWithItems
+class wxChoice : public wxControl,
+                 public wxItemContainer
 {
 public:
     /**

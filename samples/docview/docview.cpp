@@ -386,15 +386,24 @@ void MyApp::OnAbout(wxCommandEvent& WXUNUSED(event))
             wxFAIL_MSG( "unknown mode ");
     }
 
+#ifdef __VISUALC6__
+    const int docsCount =
+        wxDocManager::GetDocumentManager()->GetDocuments().GetCount();
+#else
+    const int docsCount =
+        wxDocManager::GetDocumentManager()->GetDocumentsVector().size();
+#endif
+
     wxLogMessage
     (
         "This is the wxWidgets Document/View Sample\n"
         "running in %s mode.\n"
+        "%d open documents.\n"
         "\n"
         "Authors: Julian Smart, Vadim Zeitlin\n"
         "\n"
         "Usage: docview [--{mdi,sdi,single}]",
-        modeName
+        modeName,
+        docsCount
     );
 }
-

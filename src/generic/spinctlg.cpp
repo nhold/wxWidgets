@@ -269,16 +269,40 @@ wxSpinCtrlGenericBase::~wxSpinCtrlGenericBase()
     wxDELETE(m_spinButton);
 }
 
+wxWindowList wxSpinCtrlGenericBase::GetCompositeWindowParts() const
+{
+    wxWindowList parts;
+    parts.push_back(m_textCtrl);
+    parts.push_back(m_spinButton);
+    return parts;
+}
+
 // ----------------------------------------------------------------------------
 // geometry
 // ----------------------------------------------------------------------------
 
 wxSize wxSpinCtrlGenericBase::DoGetBestSize() const
 {
-    wxSize sizeBtn  = m_spinButton->GetBestSize(),
-           sizeText = m_textCtrl->GetBestSize();
+    return DoGetSizeFromTextSize(m_textCtrl->GetBestSize().x, -1);
+}
 
-    return wxSize(sizeBtn.x + sizeText.x + MARGIN, sizeText.y);
+wxSize wxSpinCtrlGenericBase::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
+    wxSize sizeBtn  = m_spinButton->GetBestSize();
+    wxSize totalS( m_textCtrl->GetBestSize() );
+
+    wxSize tsize(xlen + sizeBtn.x + MARGIN, totalS.y);
+#if defined(__WXMSW__)
+    tsize.IncBy(0.4 * totalS.y + 4, 0);
+#elif defined(__WXGTK__)
+    tsize.IncBy(totalS.y + 10, 0);
+#endif // MSW GTK
+
+    // Check if the user requested a non-standard height.
+    if ( ylen > 0 )
+        tsize.IncBy(0, ylen - GetCharHeight());
+
+    return tsize;
 }
 
 void wxSpinCtrlGenericBase::DoMoveWindow(int x, int y, int width, int height)
@@ -503,8 +527,7 @@ void wxSpinCtrlGenericBase::SetValue(const wxString& text)
     else // not a number at all or out of range
     {
         m_textCtrl->SetValue(text);
-        m_textCtrl->SetSelection(0, -1);
-        m_textCtrl->SetInsertionPointEnd();
+        m_textCtrl->SelectAll();
     }
 }
 
@@ -535,7 +558,7 @@ bool wxSpinCtrlGenericBase::DoSetValue(double val)
         if ( !DoTextToValue(str, &m_value ) )    // wysiwyg for textctrl
             m_value = val;
         m_textCtrl->SetValue( str );
-        m_textCtrl->SetInsertionPointEnd();
+        m_textCtrl->SelectAll();
         m_textCtrl->DiscardEdits();
         return true;
     }

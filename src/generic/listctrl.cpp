@@ -2238,19 +2238,10 @@ wxTextCtrl *wxListMainWindow::EditLabel(long item, wxClassInfo* textControlClass
         return NULL;
     }
 
-    // We have to call this here because the label in question might just have
-    // been added and no screen update taken place.
     if ( m_dirty )
     {
-        // TODO: use wxTheApp->SafeYieldFor(NULL, wxEVT_CATEGORY_UI) instead
-        //       so that no pending events may change the item count (see below)
-        //       IMPORTANT: needs to be tested!
-        wxSafeYield();
-
-        // Pending events dispatched by wxSafeYield might have changed the item
-        // count
-        if ( (size_t)item >= GetItemCount() )
-            return NULL;
+        // Ensure the display is updated before we start editing.
+        Update();
     }
 
     wxTextCtrl * const text = (wxTextCtrl *)textControlClass->CreateObject();
@@ -4621,13 +4612,14 @@ void wxGenericListCtrl::OnScroll(wxScrollWinEvent& event)
     // the window the next time
     m_mainWin->ResetVisibleLinesRange();
 
-    HandleOnScroll( event );
-
     if ( event.GetOrientation() == wxHORIZONTAL && HasHeader() )
     {
         m_headerWin->Refresh();
         m_headerWin->Update();
     }
+
+    // Let the window be scrolled as usual by the default handler.
+    event.Skip();
 }
 
 void wxGenericListCtrl::SetSingleStyle( long style, bool add )
@@ -5403,16 +5395,6 @@ int wxGenericListCtrl::OnGetItemColumnImage(long item, long column) const
         return OnGetItemImage(item);
 
    return -1;
-}
-
-wxListItemAttr *
-wxGenericListCtrl::OnGetItemAttr(long WXUNUSED_UNLESS_DEBUG(item)) const
-{
-    wxASSERT_MSG( item >= 0 && item < GetItemCount(),
-                  wxT("invalid item index in OnGetItemAttr()") );
-
-    // no attributes by default
-    return NULL;
 }
 
 void wxGenericListCtrl::SetItemCount(long count)

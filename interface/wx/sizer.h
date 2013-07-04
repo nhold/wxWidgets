@@ -642,7 +642,7 @@ public:
     bool IsShown(size_t index) const;
 
     /**
-        Call this to force layout of the children anew, e.g. after having added a child
+        Call this to force layout of the children anew, e.g.\ after having added a child
         to or removed a child (window, other sizer or space) from the sizer while
         keeping the current dimension.
     */
@@ -1882,6 +1882,12 @@ public:
         or wxHORIZONTAL.
     */
     int GetOrientation() const;
+
+    /**
+        Sets the orientation of the box sizer, either wxVERTICAL
+        or wxHORIZONTAL.
+    */
+    void SetOrientation(int orient);
 
     /**
         Implements the calculation of a box sizer's dimensions and then sets

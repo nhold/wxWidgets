@@ -38,6 +38,7 @@
 
 #include "wx/osx/private.h"
 #include "wx/sysopt.h"
+#include "wx/testing.h"
 
 #include <mach-o/dyld.h>
 
@@ -495,6 +496,8 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
 
 int wxFileDialog::ShowModal()
 {
+    WX_TESTING_SHOW_MODAL_HOOK();
+
     wxCFEventLoopPauseIdleEvents pause;
 
     wxMacAutoreleasePool autoreleasepool;
@@ -648,7 +651,7 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
             NSSavePanel* sPanel = (NSSavePanel*)panel;
             result = wxID_OK;
 
-            m_path = wxCFStringRef::AsString([sPanel filename]);
+            m_path = wxCFStringRef::AsStringWithNormalizationFormC([sPanel filename]);
             m_fileName = wxFileNameFromPath(m_path);
             m_dir = wxPathOnly( m_path );
             if (m_filterChoice)
@@ -667,7 +670,7 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
             NSArray* filenames = [oPanel filenames];
             for ( size_t i = 0 ; i < [filenames count] ; ++ i )
             {
-                wxString fnstr = wxCFStringRef::AsString([filenames objectAtIndex:i]);
+                wxString fnstr = wxCFStringRef::AsStringWithNormalizationFormC([filenames objectAtIndex:i]);
                 m_paths.Add( fnstr );
                 m_fileNames.Add( wxFileNameFromPath(fnstr) );
                 if ( i == 0 )

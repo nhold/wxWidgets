@@ -301,6 +301,11 @@ wxOSXWidgetImpl* wxWindowMac::GetPeer() const
     return m_peer == kOSXNoWidgetImpl ? NULL : m_peer ; 
 }
 
+bool wxWindowMac::ShouldCreatePeer() const
+{
+    return m_peer != kOSXNoWidgetImpl;
+}
+
 void wxWindowMac::DontCreatePeer()
 {
     m_peer = kOSXNoWidgetImpl;
@@ -345,7 +350,11 @@ void wxWindowMac::SetPeer(wxOSXWidgetImpl* peer)
         GetParent()->MacChildAdded() ;
         
         // adjust font, controlsize etc
-        DoSetWindowVariant( m_windowVariant ) ;
+        GetPeer()->SetControlSize( m_windowVariant );
+        InheritAttributes();
+        // in case nothing has been set, use the variant default fonts
+        if ( !m_hasFont )
+            DoSetWindowVariant( m_windowVariant );
         
         GetPeer()->SetLabel( wxStripMenuCodes(m_label, wxStrip_Mnemonics), GetFont().GetEncoding() ) ;
         
@@ -595,6 +604,25 @@ void wxWindowMac::SetFocus()
         return ;
 
     GetPeer()->SetFocus() ;
+}
+
+void wxWindowMac::OSXSimulateFocusEvents()
+{
+    wxWindow* former = FindFocus() ;
+    if ( former != NULL && former != this )
+    {
+        {
+            wxFocusEvent event( wxEVT_KILL_FOCUS, former->GetId());
+            event.SetEventObject(former);
+            former->HandleWindowEvent(event) ;
+        }
+
+        {
+            wxFocusEvent event(wxEVT_SET_FOCUS, former->GetId());
+            event.SetEventObject(former);
+            former->HandleWindowEvent(event);
+        }
+    }
 }
 
 void wxWindowMac::DoCaptureMouse()
@@ -1357,27 +1385,23 @@ void wxWindowMac::Refresh(bool WXUNUSED(eraseBack), const wxRect *rect)
 
     if ( !IsShownOnScreen() )
         return ;
+    
+    if ( IsFrozen() )
+        return;
 
     GetPeer()->SetNeedsDisplay( rect ) ;
 }
 
 void wxWindowMac::DoFreeze()
 {
-#if wxOSX_USE_CARBON
     if ( GetPeer() && GetPeer()->IsOk() )
         GetPeer()->SetDrawingEnabled( false ) ;
-#endif
 }
 
 void wxWindowMac::DoThaw()
 {
-#if wxOSX_USE_CARBON
     if ( GetPeer() && GetPeer()->IsOk() )
-    {
         GetPeer()->SetDrawingEnabled( true ) ;
-        GetPeer()->InvalidateWithChildren() ;
-    }
-#endif
 }
 
 wxWindow *wxGetActiveWindow()
@@ -2848,4 +2872,8 @@ void wxWidgetImpl::SetNeedsFrame( bool needs )
 bool wxWidgetImpl::NeedsFrame() const
 {
     return m_needsFrame;
+}
+
+void wxWidgetImpl::SetDrawingEnabled(bool WXUNUSED(enabled))
+{
 }

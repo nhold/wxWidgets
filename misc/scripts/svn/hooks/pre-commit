@@ -21,6 +21,7 @@ all_changed_files=`svnl changed | \
                     grep "^[AU]" | \
                     sed 's/^....//' | \
                     egrep -v "branches/WX_2_" | \
+                    egrep -v "wxWidgets/vendor" | \
                     egrep -v "src/(tiff|regex|jpeg|stc/scintilla)" | \
                     egrep -v "_wrap.cpp" | \
                     egrep -v "wxPython/.*/docs/.*\.html$"`
@@ -57,6 +58,10 @@ for f in $changed_sources; do
      case $f in
         */wx/chartype.h)
             # This file defines _T() for compatibility so don't check it.
+            ;;
+
+        */docs/doxygen/overviews/changes_since28.h)
+            # And this one describes changes from _T() to wxT().
             ;;
 
         *)

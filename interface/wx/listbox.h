@@ -67,11 +67,12 @@
 
     @library{wxcore}
     @category{ctrl}
-    @appearance{listbox.png}
+    @appearance{listbox}
 
     @see wxEditableListBox, wxChoice, wxComboBox, wxListCtrl, wxCommandEvent
 */
-class wxListBox : public wxControlWithItems
+class wxListBox : public wxControl,
+                  public wxItemContainer
 {
 public:
     /**

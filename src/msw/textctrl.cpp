@@ -64,10 +64,6 @@
 
 #if wxUSE_RICHEDIT
 
-#if wxUSE_INKEDIT
-#include "wx/dynlib.h"
-#endif
-
 // old mingw32 has richedit stuff directly in windows.h and doesn't have
 // richedit.h at all
 #if !defined(__GNUWIN32_OLD__) || defined(__CYGWIN10__)
@@ -77,6 +73,11 @@
 #endif // wxUSE_RICHEDIT
 
 #include "wx/msw/missing.h"
+
+// FIXME-VC6: This seems to be only missing from VC6 headers.
+#ifndef SPI_GETCARETWIDTH
+    #define SPI_GETCARETWIDTH 0x2006
+#endif
 
 #if wxUSE_DRAG_AND_DROP && wxUSE_RICHEDIT
 
@@ -498,7 +499,23 @@ bool wxTextCtrl::MSWCreateText(const wxString& value,
     SetWindowPos(GetHwnd(), NULL, 0, 0, 0, 0,
                 SWP_NOZORDER|SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE|
                 SWP_FRAMECHANGED);
-#endif
+
+    if ( IsSingleLine() )
+    {
+        // If we don't set the margins explicitly, their size depends on the
+        // control initial size, see #2438. So explicitly set them to something
+        // consistent. And for this we have 2 candidates: EC_USEFONTINFO (which
+        // sets the left margin to 3 pixels, at least under Windows 7) or 0. We
+        // use the former because it looks like it was meant to be used as the
+        // default (what else would it be there for?) and 0 looks bad in
+        // classic mode, i.e. without themes. Also, the margin can be reset to
+        // 0 easily by calling SetMargins() explicitly but setting it to the
+        // default value is not currently supported.
+        ::SendMessage(GetHwnd(), EM_SETMARGINS,
+                      EC_LEFTMARGIN | EC_RIGHTMARGIN,
+                      MAKELPARAM(EC_USEFONTINFO, EC_USEFONTINFO));
+    }
+#endif // !__WXWINCE__
 
     return true;
 }
@@ -2107,17 +2124,41 @@ bool wxTextCtrl::AcceptsFocusFromKeyboard() const
 
 wxSize wxTextCtrl::DoGetBestSize() const
 {
+    return DoGetSizeFromTextSize( DEFAULT_ITEM_WIDTH );
+}
+
+wxSize wxTextCtrl::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
     int cx, cy;
     wxGetCharSize(GetHWND(), &cx, &cy, GetFont());
 
-    int wText = DEFAULT_ITEM_WIDTH;
+    DWORD wText = 1;
+    ::SystemParametersInfo(SPI_GETCARETWIDTH, 0, &wText, 0);
+    wText += xlen;
 
     int hText = cy;
     if ( m_windowStyle & wxTE_MULTILINE )
     {
-        hText *= wxMax(wxMin(GetNumberOfLines(), 10), 2);
+        // add space for vertical scrollbar
+        if ( !(m_windowStyle & wxTE_NO_VSCROLL) )
+            wText += ::GetSystemMetrics(SM_CXVSCROLL);
+
+        if ( ylen <= 0 )
+        {
+            hText *= wxMax(wxMin(GetNumberOfLines(), 10), 2);
+            // add space for horizontal scrollbar
+            if ( m_windowStyle & wxHSCROLL )
+                hText += ::GetSystemMetrics(SM_CYHSCROLL);
+        }
     }
-    //else: for single line control everything is ok
+    // for single line control cy (height + external leading) is ok
+    else
+    {
+        // Add the margins we have previously set
+        wxPoint marg( GetMargins() );
+        wText += wxMax(0, marg.x);
+        hText += wxMax(0, marg.y);
+    }
 
     // Text controls without border are special and have the same height as
     // static labels (they also have the same appearance when they're disable
@@ -2126,10 +2167,17 @@ wxSize wxTextCtrl::DoGetBestSize() const
     // stand out).
     if ( !HasFlag(wxBORDER_NONE) )
     {
+        wText += 9; // borders and inner margins
+
         // we have to add the adjustments for the control height only once, not
         // once per line, so do it after multiplication above
         hText += EDIT_HEIGHT_FROM_CHAR_HEIGHT(cy) - cy;
     }
+
+    // Perhaps the user wants something different from CharHeight, or ylen
+    // is used as the height of a multiline text.
+    if ( ylen > 0 )
+        hText += ylen - GetCharHeight();
 
     return wxSize(wText, hText);
 }

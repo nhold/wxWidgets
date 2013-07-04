@@ -502,10 +502,39 @@ void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow* WXUNUSED(window), const
     }
     else
     {
-        for (i = 0; i < borderWidth; ++i)
+        // notebooks draw the border themselves, so they can use native rendering (e.g. tabartgtk)
+        wxAuiTabArt* art = 0;
+        wxAuiNotebook* nb = wxDynamicCast(window, wxAuiNotebook);
+        bool useDefaultBorder = true;
+        // if a pane is the only one in a notebook, there is no tab
+        if (nb)
         {
-            dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
-            rect.Deflate(1);
+            wxAuiManager* mgr = wxAuiManager::GetManager(pane.window);
+            wxAuiTabContainer* ctrl;
+            int idx;
+
+            // find the tab ctrl with the current page
+            if (mgr && mgr->FindTab(pane.GetWindow(), &ctrl, &idx))
+            {
+                useDefaultBorder = (ctrl->GetPageCount() < 2);
+            }
+        }
+
+        if (!useDefaultBorder && nb)
+        {
+            art = nb->GetArtProvider();
+            if (art)
+            {
+                art->DrawBorder(dc, window, rect);
+            }
+        }
+        else
+        {
+            for (i = 0; i < borderWidth; ++i)
+            {
+                dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
+                rect.Deflate(1);
+            }
         }
     }
 }

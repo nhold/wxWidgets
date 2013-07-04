@@ -97,11 +97,6 @@ void wxDisplaySizeMM( int *width, int *height )
     if (height) *height = gdk_screen_height_mm();
 }
 
-void wxGetMousePosition( int* x, int* y )
-{
-    gdk_window_get_pointer(gtk_widget_get_root_window(wxGetRootWindow()), x, y, NULL);
-}
-
 bool wxColourDisplay()
 {
     return true;
@@ -290,18 +285,6 @@ wxEventLoopBase *wxGUIAppTraits::CreateEventLoop()
 }
 
 
-#if wxUSE_INTL && defined(__UNIX__)
-void wxGUIAppTraits::SetLocale()
-{
-#ifdef __WXGTK3__
-    setlocale(LC_ALL, "");
-#else
-    gtk_set_locale();
-#endif
-    wxUpdateLocaleIsUtf8();
-}
-#endif
-
 #ifdef __UNIX__
 
 #if wxDEBUG_LEVEL && wxUSE_STACKWALKER
@@ -335,7 +318,7 @@ static void get_stackframe_callback(void* p)
 {
     StackDump* dump = static_cast<StackDump*>(p);
     // skip over frames up to including wxOnAssert()
-    dump->ProcessFrames(7);
+    dump->ProcessFrames(6);
 }
 
 #endif // wxDEBUG_LEVEL && wxUSE_STACKWALKER

@@ -211,7 +211,14 @@ public:
     void SetActive(bool b) { m_active = b; }
     bool IsActive() const { return m_active; }
 
-    void SetHasDropDown(bool b) { m_dropDown = b; }
+    void SetHasDropDown(bool b)
+    {
+        wxCHECK_RET( !b || m_kind == wxITEM_NORMAL,
+                     wxS("Only normal tools can have drop downs") );
+
+        m_dropDown = b;
+    }
+
     bool HasDropDown() const { return m_dropDown; }
 
     void SetSticky(bool b) { m_sticky = b; }
@@ -439,16 +446,27 @@ protected:
 class WXDLLIMPEXP_AUI wxAuiToolBar : public wxControl
 {
 public:
+    wxAuiToolBar() { Init(); }
 
     wxAuiToolBar(wxWindow* parent,
-                 wxWindowID id = -1,
-                 const wxPoint& position = wxDefaultPosition,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE);
+                 long style = wxAUI_TB_DEFAULT_STYLE)
+    {
+        Init();
+        Create(parent, id, pos, size, style);
+    }
+
     virtual ~wxAuiToolBar();
 
-    void SetWindowStyleFlag(long style);
-    long GetWindowStyleFlag() const;
+    bool Create(wxWindow* parent,
+                wxWindowID id = wxID_ANY,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize,
+                long style = wxAUI_TB_DEFAULT_STYLE);
+
+    virtual void SetWindowStyleFlag(long style);
 
     void SetArtProvider(wxAuiToolBarArt* art);
     wxAuiToolBarArt* GetArtProvider() const;
@@ -581,6 +599,7 @@ public:
     virtual void UpdateWindowUI(long flags = wxUPDATE_UI_NONE);
 
 protected:
+    void Init();
 
     virtual void OnCustomRender(wxDC& WXUNUSED(dc),
                                 const wxAuiToolBarItem& WXUNUSED(item),
@@ -651,7 +670,6 @@ protected:
     bool m_dragging;
     bool m_gripperVisible;
     bool m_overflowVisible;
-    long m_style;
 
     bool RealizeHelper(wxClientDC& dc, bool horizontal);
     static bool IsPaneValid(long style, const wxAuiPaneInfo& pane);

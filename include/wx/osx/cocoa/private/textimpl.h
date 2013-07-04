@@ -45,6 +45,10 @@ public :
     virtual bool SetHint(const wxString& hint);
 
     virtual void controlAction(WXWidget slf, void* _cmd, void *sender);
+    virtual bool becomeFirstResponder(WXWidget slf, void *_cmd);
+    virtual bool resignFirstResponder(WXWidget slf, void *_cmd);
+
+    virtual void SetInternalSelection( long from , long to );
 
 protected :
     NSTextField* m_textField;

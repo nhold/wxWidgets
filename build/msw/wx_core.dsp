@@ -6092,10 +6092,6 @@ SOURCE=..\..\include\wx\ribbon\buttonbar.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\wx\cairo.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\wx\calctrl.h
 # End Source File
 # Begin Source File
@@ -7108,6 +7104,10 @@ SOURCE=..\..\include\wx\xrc\xh_animatctrl.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\xrc\xh_auinotbk.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\xrc\xh_bannerwindow.h
 # End Source File
 # Begin Source File
@@ -7268,6 +7268,14 @@ SOURCE=..\..\include\wx\xrc\xh_radbx.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\xrc\xh_ribbon.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\xrc\xh_richtext.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\xrc\xh_scrol.h
 # End Source File
 # Begin Source File
@@ -7356,11 +7364,23 @@ SOURCE=..\..\include\wx\xrc\xmlres.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\xrc\xmlreshandler.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\xpmdecod.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\include\wx\xpmhand.h
+# End Source File
+# End Group
+# Begin Group "Source Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\xrc\xmlreshandler.cpp
 # End Source File
 # End Group
 # End Target

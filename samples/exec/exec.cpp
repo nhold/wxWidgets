@@ -55,6 +55,7 @@
 #include "wx/numdlg.h"
 #include "wx/textdlg.h"
 #include "wx/ffile.h"
+#include "wx/scopedptr.h"
 #include "wx/stopwatch.h"
 
 #include "wx/process.h"
@@ -122,6 +123,7 @@ public:
     void OnFileExec(wxCommandEvent& event);
     void OnFileLaunch(wxCommandEvent& event);
     void OnOpenURL(wxCommandEvent& event);
+    void OnShowCommandForExt(wxCommandEvent& event);
 
     void OnAbout(wxCommandEvent& event);
 
@@ -312,8 +314,7 @@ enum
     Exec_TimerBg,
 
     // menu items
-    Exec_Quit = 100,
-    Exec_Kill,
+    Exec_Kill = 100,
     Exec_ClearLog,
     Exec_BeginBusyCursor,
     Exec_EndBusyCursor,
@@ -322,6 +323,7 @@ enum
     Exec_Shell,
     Exec_POpen,
     Exec_OpenFile,
+    Exec_ShowCommandForExt,
     Exec_LaunchFile,
     Exec_OpenURL,
     Exec_DDEExec,
@@ -332,6 +334,7 @@ enum
     Exec_Flags_ShowConsole,
     Exec_Flags_NoEvents,
     Exec_About = wxID_ABOUT,
+    Exec_Quit = wxID_EXIT,
 
     // control ids
     Exec_Btn_Send = 1000,
@@ -365,6 +368,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(Exec_POpen, MyFrame::OnPOpen)
 
     EVT_MENU(Exec_OpenFile, MyFrame::OnFileExec)
+    EVT_MENU(Exec_ShowCommandForExt, MyFrame::OnShowCommandForExt)
     EVT_MENU(Exec_LaunchFile, MyFrame::OnFileLaunch)
     EVT_MENU(Exec_OpenURL, MyFrame::OnOpenURL)
 
@@ -457,11 +461,21 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     menuFile->Append(Exec_Kill, wxT("&Kill process...\tCtrl-K"),
                      wxT("Kill a process by PID"));
     menuFile->AppendSeparator();
-    menuFile->Append(Exec_ClearLog, wxT("&Clear log\tCtrl-L"),
-                     wxT("Clear the log window"));
+    menuFile->Append(Exec_OpenFile, wxT("Open &file...\tCtrl-F"),
+                     wxT("Launch the command to open this kind of files"));
+    menuFile->Append(Exec_ShowCommandForExt,
+                     "Show association for extension...\tShift-Ctrl-A",
+                     "Show the command associated with the given extension");
+    menuFile->Append(Exec_LaunchFile, wxT("La&unch file...\tShift-Ctrl-F"),
+                     wxT("Launch the default application associated with the file"));
+    menuFile->Append(Exec_OpenURL, wxT("Open &URL...\tCtrl-U"),
+                     wxT("Launch the default browser with the given URL"));
     menuFile->AppendSeparator();
     menuFile->Append(Exec_BeginBusyCursor, wxT("Show &busy cursor\tCtrl-C"));
     menuFile->Append(Exec_EndBusyCursor, wxT("Show &normal cursor\tShift-Ctrl-C"));
+    menuFile->AppendSeparator();
+    menuFile->Append(Exec_ClearLog, wxT("&Clear log\tCtrl-L"),
+                     wxT("Clear the log window"));
     menuFile->AppendSeparator();
     menuFile->Append(Exec_Quit, wxT("E&xit\tAlt-X"), wxT("Quit this program"));
 
@@ -488,13 +502,6 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
     execMenu->Append(Exec_POpen, wxT("&Open a pipe to a command...\tCtrl-P"),
                      wxT("Open a pipe to and from another program"));
 
-    execMenu->AppendSeparator();
-    execMenu->Append(Exec_OpenFile, wxT("Open &file...\tCtrl-F"),
-                     wxT("Launch the command to open this kind of files"));
-    execMenu->Append(Exec_LaunchFile, wxT("La&unch file...\tShift-Ctrl-F"),
-                     wxT("Launch the default application associated with the file"));
-    execMenu->Append(Exec_OpenURL, wxT("Open &URL...\tCtrl-U"),
-                     wxT("Launch the default browser with the given URL"));
 #ifdef __WINDOWS__
     execMenu->AppendSeparator();
     execMenu->Append(Exec_DDEExec, wxT("Execute command via &DDE...\tCtrl-D"));
@@ -1096,6 +1103,41 @@ void MyFrame::OnFileExec(wxCommandEvent& WXUNUSED(event))
     }
 
     DoAsyncExec(cmd);
+}
+
+void MyFrame::OnShowCommandForExt(wxCommandEvent& WXUNUSED(event))
+{
+    static wxString s_ext;
+
+    wxString ext = wxGetTextFromUser
+                   (
+                    "Enter the extension without leading dot",
+                    "Exec sample",
+                    s_ext,
+                    this
+                   );
+    if ( ext.empty() )
+        return;
+
+    s_ext = ext;
+
+    wxScopedPtr<wxFileType>
+        ft(wxTheMimeTypesManager->GetFileTypeFromExtension(ext));
+    if ( !ft )
+    {
+        wxLogError("Information for extension \"%s\" not found", ext);
+        return;
+    }
+
+    const wxString cmd = ft->GetOpenCommand("file." + ext);
+    if ( cmd.empty() )
+    {
+        wxLogWarning("Open command for extension \"%s\" not defined.", ext);
+        return;
+    }
+
+    wxLogMessage("Open command for files of extension \"%s\" is\n%s",
+                 ext, cmd);
 }
 
 void MyFrame::OnFileLaunch(wxCommandEvent& WXUNUSED(event))

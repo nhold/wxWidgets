@@ -335,14 +335,14 @@ static bool IsUNCPath(const wxString& path, wxPathFormat format)
 #ifndef __WIN32__
 
 // Under Unix-ish systems (basically everything except Windows) we may work
-// either with the file itself or its target in case it's a symbolic link, as
-// determined by wxFileName::ShouldFollowLink(). StatAny() can be used to stat
-// the appropriate file with an extra twist that it also works (by following
-// the symlink by default) when there is no wxFileName object at all, as is the
-// case in static methods.
+// either with the file itself or its target if it's a symbolic link and we
+// should dereference it, as determined by wxFileName::ShouldFollowLink() and
+// the absence of the wxFILE_EXISTS_NO_FOLLOW flag. StatAny() can be used to
+// stat the appropriate file with an extra twist that it also works when there
+// is no wxFileName object at all, as is the case in static methods.
 
 // Private implementation, don't call directly, use one of the overloads below.
-bool DoStatAny(wxStructStat& st, wxString path, const wxFileName* fn)
+bool DoStatAny(wxStructStat& st, wxString path, bool dereference)
 {
     // We need to remove any trailing slashes from the path because they could
     // interfere with the symlink following decision: even if we use lstat(),
@@ -351,25 +351,33 @@ bool DoStatAny(wxStructStat& st, wxString path, const wxFileName* fn)
     // path and not for the last path element itself.
 
     while ( wxEndsWithPathSeparator(path) )
-        path.RemoveLast();
+    {
+        const size_t posLast = path.length() - 1;
+        if ( !posLast )
+        {
+            // Don't turn "/" into empty string.
+            break;
+        }
 
-    int ret = !fn || fn->ShouldFollowLink() ? wxStat(path, &st)
-                                            : wxLstat(path, &st);
+        path.erase(posLast);
+    }
+
+    int ret = dereference ? wxStat(path, &st) : wxLstat(path, &st);
     return ret == 0;
 }
 
 // Overloads to use for a case when we don't have wxFileName object and when we
 // do have one.
 inline
-bool StatAny(wxStructStat& st, const wxString& path)
+bool StatAny(wxStructStat& st, const wxString& path, int flags)
 {
-    return DoStatAny(st, path, NULL);
+    return DoStatAny(st, path, !(flags & wxFILE_EXISTS_NO_FOLLOW));
 }
 
 inline
 bool StatAny(wxStructStat& st, const wxFileName& fn)
 {
-    return DoStatAny(st, fn.GetFullPath(), &fn);
+    return DoStatAny(st, fn.GetFullPath(), fn.ShouldFollowLink());
 }
 
 #endif // !__WIN32__
@@ -635,16 +643,6 @@ wxFileName wxFileName::DirName(const wxString& dir, wxPathFormat format)
 namespace
 {
 
-// Flags for wxFileSystemObjectExists() asking it to check for:
-enum
-{
-    wxFileSystemObject_File  = 1,   // file existence
-    wxFileSystemObject_Dir   = 2,   // directory existence
-    wxFileSystemObject_Other = 4,   // existence of something else, e.g.
-                                    // device, socket, FIFO under Unix
-    wxFileSystemObject_Any   = 7    // existence of anything at all
-};
-
 #if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
 
 void RemoveTrailingSeparatorsFromPath(wxString& strPath)
@@ -670,15 +668,13 @@ void RemoveTrailingSeparatorsFromPath(wxString& strPath)
 #endif // __WINDOWS__ || __OS2__
 
 bool
-wxFileSystemObjectExists(const wxString& path, int flags,
-                         const wxFileName* fn = NULL)
+wxFileSystemObjectExists(const wxString& path, int flags)
 {
-    wxUnusedVar(fn);    // It's only used under Unix
 
     // Should the existence of file/directory with this name be accepted, i.e.
     // result in the true return value from this function?
-    const bool acceptFile = (flags & wxFileSystemObject_File) != 0;
-    const bool acceptDir  = (flags & wxFileSystemObject_Dir) != 0;
+    const bool acceptFile = (flags & wxFILE_EXISTS_REGULAR) != 0;
+    const bool acceptDir  = (flags & wxFILE_EXISTS_DIR)  != 0;
 
     wxString strPath(path);
 
@@ -726,22 +722,35 @@ wxFileSystemObjectExists(const wxString& path, int flags,
     // We consider that the path must exist if we get a sharing violation for
     // it but we don't know what is it in this case.
     if ( rc == ERROR_SHARING_VIOLATION )
-        return flags & wxFileSystemObject_Other;
+        return flags & wxFILE_EXISTS_ANY;
 
     // Any other error (usually ERROR_PATH_NOT_FOUND), means there is nothing
     // there.
     return false;
 #else // Non-MSW, non-OS/2
     wxStructStat st;
-    if ( !DoStatAny(st, strPath, fn) )
+    if ( !StatAny(st, strPath, flags) )
         return false;
 
     if ( S_ISREG(st.st_mode) )
         return acceptFile;
     if ( S_ISDIR(st.st_mode) )
         return acceptDir;
+    if ( S_ISLNK(st.st_mode) )
+    {
+        // Take care to not test for "!= 0" here as this would erroneously
+        // return true if only wxFILE_EXISTS_NO_FOLLOW, which is part of
+        // wxFILE_EXISTS_SYMLINK, is set too.
+        return (flags & wxFILE_EXISTS_SYMLINK) == wxFILE_EXISTS_SYMLINK;
+    }
+    if ( S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode) )
+        return (flags & wxFILE_EXISTS_DEVICE) != 0;
+    if ( S_ISFIFO(st.st_mode) )
+        return (flags & wxFILE_EXISTS_FIFO) != 0;
+    if ( S_ISSOCK(st.st_mode) )
+        return (flags & wxFILE_EXISTS_SOCKET) != 0;
 
-    return flags & wxFileSystemObject_Other;
+    return flags & wxFILE_EXISTS_ANY;
 #endif // Platforms
 }
 
@@ -749,35 +758,50 @@ wxFileSystemObjectExists(const wxString& path, int flags,
 
 bool wxFileName::FileExists() const
 {
-    return wxFileSystemObjectExists(GetFullPath(), wxFileSystemObject_File, this);
+    int flags = wxFILE_EXISTS_REGULAR;
+    if ( !ShouldFollowLink() )
+        flags |= wxFILE_EXISTS_NO_FOLLOW;
+
+    return wxFileSystemObjectExists(GetFullPath(), flags);
 }
 
 /* static */
 bool wxFileName::FileExists( const wxString &filePath )
 {
-    return wxFileSystemObjectExists(filePath, wxFileSystemObject_File);
+    return wxFileSystemObjectExists(filePath, wxFILE_EXISTS_REGULAR);
 }
 
 bool wxFileName::DirExists() const
 {
-    return wxFileSystemObjectExists(GetPath(), wxFileSystemObject_Dir, this);
+    int flags = wxFILE_EXISTS_DIR;
+    if ( !ShouldFollowLink() )
+        flags |= wxFILE_EXISTS_NO_FOLLOW;
+
+    return Exists(GetPath(), flags);
 }
 
 /* static */
 bool wxFileName::DirExists( const wxString &dirPath )
 {
-    return wxFileSystemObjectExists(dirPath, wxFileSystemObject_Dir);
+    return wxFileSystemObjectExists(dirPath, wxFILE_EXISTS_DIR);
 }
 
-bool wxFileName::Exists() const
+bool wxFileName::Exists(int flags) const
 {
-    return wxFileSystemObjectExists(GetFullPath(), wxFileSystemObject_Any, this);
+    // Notice that wxFILE_EXISTS_NO_FOLLOW may be specified in the flags even
+    // if our DontFollowLink() hadn't been called and we do honour it then. But
+    // if the user took the care of calling DontFollowLink(), it is always
+    // taken into account.
+    if ( !ShouldFollowLink() )
+        flags |= wxFILE_EXISTS_NO_FOLLOW;
+
+    return wxFileSystemObjectExists(GetFullPath(), flags);
 }
 
 /* static */
-bool wxFileName::Exists(const wxString& path)
+bool wxFileName::Exists(const wxString& path, int flags)
 {
-    return wxFileSystemObjectExists(path, wxFileSystemObject_Any);
+    return wxFileSystemObjectExists(path, flags);
 }
 
 // ----------------------------------------------------------------------------
@@ -1396,6 +1420,20 @@ bool wxFileName::Rmdir(const wxString& dir, int flags)
     if ( flags != 0 )   // wxPATH_RMDIR_FULL or wxPATH_RMDIR_RECURSIVE
 #endif // !__WINDOWS__
     {
+#ifndef __WINDOWS__
+        if ( flags & wxPATH_RMDIR_RECURSIVE )
+        {
+            // When deleting the tree recursively, we are supposed to delete
+            // this directory itself even when it is a symlink -- but without
+            // following it. Do it here as wxRmdir() would simply follow if
+            // called for a symlink.
+            if ( wxFileName::Exists(dir, wxFILE_EXISTS_SYMLINK) )
+            {
+                return wxRemoveFile(dir);
+            }
+        }
+#endif // !__WINDOWS__
+
         wxString path(dir);
         if ( path.Last() != wxFILE_SEP_PATH )
             path += wxFILE_SEP_PATH;
@@ -1407,8 +1445,11 @@ bool wxFileName::Rmdir(const wxString& dir, int flags)
 
         wxString filename;
 
-        // first delete all subdirectories
-        bool cont = d.GetFirst(&filename, "", wxDIR_DIRS | wxDIR_HIDDEN);
+        // First delete all subdirectories: notice that we don't follow
+        // symbolic links, potentially leading outside this directory, to avoid
+        // unpleasant surprises.
+        bool cont = d.GetFirst(&filename, wxString(),
+                               wxDIR_DIRS | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
         while ( cont )
         {
             wxFileName::Rmdir(path + filename, flags);
@@ -1418,8 +1459,11 @@ bool wxFileName::Rmdir(const wxString& dir, int flags)
 #ifndef __WINDOWS__
         if ( flags & wxPATH_RMDIR_RECURSIVE )
         {
-            // delete all files too
-            cont = d.GetFirst(&filename, "", wxDIR_FILES | wxDIR_HIDDEN);
+            // Delete all files too and, for the same reasons as above, don't
+            // follow symlinks which could refer to the files outside of this
+            // directory and just delete the symlinks themselves.
+            cont = d.GetFirst(&filename, wxString(),
+                              wxDIR_FILES | wxDIR_HIDDEN | wxDIR_NO_FOLLOW);
             while ( cont )
             {
                 ::wxRemoveFile(path + filename);

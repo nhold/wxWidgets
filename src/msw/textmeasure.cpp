@@ -2,9 +2,9 @@
 // Name:        src/msw/textmeasure.cpp
 // Purpose:     wxTextMeasure implementation for wxMSW
 // Author:      Manuel Martin
-// Created:     2012-19-05
-// RCS-ID:
-// Copyright:
+// Created:     2012-10-05
+// RCS-ID:      $Id:
+// Copyright:   (c) 1997-2012 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +24,6 @@
 #endif
 
 #include "wx/msw/private.h"
-#include "wx/msw/dc.h"
 
 #ifndef WX_PRECOMP
     #include "wx/window.h"
@@ -32,6 +31,8 @@
 #endif //WX_PRECOMP
 
 #include "wx/private/textmeasure.h"
+
+#include "wx/msw/dc.h"
 
 // ============================================================================
 // wxTextMeasure implementation
@@ -41,6 +42,16 @@ void wxTextMeasure::Init()
 {
     m_hdc = NULL;
     m_hfontOld = NULL;
+
+    if ( m_dc )
+    {
+        wxClassInfo* const ci = m_dc->GetImpl()->GetClassInfo();
+
+        if ( ci->IsKindOf(wxCLASSINFO(wxMSWDCImpl)))
+        {
+            m_useDCImpl = false;
+        }
+    }
 }
 
 void wxTextMeasure::BeginMeasuring()
@@ -58,8 +69,12 @@ void wxTextMeasure::BeginMeasuring()
         m_hdc = ::GetDC(GetHwndOf(m_win));
     }
 
-    if ( m_font )
-        m_hfontOld = (HFONT)::SelectObject(m_hdc, GetHfontOf(*m_font));
+    // We need to set the font if it's explicitly specified, of course, but
+    // also if we're associated with a window because the window HDC created
+    // above has the default font selected into it and not the font of the
+    // window.
+    if ( m_font || m_win )
+        m_hfontOld = (HFONT)::SelectObject(m_hdc, GetHfontOf(GetFont()));
 }
 
 void wxTextMeasure::EndMeasuring()
@@ -135,8 +150,11 @@ void wxTextMeasure::DoGetTextExtent(const wxString& string,
 
 bool wxTextMeasure::DoGetPartialTextExtents(const wxString& text,
                                             wxArrayInt& widths,
-                                            double WXUNUSED(scaleX))
+                                            double scaleX)
 {
+    if ( !m_hdc )
+        return wxTextMeasureBase::DoGetPartialTextExtents(text, widths, scaleX);
+
     static int maxLenText = -1;
     static int maxWidth = -1;
 

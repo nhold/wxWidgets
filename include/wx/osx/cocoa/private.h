@@ -89,6 +89,8 @@ public :
     virtual void        SetNeedsDisplay( const wxRect* where = NULL );
     virtual bool        GetNeedsDisplay() const;
 
+    virtual void        SetDrawingEnabled(bool enabled);
+
     virtual bool        CanFocus() const;
     // return true if successful
     virtual bool        SetFocus();
@@ -138,8 +140,10 @@ public :
     virtual void        SetupMouseEvent(wxMouseEvent &wxevent, NSEvent * nsEvent);
 
 
+#if !wxOSX_USE_NATIVE_FLIPPED
     void                SetFlipped(bool flipped);
     virtual bool        IsFlipped() const { return m_isFlipped; }
+#endif
 
     // cocoa thunk connected calls
 
@@ -155,7 +159,9 @@ public :
     virtual bool                acceptsFirstResponder(WXWidget slf, void* _cmd);
     virtual bool                becomeFirstResponder(WXWidget slf, void* _cmd);
     virtual bool                resignFirstResponder(WXWidget slf, void* _cmd);
+#if !wxOSX_USE_NATIVE_FLIPPED
     virtual bool                isFlipped(WXWidget slf, void* _cmd);
+#endif
     virtual void                drawRect(void* rect, WXWidget slf, void* _cmd);
 
     virtual void                controlAction(WXWidget slf, void* _cmd, void* sender);
@@ -168,7 +174,9 @@ public :
 protected:
     WXWidget m_osxView;
     NSEvent* m_lastKeyDownEvent;
+#if !wxOSX_USE_NATIVE_FLIPPED
     bool m_isFlipped;
+#endif
     // if it the control has an editor, that editor will already send some
     // events, don't resend them
     bool m_hasEditor;
@@ -253,6 +261,24 @@ protected :
     WXWindow        m_macWindow;
     void *          m_macFullScreenData ;
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxNonOwnedWindowCocoaImpl)
+};
+
+DECLARE_WXCOCOA_OBJC_CLASS( wxNSButton );
+
+class wxButtonCocoaImpl : public wxWidgetCocoaImpl, public wxButtonImpl
+{
+public:
+    wxButtonCocoaImpl(wxWindowMac *wxpeer, wxNSButton *v);
+    virtual void SetBitmap(const wxBitmap& bitmap);
+#if wxUSE_MARKUP
+    virtual void SetLabelMarkup(const wxString& markup);
+#endif // wxUSE_MARKUP
+    
+    void SetPressedBitmap( const wxBitmap& bitmap );
+    void GetLayoutInset(int &left , int &top , int &right, int &bottom) const;
+    void SetAcceleratorFromLabel(const wxString& label);
+
+    NSButton *GetNSButton() const;
 };
 
 #ifdef __OBJC__

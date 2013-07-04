@@ -54,7 +54,7 @@ enum wxAnimationType
 
     @nativeimpl{wxgtk,wxmsw}
 
-    @appearance{animationctrl.png}
+    @appearance{animationctrl}
 
     @see wxAnimation, @sample{animate}
 */
@@ -200,7 +200,7 @@ public:
 
     @see wxAnimationCtrl, @sample{animate}
 */
-class wxAnimation : public wxGDIObject
+class wxAnimation : public wxObject
 {
 public:
     /**

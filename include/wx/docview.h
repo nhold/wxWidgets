@@ -21,6 +21,7 @@
 #include "wx/string.h"
 #include "wx/frame.h"
 #include "wx/filehistory.h"
+#include "wx/vector.h"
 
 #if wxUSE_PRINTING_ARCHITECTURE
     #include "wx/print.h"
@@ -59,6 +60,10 @@ enum
 };
 
 #define wxMAX_FILE_HISTORY 9
+
+typedef wxVector<wxDocument*> wxDocVector;
+typedef wxVector<wxView*> wxViewVector;
+typedef wxVector<wxDocTemplate*> wxDocTemplateVector;
 
 class WXDLLIMPEXP_CORE wxDocument : public wxEvtHandler
 {
@@ -140,8 +145,14 @@ public:
 
     virtual bool AddView(wxView *view);
     virtual bool RemoveView(wxView *view);
+
+#ifndef __VISUALC6__
+    wxViewVector GetViewsVector() const;
+#endif // !__VISUALC6__
+
     wxList& GetViews() { return m_documentViews; }
     const wxList& GetViews() const { return m_documentViews; }
+
     wxView *GetFirstView() const;
 
     virtual void UpdateAllViews(wxView *sender = NULL, wxObject *hint = NULL);
@@ -454,6 +465,11 @@ public:
     // when a view is going in or out of focus
     virtual void ActivateView(wxView *view, bool activate = true);
     virtual wxView *GetCurrentView() const { return m_currentView; }
+
+#ifndef __VISUALC6__
+    wxDocVector GetDocumentsVector() const;
+    wxDocTemplateVector GetTemplatesVector() const;
+#endif // !__VISUALC6__
 
     wxList& GetDocuments() { return m_docs; }
     wxList& GetTemplates() { return m_templates; }
@@ -994,6 +1010,23 @@ enum
     wxDEFAULT_DOCMAN_FLAGS = wxDOC_SDI
 };
 #endif // WXWIN_COMPATIBILITY_2_8
+
+#ifndef __VISUALC6__
+inline wxViewVector wxDocument::GetViewsVector() const
+{
+    return m_documentViews.AsVector<wxView*>();
+}
+
+inline wxDocVector wxDocManager::GetDocumentsVector() const
+{
+    return m_docs.AsVector<wxDocument*>();
+}
+
+inline wxDocTemplateVector wxDocManager::GetTemplatesVector() const
+{
+    return m_templates.AsVector<wxDocTemplate*>();
+}
+#endif // !__VISUALC6__
 
 #endif // wxUSE_DOC_VIEW_ARCHITECTURE
 

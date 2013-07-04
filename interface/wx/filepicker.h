@@ -72,7 +72,7 @@ wxEventType wxEVT_COMMAND_DIRPICKER_CHANGED;
 
     @library{wxcore}
     @category{pickers}
-    @appearance{filepickerctrl.png}
+    @appearance{filepickerctrl}
 
     @see wxFileDialog, wxFileDirPickerEvent
 */
@@ -215,7 +215,7 @@ public:
 
     @library{wxcore}
     @category{pickers}
-    @appearance{dirpickerctrl.png}
+    @appearance{dirpickerctrl}
 
     @see wxDirDialog, wxFileDirPickerEvent
 */
@@ -304,8 +304,8 @@ public:
     void SetInitialDirectory(const wxString& dir);
 
     /**
-        Sets the absolute path of  (the default converter uses current locale's
-        charset)the currently selected directory.
+        Sets the absolute path of the currently selected directory (the default converter uses current locale's
+        charset).
         This must be a valid directory if @c wxDIRP_DIR_MUST_EXIST style was given.
     */
     void SetPath(const wxString& dirname);

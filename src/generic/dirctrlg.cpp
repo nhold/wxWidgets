@@ -103,6 +103,12 @@ extern WXDLLEXPORT_DATA(const char) wxFileSelectorDefaultWildcardStr[];
 bool wxIsDriveAvailable(const wxString& dirName);
 
 // ----------------------------------------------------------------------------
+// events
+// ----------------------------------------------------------------------------
+
+wxDEFINE_EVENT( wxEVT_COMMAND_DIRCTRL_CHANGED, wxTreeEvent );
+
+// ----------------------------------------------------------------------------
 // wxGetAvailableDrives, for WINDOWS, DOS, OS2, MAC, UNIX (returns "/")
 // ----------------------------------------------------------------------------
 
@@ -441,6 +447,7 @@ BEGIN_EVENT_TABLE(wxGenericDirCtrl, wxControl)
   EVT_TREE_ITEM_COLLAPSED     (wxID_TREECTRL, wxGenericDirCtrl::OnCollapseItem)
   EVT_TREE_BEGIN_LABEL_EDIT   (wxID_TREECTRL, wxGenericDirCtrl::OnBeginEditItem)
   EVT_TREE_END_LABEL_EDIT     (wxID_TREECTRL, wxGenericDirCtrl::OnEndEditItem)
+  EVT_TREE_SEL_CHANGED        (wxID_TREECTRL, wxGenericDirCtrl::OnTreeSelChange)
   EVT_SIZE                    (wxGenericDirCtrl::OnSize)
 END_EVENT_TABLE()
 
@@ -666,7 +673,7 @@ void wxGenericDirCtrl::OnEndEditItem(wxTreeEvent &event)
     }
 
     wxTreeItemId treeid = event.GetItem();
-    wxDirItemData *data = (wxDirItemData*)m_treeCtrl->GetItemData( treeid );
+    wxDirItemData *data = GetItemData( treeid );
     wxASSERT( data );
 
     wxString new_name( wxPathOnly( data->m_path ) );
@@ -694,6 +701,24 @@ void wxGenericDirCtrl::OnEndEditItem(wxTreeEvent &event)
     }
 }
 
+void wxGenericDirCtrl::OnTreeSelChange(wxTreeEvent &event)
+{
+    wxTreeEvent changedEvent(wxEVT_COMMAND_DIRCTRL_CHANGED, GetId());
+
+    changedEvent.SetEventObject(this);
+    changedEvent.SetItem(event.GetItem());
+    changedEvent.SetClientObject(m_treeCtrl->GetItemData(event.GetItem()));
+
+    if (GetEventHandler()->SafelyProcessEvent(changedEvent) && !changedEvent.IsAllowed())
+    {
+        event.Veto();
+    }
+    else
+    {
+        event.Skip();
+    }
+}
+
 void wxGenericDirCtrl::OnExpandItem(wxTreeEvent &event)
 {
     wxTreeItemId parentId = event.GetItem();
@@ -716,7 +741,7 @@ void wxGenericDirCtrl::CollapseDir(wxTreeItemId parentId)
 {
     wxTreeItemId child;
 
-    wxDirItemData *data = (wxDirItemData *) m_treeCtrl->GetItemData(parentId);
+    wxDirItemData *data = GetItemData(parentId);
     if (!data->m_isExpanded)
         return;
 
@@ -731,7 +756,7 @@ void wxGenericDirCtrl::CollapseDir(wxTreeItemId parentId)
 
 void wxGenericDirCtrl::PopulateNode(wxTreeItemId parentId)
 {
-    wxDirItemData *data = (wxDirItemData *) m_treeCtrl->GetItemData(parentId);
+    wxDirItemData *data = GetItemData(parentId);
 
     if (data->m_isExpanded)
         return;
@@ -922,7 +947,7 @@ wxTreeItemId wxGenericDirCtrl::FindChild(wxTreeItemId parentId, const wxString& 
     wxTreeItemId childId = m_treeCtrl->GetFirstChild(parentId, cookie);
     while (childId.IsOk())
     {
-        wxDirItemData* data = (wxDirItemData*) m_treeCtrl->GetItemData(childId);
+        wxDirItemData* data = GetItemData(childId);
 
         if (data && !data->m_path.empty())
         {
@@ -973,7 +998,7 @@ bool wxGenericDirCtrl::ExpandPath(const wxString& path)
     if (!lastId.IsOk())
         return false;
 
-    wxDirItemData *data = (wxDirItemData *) m_treeCtrl->GetItemData(lastId);
+    wxDirItemData *data = GetItemData(lastId);
     if (data->m_isDir)
     {
         m_treeCtrl->Expand(lastId);
@@ -986,7 +1011,7 @@ bool wxGenericDirCtrl::ExpandPath(const wxString& path)
         bool selectedChild = false;
         while (childId.IsOk())
         {
-            data = (wxDirItemData*) m_treeCtrl->GetItemData(childId);
+            data = GetItemData(childId);
 
             if (data && data->m_path != wxEmptyString && !data->m_isDir)
             {
@@ -1038,6 +1063,18 @@ bool wxGenericDirCtrl::CollapsePath(const wxString& path)
     return true;
 }
 
+wxDirItemData* wxGenericDirCtrl::GetItemData(wxTreeItemId itemId)
+{
+    return static_cast<wxDirItemData*>(m_treeCtrl->GetItemData(itemId));
+}
+
+wxString wxGenericDirCtrl::GetPath(wxTreeItemId itemId) const
+{
+    const wxDirItemData*
+        data = static_cast<wxDirItemData*>(m_treeCtrl->GetItemData(itemId));
+
+    return data->m_path;
+}
 
 wxString wxGenericDirCtrl::GetPath() const
 {
@@ -1050,8 +1087,7 @@ wxString wxGenericDirCtrl::GetPath() const
         {
             // return first string only
             wxTreeItemId treeid = items[0];
-            wxDirItemData* data = (wxDirItemData*) m_treeCtrl->GetItemData(treeid);
-            return data->m_path;
+            return GetPath(treeid);
         }
 
         return wxEmptyString;
@@ -1060,8 +1096,7 @@ wxString wxGenericDirCtrl::GetPath() const
     wxTreeItemId treeid = m_treeCtrl->GetSelection();
     if (treeid)
     {
-        wxDirItemData* data = (wxDirItemData*) m_treeCtrl->GetItemData(treeid);
-        return data->m_path;
+        return GetPath(treeid);
     }
     else
         return wxEmptyString;
@@ -1076,8 +1111,7 @@ void wxGenericDirCtrl::GetPaths(wxArrayString& paths) const
     for ( unsigned n = 0; n < items.size(); n++ )
     {
         wxTreeItemId treeid = items[n];
-        wxDirItemData* data = (wxDirItemData*) m_treeCtrl->GetItemData(treeid);
-        paths.Add(data->m_path);
+        paths.push_back(GetPath(treeid));
     }
 }
 

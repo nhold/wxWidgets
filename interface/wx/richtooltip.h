@@ -87,7 +87,7 @@ enum wxTipKind
 
     @library{wxadv}
     @category{miscwnd}
-    @appearance{richtooltip.png}
+    @appearance{richtooltip}
 
     @since 2.9.3
  */
@@ -133,17 +133,21 @@ public:
     //@}
 
     /**
-        Set timeout after which the tooltip should disappear, in milliseconds.
+        Set timeout after which the tooltip should disappear and
+        optionally set a delay before the tooltip is shown, in milliseconds.
 
-        By default the tooltip is hidden after system-dependent interval of
-        time elapses but this method can be used to change this or also disable
-        hiding the tooltip automatically entirely by passing 0 in this parameter
-        (but doing this will prevent the native MSW version from being used).
+        By default the tooltip is shown immediately and hidden after a
+        system-dependent interval of time elapses. This method can be used to
+        change this or also disable hiding the tooltip automatically entirely
+        by passing 0 in this parameter (but doing this will prevent the native
+        MSW version from being used).
 
         Notice that the tooltip will always be hidden if the user presses a key
         or clicks a mouse button.
+
+        Parameter @a millisecondsDelay is new since wxWidgets 2.9.5.
      */
-    void SetTimeout(unsigned milliseconds);
+    void SetTimeout(unsigned millisecondsTimeout, unsigned millisecondsDelay = 0);
 
     /**
         Choose the tip kind, possibly none.
@@ -171,15 +175,20 @@ public:
     void SetTitleFont(const wxFont& font);
 
     /**
-        Show the tooltip for the given window.
+        Show the tooltip for the given window and optionally specify where to
+        show the tooltip.
 
-        The tooltip tip points to the (middle of the) specified window which
-        must be non-@NULL.
+        By default the tooltip tip points to the (middle of the) specified
+        window which must be non-@NULL or, if @a rect is non-@NULL, the middle
+        of the specified wxRect.
 
         Currently the native MSW implementation is used only if @a win is a
-        wxTextCtrl. This limitation may be removed in the future.
+        wxTextCtrl and @a rect is @NULL. This limitation may be removed in the
+        future.
+
+        Parameter @a rect is new since wxWidgets 2.9.5.
      */
-    void ShowFor(wxWindow* win);
+    void ShowFor(wxWindow* win, wxRect* rect = NULL);
 
     /**
         Destructor.

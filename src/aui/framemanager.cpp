@@ -40,6 +40,7 @@
     #include "wx/app.h"
     #include "wx/dcclient.h"
     #include "wx/dcscreen.h"
+    #include "wx/dcmemory.h"
     #include "wx/toolbar.h"
     #include "wx/image.h"
     #include "wx/statusbr.h"
@@ -701,6 +702,10 @@ static bool IsNotebookPane(wxAuiPaneInfoArray& panes, int paneIndex)
     int paneCount = panes.GetCount();
     wxAuiPaneInfo& p = panes[paneIndex];
 
+    if(p.IsFloating())
+        return false;
+
+
     //Take hidden and floating panes into account
     int indexPaneBefore=1;
     while(paneIndex-indexPaneBefore>=0)
@@ -717,11 +722,11 @@ static bool IsNotebookPane(wxAuiPaneInfoArray& panes, int paneIndex)
         indexPaneAfter++;
     }
     //If first visible pane before or after us in the array has the same position, layer and row as us then we are part of a notebook.
-    if(paneIndex+indexPaneAfter<paneCount && p.GetPosition() == panes.Item(paneIndex+indexPaneAfter).GetPosition() && p.GetLayer() == panes.Item(paneIndex+indexPaneAfter).GetLayer() && p.GetRow() == panes.Item(paneIndex+indexPaneAfter).GetRow())
+    if(paneIndex+indexPaneAfter<paneCount && p.GetPosition() == panes.Item(paneIndex+indexPaneAfter).GetPosition() && p.GetLayer() == panes.Item(paneIndex+indexPaneAfter).GetLayer() && p.GetRow() == panes.Item(paneIndex+indexPaneAfter).GetRow() && p.GetDirection() == panes.Item(paneIndex+indexPaneAfter).GetDirection())
     {
         return true;
     }
-    else if(paneIndex-indexPaneBefore >= 0 && p.GetPosition() == panes.Item(paneIndex-indexPaneBefore).GetPosition() && p.GetLayer() == panes.Item(paneIndex-indexPaneBefore).GetLayer()  && p.GetRow() == panes.Item(paneIndex-indexPaneBefore).GetRow())
+    else if(paneIndex-indexPaneBefore >= 0 && p.GetPosition() == panes.Item(paneIndex-indexPaneBefore).GetPosition() && p.GetLayer() == panes.Item(paneIndex-indexPaneBefore).GetLayer() && p.GetRow() == panes.Item(paneIndex-indexPaneBefore).GetRow() && p.GetDirection() == panes.Item(paneIndex-indexPaneBefore).GetDirection())
     {
         return true;
     }
@@ -749,13 +754,12 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
                 activePaneInfo = &pane;
                 wxAuiTabContainer* ctrl;
                 int ctrlIndex;
-                FindTab(pane.GetWindow(), &ctrl, &ctrlIndex);
-                ctrl->SetActivePage(pane.GetWindow());
+                if(FindTab(pane.GetWindow(), &ctrl, &ctrlIndex))
+                {
+                    ctrl->SetActivePage(pane.GetWindow());
+                }
             }
-            //else
-            {
-                pane.SetFlag(wxAuiPaneInfo::optionActive,true);
-            }
+            pane.SetFlag(wxAuiPaneInfo::optionActive,true);
         }
     }
 
@@ -2303,9 +2307,34 @@ void wxAuiManager::LayoutAddPane(wxSizer* cont, wxAuiDockInfo& dock, wxAuiPaneIn
 
     if (pane.HasBorder())
     {
+        int border_flags = wxALL;
+        if(!allowtitlebar)
+        {
+            wxAuiNotebook* nb = wxDynamicCast(pane.window->GetParent(), wxAuiNotebook);
+            if (nb)
+            {
+                if (m_tab_art->m_flags & wxAUI_NB_TOP)
+                {
+                    border_flags &= ~wxTOP;
+                }
+                if (m_tab_art->m_flags & wxAUI_NB_BOTTOM)
+                {
+                    border_flags &= ~wxBOTTOM;
+                }
+                if (m_tab_art->m_flags & wxAUI_NB_LEFT)
+                {
+                    border_flags &= ~wxLEFT;
+                }
+                if (m_tab_art->m_flags & wxAUI_NB_RIGHT)
+                {
+                    border_flags &= ~wxRIGHT;
+                }
+                paneBorderSize = m_tab_art->GetAdditionalBorderSpace(nb);
+            }
+        }
         // allowing space for the pane's border
         sizerItem = cont->Add(horzPaneSizer, paneProportion,
-                               wxEXPAND | wxALL, paneBorderSize);
+                               wxEXPAND | border_flags, paneBorderSize);
 
         part.type = wxAuiDockUIPart::typePaneBorder;
         part.dock = &dock;
@@ -3492,7 +3521,7 @@ void wxAuiManager::Update()
         }
     }
     // We have to do the hiding and showing of panes before we call LayoutAll
-    // As LayoutAll may wany to hide frames even though they are technically "visible"
+    // As LayoutAll may want to hide frames even though they are technically "visible"
     // If they are in a notebook.
 
     // cache the offset positions for any notebooks we have, so that if we are just resizing a dock for example our notebook tabs don't jump around.
@@ -4200,12 +4229,14 @@ bool wxAuiManager::DoDropExternal(wxAuiManager* otherMgr, wxWindow* otherWnd, wx
         dropExternal.SetFlag(wxAuiPaneInfo::optionActive,false);
         dropExternal.SetFlag(wxAuiPaneInfo::optionActiveNotebook,false);
 
-        otherMgr->AddPane(dropExternal.GetWindow(),dropExternal);
         wxPoint clientPt = otherMgr->GetManagedWindow()->ScreenToClient(screenPt);
+        // Figure out if, and where, the other manager would place the pane if dropped.
         if(otherMgr->DoDrop(otherMgr->m_docks, otherMgr->m_panes, dropExternal, clientPt, actionOffset))
         {
+            // If the other manager accepted the drop then remove the pane from this manager and do the drop into the other manager.
             DetachPane(drop.GetWindow());
             drop.GetWindow()->Reparent(otherWnd);
+            otherMgr->AddPane(dropExternal.GetWindow(),dropExternal);
             return true;
         }
         else
@@ -4808,21 +4839,14 @@ void wxAuiManager::OnFloatingPaneMoved(wxWindow* wnd, wxDirection dir)
 
     HideHint();
 
-    //fixme: (MJM) The below (Triple update) is inefficient and can probably be replaced with a better mechanism.
-    // Update the layout to realize new position and e.g. form notebooks if needed.
-    Update();
-
-    // Ensure active before doing actual display.
-    SetActivePane(pane.GetWindow());
-
     // Update the layout to realize new position and e.g. form notebooks if needed.
     Update();
 
     // If a notebook formed we may have lost our active status so set it again.
     SetActivePane(pane.GetWindow());
 
-    // Update once again so that notebook can reflect our new active status.
-    Update();
+    // Allow the updated layout an opportunity to recalculate/update the pane positions.
+    DoFrameLayout();
 
     // Make changes visible to user.
     Repaint();
@@ -5665,24 +5689,17 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         if (m_actionPart)
         {
             // make sure we're still over the item that was originally clicked
-            bool passHitTest=false;
-            int buttonid=0;
-            if(m_actionPart->type == wxAuiDockUIPart::typePaneTab)
+            if (m_actionPart == HitTest(event.GetX(), event.GetY()))
             {
-                passHitTest = (m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&m_hoverButton2));
+                wxAuiTabContainerButton* hitbutton;
+                if(m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton))
+                {
+                    passHitTest=( (hitbutton==m_hoverButton2) && (m_hoverButton2->curState==wxAUI_BUTTON_STATE_PRESSED) );
+                }
+
                 buttonid=m_hoverButton2->id;
                 m_hoverButton2->curState = wxAUI_BUTTON_STATE_NORMAL;
                 m_hoverButton2=NULL;
-
-                // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_BUTTON event to notify user of change.
-                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-                {
-                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_BUTTON, GetManagedWindow()->GetId());
-                    e.SetSelection(GetAllPanes().Index(pane));
-                    e.SetInt(buttonid);
-                    e.SetEventObject(GetManagedWindow());
-                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
-                }
             }
             else
             {
@@ -5692,6 +5709,16 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             }
             if (passHitTest)
             {
+                // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_BUTTON event to notify user of change.
+                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
+                {
+                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_BUTTON, GetManagedWindow()->GetId());
+                    e.SetSelection(GetAllPanes().Index(pane));
+                    e.SetInt(buttonid);
+                    e.SetEventObject(GetManagedWindow());
+                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+                }
+
                 // fire button-click event
                 wxAuiManagerEvent e(wxEVT_AUI_PANE_BUTTON);
                 e.SetManager(this);
@@ -5777,6 +5804,10 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         }
 
         bool didDrop=false;
+
+        //Store paneWindow now as the below code block can invalidate pane
+        wxWindow* paneWindow=pane.GetWindow();
+
         // Alert other manager of the drop and have it show hint.
         if(otherMgr)
         {
@@ -5788,6 +5819,7 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
                 if(didDrop)
                 {
                     Update();
+                    DoFrameLayout();
                     Repaint();
                 }
             }
@@ -5797,31 +5829,24 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             }
         }
 
-
+        //Warning! pane can be invalidated by the Update in above code block, so should not be used from this point onwards.
         if(didDrop)
         {
-            //fixme: (MJM) The below (Triple update) is inefficient and can probably be replaced with a better mechanism.
+            // Try reduce flicker, Update() calls Repaint() and then we set the active pane and Repaint() again, so use Freeze()/Thaw() to try avoid the double Repaint()
             otherMgr->GetManagedWindow()->Freeze();
 
             // Update the layout to realize new position and e.g. form notebooks if needed.
             otherMgr->Update();
 
-            // Ensure active before doing actual display.
-            otherMgr->SetActivePane(pane.GetWindow());
-
-            // Update the layout to realize new position and e.g. form notebooks if needed.
-            otherMgr->Update();
-
             // If a notebook formed we may have lost our active status so set it again.
-            otherMgr->SetActivePane(pane.GetWindow());
+            otherMgr->SetActivePane(paneWindow);
 
-            // Update once again so that notebook can reflect our new active status.
-            otherMgr->Update();
-
-            otherMgr->GetManagedWindow()->Thaw();
+            // Allow the updated layout an opportunity to recalculate/update the pane positions.
+            otherMgr->DoFrameLayout();
 
             // Make changes visible to user.
             otherMgr->Repaint();
+            otherMgr->GetManagedWindow()->Thaw();
         }
 
 

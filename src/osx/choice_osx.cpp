@@ -100,6 +100,13 @@ bool wxChoice::Create(wxWindow *parent,
 // adding/deleting items to/from the list
 // ----------------------------------------------------------------------------
 
+void wxChoice::DoAfterItemCountChange()
+{
+    InvalidateBestSize();
+
+    GetPeer()->SetMaximum( GetCount() );
+}
+
 int wxChoice::DoInsertItems(const wxArrayStringsAdapter & items,
                             unsigned int pos,
                             void **clientData, wxClientDataType type)
@@ -132,7 +139,7 @@ int wxChoice::DoInsertItems(const wxArrayStringsAdapter & items,
         AssignNewItemClientData(idx, clientData, i, type);
     }
 
-    GetPeer()->SetMaximum( GetCount() );
+    DoAfterItemCountChange();
 
     return pos - 1;
 }
@@ -148,8 +155,8 @@ void wxChoice::DoDeleteOneItem(unsigned int n)
 
     m_strings.RemoveAt( n ) ;
     m_datas.RemoveAt( n ) ;
-    GetPeer()->SetMaximum( GetCount() ) ;
 
+    DoAfterItemCountChange();
 }
 
 void wxChoice::DoClear()
@@ -162,7 +169,7 @@ void wxChoice::DoClear()
     m_strings.Empty() ;
     m_datas.Empty() ;
 
-    GetPeer()->SetMaximum( 0 ) ;
+    DoAfterItemCountChange();
 }
 
 // ----------------------------------------------------------------------------
@@ -229,60 +236,20 @@ void * wxChoice::DoGetItemClientData(unsigned int n) const
 
 bool wxChoice::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
-    wxCommandEvent event( wxEVT_COMMAND_CHOICE_SELECTED, m_windowId );
-
-    // actually n should be made sure by the os to be a valid selection, but ...
-    int n = GetSelection();
-    if ( n > -1 )
-    {
-        event.SetInt( n );
-        event.SetString( GetStringSelection() );
-        event.SetEventObject( this );
-
-        if ( HasClientObjectData() )
-            event.SetClientObject( GetClientObject( n ) );
-        else if ( HasClientUntypedData() )
-            event.SetClientData( GetClientData( n ) );
-
-        ProcessCommand( event );
-    }
+    SendSelectionChangedEvent(wxEVT_COMMAND_CHOICE_SELECTED);
 
     return true ;
 }
 
 wxSize wxChoice::DoGetBestSize() const
 {
-    int lbWidth = GetCount() > 0 ? 20 : 100;  // some defaults
-    wxSize baseSize = wxWindow::DoGetBestSize();
-    int lbHeight = baseSize.y;
-    int wLine;
+    // We use the base window size for the height (which is wrong as it doesn't
+    // take the font into account -- TODO) and add some margins to the width
+    // computed by the base class method to account for the arrow.
+    const int lbHeight = wxWindow::DoGetBestSize().y;
 
-    {
-        wxClientDC dc(const_cast<wxChoice*>(this));
-
-        // Find the widest line
-        for(unsigned int i = 0; i < GetCount(); i++)
-        {
-            wxString str(GetString(i));
-
-            wxCoord width, height ;
-            dc.GetTextExtent( str , &width, &height);
-            wLine = width ;
-
-            lbWidth = wxMax( lbWidth, wLine ) ;
-        }
-
-        // Add room for the popup arrow
-        lbWidth += 2 * lbHeight ;
-
-        wxCoord width, height ;
-        dc.GetTextExtent( wxT("X"), &width, &height);
-        int cx = width ;
-
-        lbWidth += cx ;
-    }
-
-    return wxSize( lbWidth, lbHeight );
+    return wxSize(wxChoiceBase::DoGetBestSize().x + 2*lbHeight + GetCharWidth(),
+                  lbHeight);
 }
 
 #endif // wxUSE_CHOICE

@@ -47,10 +47,15 @@
 #include "wx/tokenzr.h"
 #include "wx/thread.h"
 
-#if wxUSE_EXCEPTIONS && wxUSE_STL
-    #include <exception>
-    #include <typeinfo>
-#endif
+#if wxUSE_STL
+    #if wxUSE_EXCEPTIONS
+        #include <exception>
+        #include <typeinfo>
+    #endif
+    #if wxUSE_INTL
+        #include <locale>
+    #endif
+#endif // wxUSE_STL
 
 #if !defined(__WINDOWS__) || defined(__WXMICROWIN__)
   #include  <signal.h>      // for SIGTRAP used by wxTrap()
@@ -169,10 +174,6 @@ wxAppConsoleBase::~wxAppConsoleBase()
 
 bool wxAppConsoleBase::Initialize(int& WXUNUSED(argc), wxChar **WXUNUSED(argv))
 {
-#if wxUSE_INTL
-    GetTraits()->SetLocale();
-#endif // wxUSE_INTL
-
     return true;
 }
 
@@ -779,6 +780,18 @@ void wxAppConsoleBase::OnAssert(const wxChar *file,
     OnAssertFailure(file, line, NULL, cond, msg);
 }
 
+// ----------------------------------------------------------------------------
+// Miscellaneous other methods
+// ----------------------------------------------------------------------------
+
+void wxAppConsoleBase::SetCLocale()
+{
+    // We want to use the user locale by default in GUI applications in order
+    // to show the numbers, dates &c in the familiar format -- and also accept
+    // this format on input (especially important for decimal comma/dot).
+    wxSetlocale(LC_ALL, "");
+}
+
 // ============================================================================
 // other classes implementations
 // ============================================================================
@@ -830,14 +843,6 @@ bool wxConsoleAppTraitsBase::HasStderr()
 // ----------------------------------------------------------------------------
 // wxAppTraits
 // ----------------------------------------------------------------------------
-
-#if wxUSE_INTL
-void wxAppTraitsBase::SetLocale()
-{
-    wxSetlocale(LC_ALL, "");
-    wxUpdateLocaleIsUtf8();
-}
-#endif
 
 #if wxUSE_THREADS
 void wxMutexGuiEnterImpl();
@@ -1014,6 +1019,8 @@ void wxAbort()
 #if wxDEBUG_LEVEL
 
 // break into the debugger
+#ifndef wxTrap
+
 void wxTrap()
 {
 #if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
@@ -1026,6 +1033,8 @@ void wxTrap()
     // TODO
 #endif // Win/Unix
 }
+
+#endif // wxTrap already defined as a macro
 
 // default assert handler
 static void
@@ -1176,6 +1185,8 @@ static void LINKAGEMODE SetTraceMasks()
 
 #if wxDEBUG_LEVEL
 
+bool wxTrapInAssert = false;
+
 static
 bool DoShowAssertDialog(const wxString& msg)
 {
@@ -1194,7 +1205,14 @@ bool DoShowAssertDialog(const wxString& msg)
                           MB_YESNOCANCEL | MB_ICONSTOP ) )
     {
         case IDYES:
-            wxTrap();
+            // If we called wxTrap() directly from here, the programmer would
+            // see this function and a few more calls between his own code and
+            // it in the stack trace which would be perfectly useless and often
+            // confusing. So instead just set the flag here and let the macros
+            // defined in wx/debug.h call wxTrap() themselves, this ensures
+            // that the debugger will show the line in the user code containing
+            // the failing assert.
+            wxTrapInAssert = true;
             break;
 
         case IDCANCEL:

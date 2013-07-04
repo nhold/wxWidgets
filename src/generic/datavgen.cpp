@@ -347,7 +347,7 @@ public:
     static wxDataViewTreeNode* CreateRootNode()
     {
         wxDataViewTreeNode *n = new wxDataViewTreeNode(NULL, wxDataViewItem());
-        n->SetHasChildren(true);
+        n->m_branchData = new BranchNodeData;
         n->m_branchData->open = true;
         return n;
     }
@@ -416,6 +416,11 @@ public:
 
     void ToggleOpen()
     {
+        // We do not allow the (invisible) root node to be collapsed because
+        // there is no way to expand it again.
+        if ( !m_parent )
+            return;
+
         wxCHECK_RET( m_branchData != NULL, "can't open leaf node" );
 
         int sum = 0;
@@ -446,6 +451,11 @@ public:
 
     void SetHasChildren(bool has)
     {
+        // The invisible root item always has children, so ignore any attempts
+        // to change this.
+        if ( !m_parent )
+            return;
+
         if ( !has )
         {
             wxDELETE(m_branchData);
@@ -602,7 +612,7 @@ public:
     void OnPaint( wxPaintEvent &event );
     void OnCharHook( wxKeyEvent &event );
     void OnChar( wxKeyEvent &event );
-    void OnVerticalNavigation(unsigned int newCurrent, const wxKeyEvent& event);
+    void OnVerticalNavigation(int delta, const wxKeyEvent& event);
     void OnLeftKey();
     void OnRightKey();
     void OnMouse( wxMouseEvent &event );
@@ -1387,7 +1397,7 @@ wxDataViewMainWindow::wxDataViewMainWindow( wxDataViewCtrl *parent, wxWindowID i
     m_currentCol = NULL;
     m_currentColSetByKeyboard = false;
     m_useCellFocus = false;
-    m_currentRow = 0;
+    m_currentRow = (unsigned)-1;
 
 #ifdef __WXMSW__
     // We would like to use the same line height that Explorer uses. This is
@@ -1695,11 +1705,9 @@ void wxDataViewMainWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
     wxDataViewModel *model = GetModel();
     wxAutoBufferedPaintDC dc( this );
 
-#ifdef __WXMSW__
     dc.SetBrush(GetOwner()->GetBackgroundColour());
     dc.SetPen( *wxTRANSPARENT_PEN );
     dc.DrawRectangle(GetClientSize());
-#endif
 
     if ( IsEmpty() )
     {
@@ -2390,7 +2398,7 @@ bool wxDataViewMainWindow::ItemDeleted(const wxDataViewItem& parent,
     }
 
     // Change the current row to the last row if the current exceed the max row number
-    if( m_currentRow > GetRowCount() )
+    if ( m_currentRow >= GetRowCount() )
         ChangeCurrentRow(m_count - 1);
 
     GetOwner()->InvalidateColBestWidths();
@@ -2464,6 +2472,7 @@ bool wxDataViewMainWindow::Cleared()
 {
     DestroyTree();
     m_selection.Clear();
+    m_currentRow = (unsigned)-1;
 
     if (GetModel())
     {
@@ -2994,6 +3003,9 @@ wxDataViewTreeNode * wxDataViewMainWindow::GetTreeNodeByRow(unsigned int row) co
 {
     wxASSERT( !IsVirtualList() );
 
+    if ( row == (unsigned)-1 )
+        return NULL;
+
     RowToTreeNodeJob job( row , -2, m_root );
     Walker( m_root , job );
     return job.GetResult();
@@ -3073,44 +3085,44 @@ void wxDataViewMainWindow::Expand( unsigned int row )
     if (!node->HasChildren())
         return;
 
-            if (!node->IsOpen())
-            {
-                if ( !SendExpanderEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, node->GetItem()) )
-                {
-                    // Vetoed by the event handler.
-                    return;
-                }
+    if (!node->IsOpen())
+    {
+        if ( !SendExpanderEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, node->GetItem()) )
+        {
+            // Vetoed by the event handler.
+            return;
+        }
 
-                node->ToggleOpen();
+        node->ToggleOpen();
 
-                // build the children of current node
-                if( node->GetChildNodes().empty() )
-                {
-                    SortPrepare();
-                    ::BuildTreeHelper(GetModel(), node->GetItem(), node);
-                }
+        // build the children of current node
+        if( node->GetChildNodes().empty() )
+        {
+            SortPrepare();
+            ::BuildTreeHelper(GetModel(), node->GetItem(), node);
+        }
 
-                // By expanding the node all row indices that are currently in the selection list
-                // and are greater than our node have become invalid. So we have to correct that now.
-                const unsigned rowAdjustment = node->GetSubTreeCount();
-                for(unsigned i=0; i<m_selection.size(); ++i)
-                {
-                    const unsigned testRow = m_selection[i];
-                    // all rows above us are not affected, so skip them
-                    if(testRow <= row)
-                        continue;
+        // By expanding the node all row indices that are currently in the selection list
+        // and are greater than our node have become invalid. So we have to correct that now.
+        const unsigned rowAdjustment = node->GetSubTreeCount();
+        for(unsigned i=0; i<m_selection.size(); ++i)
+        {
+            const unsigned testRow = m_selection[i];
+            // all rows above us are not affected, so skip them
+            if(testRow <= row)
+                continue;
 
-                    m_selection[i] += rowAdjustment;
-                }
+            m_selection[i] += rowAdjustment;
+        }
 
-                if(m_currentRow > row)
-                    ChangeCurrentRow(m_currentRow + rowAdjustment);
+        if(m_currentRow > row)
+            ChangeCurrentRow(m_currentRow + rowAdjustment);
 
-                m_count = -1;
-                UpdateDisplay();
-                // Send the expanded event
-                SendExpanderEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDED,node->GetItem());
-            }
+        m_count = -1;
+        UpdateDisplay();
+        // Send the expanded event
+        SendExpanderEvent(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDED,node->GetItem());
+    }
 }
 
 void wxDataViewMainWindow::Collapse(unsigned int row)
@@ -3696,13 +3708,11 @@ void wxDataViewMainWindow::OnChar( wxKeyEvent &event )
             break;
 
         case WXK_UP:
-            if ( m_currentRow > 0 )
-                OnVerticalNavigation( m_currentRow - 1, event );
+            OnVerticalNavigation( -1, event );
             break;
 
         case WXK_DOWN:
-            if ( m_currentRow + 1 < GetRowCount() )
-                OnVerticalNavigation( m_currentRow + 1, event );
+            OnVerticalNavigation( +1, event );
             break;
         // Add the process for tree expanding/collapsing
         case WXK_LEFT:
@@ -3714,37 +3724,19 @@ void wxDataViewMainWindow::OnChar( wxKeyEvent &event )
             break;
 
         case WXK_END:
-        {
-            if (!IsEmpty())
-                OnVerticalNavigation( GetRowCount() - 1, event );
+            OnVerticalNavigation( +(int)GetRowCount(), event );
             break;
-        }
+
         case WXK_HOME:
-            if (!IsEmpty())
-                OnVerticalNavigation( 0, event );
+            OnVerticalNavigation( -(int)GetRowCount(), event );
             break;
 
         case WXK_PAGEUP:
-            {
-                int steps = pageSize - 1;
-                int index = m_currentRow - steps;
-                if (index < 0)
-                    index = 0;
-
-                OnVerticalNavigation( index, event );
-            }
+            OnVerticalNavigation( -(pageSize - 1), event );
             break;
 
         case WXK_PAGEDOWN:
-            {
-                int steps = pageSize - 1;
-                unsigned int index = m_currentRow + steps;
-                unsigned int count = GetRowCount();
-                if ( index >= count )
-                    index = count - 1;
-
-                OnVerticalNavigation( index, event );
-            }
+            OnVerticalNavigation( +(pageSize - 1), event );
             break;
 
         default:
@@ -3752,16 +3744,24 @@ void wxDataViewMainWindow::OnChar( wxKeyEvent &event )
     }
 }
 
-void wxDataViewMainWindow::OnVerticalNavigation(unsigned int newCurrent, const wxKeyEvent& event)
+void wxDataViewMainWindow::OnVerticalNavigation(int delta, const wxKeyEvent& event)
 {
-    wxCHECK_RET( newCurrent < GetRowCount(),
-                wxT("invalid item index in OnVerticalNavigation()") );
-
     // if there is no selection, we cannot move it anywhere
-    if (!HasCurrentRow())
+    if (!HasCurrentRow() || IsEmpty())
         return;
 
+    int newRow = (int)m_currentRow + delta;
+
+    // let's keep the new row inside the allowed range
+    if ( newRow < 0 )
+        newRow = 0;
+
+    const int rowCount = (int)GetRowCount();
+    if ( newRow >= rowCount )
+        newRow = rowCount - 1;
+
     unsigned int oldCurrent = m_currentRow;
+    unsigned int newCurrent = (unsigned int)newRow;
 
     // in single selection we just ignore Shift as we can't select several
     // items anyhow
@@ -3813,6 +3813,8 @@ void wxDataViewMainWindow::OnLeftKey()
     else
     {
         wxDataViewTreeNode* node = GetTreeNodeByRow(m_currentRow);
+        if ( !node )
+            return;
 
         if ( TryAdvanceCurrentColumn(node, /*forward=*/false) )
             return;
@@ -3855,6 +3857,8 @@ void wxDataViewMainWindow::OnRightKey()
     else
     {
         wxDataViewTreeNode* node = GetTreeNodeByRow(m_currentRow);
+        if ( !node )
+            return;
 
         if ( node->HasChildren() )
         {
@@ -3939,10 +3943,11 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
         return;
     }
 
-    if(event.LeftDown())
+    if(event.ButtonDown())
     {
-        // Not skipping this event would prevent the system from setting focus
-        // to this window.
+        // Not skipping button down events would prevent the system from
+        // setting focus to this window as most (all?) of them do by default,
+        // so skip it to enable default handling.
         event.Skip();
     }
 

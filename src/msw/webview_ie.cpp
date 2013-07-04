@@ -104,9 +104,27 @@ bool wxWebViewIE::Create(wxWindow* parent,
 
 wxWebViewIE::~wxWebViewIE()
 {
-    for(unsigned int i = 0; i < m_factories.size(); i++)
+    wxDynamicLibrary urlMon(wxT("urlmon.dll"));
+    if(urlMon.HasSymbol(wxT("CoInternetGetSession")))
     {
-        m_factories[i]->Release();
+        typedef HRESULT (WINAPI *CoInternetGetSession_t)(DWORD,
+                                                         wxIInternetSession**,
+                                                         DWORD);
+        wxDYNLIB_FUNCTION(CoInternetGetSession_t, CoInternetGetSession, urlMon);
+
+        wxIInternetSession* session;
+        HRESULT res = (*pfnCoInternetGetSession)(0, &session, 0);
+        if(FAILED(res))
+        {
+            wxFAIL_MSG("Could not retrive internet session");
+        }
+
+        for(unsigned int i = 0; i < m_factories.size(); i++)
+        {
+            session->UnregisterNameSpace(m_factories[i], 
+                                        (m_factories[i]->GetName()).wc_str());
+            m_factories[i]->Release();
+        }
     }
     FindClear();
 }
@@ -980,16 +998,16 @@ void wxWebViewIE::FindInternal(const wxString& text, int flags, int internal_fla
             pIMS->CreateMarkupPointer(&ptrBegin);
             pIMS->CreateMarkupPointer(&ptrEnd);
 
-            ptrBegin->SetGravity(POINTER_GRAVITY_Right);
+            ptrBegin->SetGravity(wxPOINTER_GRAVITY_Right);
             ptrBegin->MoveToContainer(pIMC, TRUE);
             //Create the find flag from the wx one.
             if(flags & wxWEB_VIEW_FIND_ENTIRE_WORD)
             {
-                find_flag |= FINDTEXT_WHOLEWORD;
+                find_flag |= wxFINDTEXT_WHOLEWORD;
             }
             if(flags & wxWEB_VIEW_FIND_MATCH_CASE)
             {
-                find_flag |= FINDTEXT_MATCHCASE;
+                find_flag |= wxFINDTEXT_MATCHCASE;
             }
 
             //A little speed-up to avoid to re-alloc in the positions vector.
@@ -1008,7 +1026,7 @@ void wxWebViewIE::FindInternal(const wxString& text, int flags, int internal_fla
                         if(flags & wxWEB_VIEW_FIND_HIGHLIGHT_RESULT)
                         {
                             IHTMLElement* pFontEl;
-                            pIMS->CreateElement(TAGID_FONT, attr_bstr, &pFontEl);
+                            pIMS->CreateElement(wxTAGID_FONT, attr_bstr, &pFontEl);
                             pIMS->InsertElement(pFontEl, ptrBegin, ptrEnd);
                         }
                         if(internal_flag & wxWEB_VIEW_FIND_REMOVE_HIGHLIGHT)

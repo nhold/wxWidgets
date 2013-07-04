@@ -105,6 +105,14 @@ public:
                          const wxAuiPaneInfoPtrArray& pages,
                          const wxSize& requiredBmpSize) = 0;
 
+    virtual int GetAdditionalBorderSpace(
+                         wxWindow* wnd) = 0;
+
+    virtual wxSize GetBestTabSize(
+                         wxWindow* wnd,
+                         const wxAuiPaneInfoPtrArray& pages,
+                         const wxSize& requiredBmpSize) = 0;
+
     virtual int GetBestTabCtrlSize(
                          wxWindow* wnd,
                          const wxAuiPaneInfoPtrArray& pages,
@@ -136,6 +144,11 @@ public:
     void SetColour(const wxColour& colour);
     void SetActiveColour(const wxColour& colour);
 
+    void DrawBorder(
+                 wxDC& dc,
+                 wxWindow* wnd,
+                 const wxRect& rect);
+
     void DrawBackground(
                  wxDC& dc,
                  wxWindow* wnd,
@@ -161,6 +174,12 @@ public:
                  wxRect* outRect);
 
     int GetIndentSize();
+
+    int GetBorderWidth(
+                 wxWindow* wnd);
+
+    int GetAdditionalBorderSpace(
+                 wxWindow* wnd);
 
     wxSize GetTabSize(
                  wxDC& dc,
@@ -237,6 +256,11 @@ public:
     void SetColour(const wxColour& colour);
     void SetActiveColour(const wxColour& colour);
 
+    void DrawBorder(
+                 wxDC& dc,
+                 wxWindow* wnd,
+                 const wxRect& rect);
+
     void DrawBackground(
                  wxDC& dc,
                  wxWindow* wnd,
@@ -262,6 +286,12 @@ public:
                  wxRect* outRect);
 
     int GetIndentSize();
+
+    int GetBorderWidth(
+                 wxWindow* wnd);
+
+    int GetAdditionalBorderSpace(
+                 wxWindow* wnd);
 
     wxSize GetTabSize(
                  wxDC& dc,

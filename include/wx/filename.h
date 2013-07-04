@@ -108,6 +108,22 @@ enum
     wxPATH_RMDIR_RECURSIVE  = 0x0002   // delete all recursively (dangerous!)
 };
 
+// FileExists flags
+enum
+{
+    wxFILE_EXISTS_REGULAR   = 0x0001,  // check for existence of a regular file
+    wxFILE_EXISTS_DIR       = 0x0002,  // check for existence of a directory
+    wxFILE_EXISTS_SYMLINK   = 0x1004,  // check for existence of a symbolic link;
+                                       // also sets wxFILE_EXISTS_NO_FOLLOW as
+                                       // it would never be satisfied otherwise
+    wxFILE_EXISTS_DEVICE    = 0x0008,  // check for existence of a device
+    wxFILE_EXISTS_FIFO      = 0x0016,  // check for existence of a FIFO
+    wxFILE_EXISTS_SOCKET    = 0x0032,  // check for existence of a socket
+                                       // gap for future types
+    wxFILE_EXISTS_NO_FOLLOW = 0x1000,  // don't dereference a contained symlink
+    wxFILE_EXISTS_ANY       = 0x1FFF   // check for existence of anything
+};
+
 #if wxUSE_LONGLONG
 // error code of wxFileName::GetSize()
 extern WXDLLIMPEXP_DATA_BASE(const wxULongLong) wxInvalidSize;
@@ -224,8 +240,8 @@ public:
 
         // does anything at all with this name (i.e. file, directory or some
         // other file system object such as a device, socket, ...) exist?
-    bool Exists() const;
-    static bool Exists(const wxString& path);
+    bool Exists(int flags = wxFILE_EXISTS_ANY) const;
+    static bool Exists(const wxString& path, int flags = wxFILE_EXISTS_ANY);
 
 
         // checks on most common flags for files/directories;

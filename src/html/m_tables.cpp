@@ -17,6 +17,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/wxcrtvararg.h"
+    #include "wx/brush.h"
 #endif
 
 #include "wx/html/forcelnk.h"
@@ -105,6 +106,8 @@ public:
 
     void AddRow(const wxHtmlTag& tag);
     void AddCell(wxHtmlContainerCell *cell, const wxHtmlTag& tag);
+
+    const wxColour& GetRowDefaultBackgroundColour() const { return m_rBkg; }
 
 private:
     // Reallocates memory to given number of cols/rows
@@ -288,7 +291,7 @@ void wxHtmlTableCell::AddCell(wxHtmlContainerCell *cell, const wxHtmlTag& tag)
         {
             wxString wd = tag.GetParam(wxT("WIDTH"));
 
-            if (wd[wd.length()-1] == wxT('%'))
+            if (!wd.empty() && wd[wd.length()-1] == wxT('%'))
             {
                 if ( wxSscanf(wd.c_str(), wxT("%i%%"), &m_ColsInfo[c].width) == 1 )
                 {
@@ -676,6 +679,37 @@ TAG_HANDLER_BEGIN(TABLE, "TABLE,TR,TD,TH")
         wxString m_tAlign, m_rAlign;
         wxHtmlContainerCell *m_enclosingContainer;
 
+        // Call ParseInner() preserving background colour and mode after any
+        // changes done by it.
+        void CallParseInnerWithBg(const wxHtmlTag& tag, const wxColour& colBg)
+        {
+            const wxColour oldbackclr = m_WParser->GetActualBackgroundColor();
+            const int oldbackmode = m_WParser->GetActualBackgroundMode();
+            if ( colBg.IsOk() )
+            {
+                m_WParser->SetActualBackgroundColor(colBg);
+                m_WParser->SetActualBackgroundMode(wxBRUSHSTYLE_SOLID);
+                m_WParser->GetContainer()->InsertCell(
+                        new wxHtmlColourCell(colBg, wxHTML_CLR_BACKGROUND)
+                    );
+            }
+
+            ParseInner(tag);
+
+            if ( oldbackmode != m_WParser->GetActualBackgroundMode() ||
+                    oldbackclr != m_WParser->GetActualBackgroundColor() )
+            {
+               m_WParser->SetActualBackgroundMode(oldbackmode);
+               m_WParser->SetActualBackgroundColor(oldbackclr);
+               m_WParser->GetContainer()->InsertCell(
+                      new wxHtmlColourCell(oldbackclr,
+                                        oldbackmode == wxBRUSHSTYLE_TRANSPARENT
+                                            ? wxHTML_CLR_TRANSPARENT_BACKGROUND
+                                            : wxHTML_CLR_BACKGROUND)
+                );
+            }
+        }
+
     TAG_HANDLER_CONSTR(TABLE)
     {
         m_Table = NULL;
@@ -702,19 +736,18 @@ TAG_HANDLER_BEGIN(TABLE, "TABLE,TR,TD,TH")
             {
                 if (tag.HasParam(wxT("WIDTH")))
                 {
-                    wxString wd = tag.GetParam(wxT("WIDTH"));
-
-                    if (wd[wd.length()-1] == wxT('%'))
+                    int width = 0;
+                    bool wpercent = false;
+                    if (tag.GetParamAsIntOrPercent(wxT("WIDTH"), &width, wpercent))
                     {
-                        int width = 0;
-                        wxSscanf(wd.c_str(), wxT("%i%%"), &width);
-                        m_Table->SetWidthFloat(width, wxHTML_UNITS_PERCENT);
-                    }
-                    else
-                    {
-                        int width = 0;
-                        wxSscanf(wd.c_str(), wxT("%i"), &width);
-                        m_Table->SetWidthFloat((int)(m_WParser->GetPixelScale() * width), wxHTML_UNITS_PIXELS);
+                        if (wpercent)
+                        {
+                            m_Table->SetWidthFloat(width, wxHTML_UNITS_PERCENT);
+                        }
+                        else
+                        {
+                            m_Table->SetWidthFloat((int)(m_WParser->GetPixelScale() * width), wxHTML_UNITS_PIXELS);
+                        }
                     }
                 }
                 else
@@ -725,7 +758,7 @@ TAG_HANDLER_BEGIN(TABLE, "TABLE,TR,TD,TH")
             if (tag.HasParam(wxT("ALIGN")))
                 m_tAlign = tag.GetParam(wxT("ALIGN"));
 
-            ParseInner(tag);
+            CallParseInnerWithBg(tag, m_Table->GetBackgroundColour());
 
             m_WParser->SetAlign(oldAlign);
             m_WParser->SetContainer(m_enclosingContainer);
@@ -788,7 +821,7 @@ TAG_HANDLER_BEGIN(TABLE, "TABLE,TR,TD,TH")
                         new wxHtmlFontCell(m_WParser->CreateCurrentFont()));
                 }
 
-                ParseInner(tag);
+                CallParseInnerWithBg(tag, m_Table->GetRowDefaultBackgroundColour());
 
                 if ( isHeader )
                 {

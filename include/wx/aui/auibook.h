@@ -26,6 +26,7 @@
 #if wxUSE_AUI
 
 #include "wx/bookctrl.h"
+#include "wx/containr.h"
 #include "wx/aui/framemanager.h"
 
 

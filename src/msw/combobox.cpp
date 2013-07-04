@@ -39,7 +39,6 @@
 #endif
 
 #include "wx/clipbrd.h"
-#include "wx/dynlib.h"
 #include "wx/wupdlock.h"
 #include "wx/msw/private.h"
 
@@ -275,26 +274,27 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD id)
         case CBN_DROPDOWN:
             // remember the last selection, just as wxChoice does
             m_lastAcceptedSelection = GetCurrentSelection();
-            if ( m_lastAcceptedSelection == -1 )
-            {
-                // but unlike with wxChoice we may have no selection but still
-                // have some text and we should avoid erasing it if the drop
-                // down is cancelled (see #8474)
-                m_lastAcceptedSelection = wxID_NONE;
-            }
             {
                 wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_DROPDOWN, GetId());
                 event.SetEventObject(this);
                 ProcessCommand(event);
             }
             break;
+
         case CBN_CLOSEUP:
+            // Do the same thing as in wxChoice but using different event type.
+            if ( m_pendingSelection != wxID_NONE )
+            {
+                SendSelectionChangedEvent(wxEVT_COMMAND_COMBOBOX_SELECTED);
+                m_pendingSelection = wxID_NONE;
+            }
             {
                 wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_CLOSEUP, GetId());
                 event.SetEventObject(this);
                 ProcessCommand(event);
             }
             break;
+
         case CBN_SELENDOK:
 #ifndef __SMARTPHONE__
             // we need to reset this to prevent the selection from being undone
@@ -312,16 +312,9 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD id)
             // could get a wrong value when it calls our GetValue()
             ::SetWindowText(GetHwnd(), value.t_str());
 
-            {
-                wxCommandEvent event(wxEVT_COMMAND_COMBOBOX_SELECTED, GetId());
-                event.SetInt(sel);
-                event.SetString(value);
-                InitCommandEventWithItems(event, sel);
+            SendSelectionChangedEvent(wxEVT_COMMAND_COMBOBOX_SELECTED);
 
-                ProcessCommand(event);
-            }
-
-            // fall through: for compability with wxGTK, also send the text
+            // fall through: for compatibility with wxGTK, also send the text
             // update event when the selection changes (this also seems more
             // logical as the text does change)
 
@@ -378,26 +371,13 @@ bool wxComboBox::MSWShouldPreProcessMessage(WXMSG *pMsg)
 
 WXHWND wxComboBox::GetEditHWNDIfAvailable() const
 {
-#if wxUSE_DYNLIB_CLASS
+    // FIXME-VC6: Only VC6 needs this guard, see WINVER definition in
+    //            include/wx/msw/wrapwin.h
 #if defined(WINVER) && WINVER >= 0x0500
-    typedef BOOL (WINAPI *GetComboBoxInfo_t)(HWND, COMBOBOXINFO*);
-    static GetComboBoxInfo_t s_pfnGetComboBoxInfo = NULL;
-    static bool s_triedToLoad = false;
-    if ( !s_triedToLoad )
-    {
-        s_triedToLoad = true;
-        wxLoadedDLL dllUser32("user32.dll");
-        wxDL_INIT_FUNC(s_pfn, GetComboBoxInfo, dllUser32);
-    }
-
-    if ( s_pfnGetComboBoxInfo )
-    {
-        WinStruct<COMBOBOXINFO> info;
-        (*s_pfnGetComboBoxInfo)(GetHwnd(), &info);
+    WinStruct<COMBOBOXINFO> info;
+    if ( MSWGetComboBoxInfo(&info) )
         return info.hwndItem;
-    }
 #endif // WINVER >= 0x0500
-#endif // wxUSE_DYNLIB_CLASS
 
     if (HasFlag(wxCB_SIMPLE))
     {
@@ -678,5 +658,21 @@ bool wxComboBox::SetHint(const wxString& hintOrig)
 }
 
 #endif // wxUSE_UXTHEME
+
+wxSize wxComboBox::DoGetSizeFromTextSize(int xlen, int ylen) const
+{
+    wxSize tsize( wxChoice::DoGetSizeFromTextSize(xlen, ylen) );
+
+    if ( !HasFlag(wxCB_READONLY) )
+    {
+        // Add the margins we have previously set
+        wxPoint marg( GetMargins() );
+        marg.x = wxMax(0, marg.x);
+        marg.y = wxMax(0, marg.y);
+        tsize.IncBy( marg );
+    }
+
+    return tsize;
+}
 
 #endif // wxUSE_COMBOBOX

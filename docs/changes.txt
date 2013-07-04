@@ -527,10 +527,21 @@ Major new features in this release
 2.9.5: (released ????-??-??)
 ----------------------------
 
+INCOMPATIBLE CHANGES SINCE 2.9.4:
+
+- The locale is not set automatically on startup any more, unlike in the
+  previous 2.9 versions (but like in 2.8). Use wxLocale (preferred) or call
+  wxApp::SetCLocale() from your overridden wxApp::Initialize() to restore the
+  old behaviour.
+
 All:
 
+- Add wxEvtHandler::CallAfter() method for asynchronous method calls.
 - Add support for symlinks to wxFileName (David Hart).
+- Add wxDIR_NO_FOLLOW flag for wxDir traversal (David Hart).
+- Allow testing for symlink/FIFO/socket existence in wxFileName (David Hart).
 - Many important bug fixes in wxFileSystemWatcher (David Hart).
+- Add new wxFSW_EVENT_ATTRIB and wxFSW_EVENT_UNMOUNT flags (David Hart).
 - Add separate read/written bytes counters and per-direction NOWAIT and WAITALL
   flags to wxSocket (Rob Bresalier).
 - Add wxDir::Close() method (Silverstorm82).
@@ -538,10 +549,13 @@ All:
 - Fix posting large amounts of data in wxHTTP (Platonides).
 - Add wxFile::ReadAll() for consistency with wxFFile.
 - Add wxDateTime::DiffAsDateSpan() and wxDateSpan::GetTotalMonths() (jonasr).
+- Add wxVector::assign() (Jonas Rydberg).
 - Added Nepali translation (Him Prasad Gautam).
 
 All (GUI):
 
+- Add support for wxAuiNotebook to XRC (Steven Lamerton).
+- Add support for wxRibbonBar and related controls to XRC (Armel Asselin).
 - Add wxBITMAP_PNG() macro similar to wxBITMAP() but for PNG files.
 - Add new wxSimplebook class.
 - Support hexadecimal numbers in wxSpinCtrl.
@@ -570,6 +584,19 @@ All (GUI):
 - Add wxTreeCtrl::EnableBellOnNoMatch() (Jonathan Dagresta).
 - Implement incremental search in wxGenericListCtrl (Jonathan Dagresta).
 - Make TAB behaviour in wxGrid more flexible (Fulvio Senore).
+- Add missing styles support to wxWindow XRC hanlder (Steffen Olszewski).
+- Allow specifying all wxFlexGridSizer parameters in XRC (Steffen Olszewski).
+- Close wxLogWindow automatically if it's the last remaining top level window.
+- Implement clipping for wxSVGFileDC (Steve Benbow).
+- Added wxDirCtrl::GetPath() (troelsk).
+- Added wxEVT_COMMAND_DIRCTRL_CHANGED event (troelsk).
+- Added wxControl::GetSizeFromTextSize() (Manuel Martin).
+- Optionally allow showing tooltips for disabled ribbon buttons (wxBen).
+- Add wxTL_NO_HEADER style to wxTreeListCtrl (robboto).
+- Add possibility to delay showing wxRichToolTip (John Roberts).
+- Add "rect" paramerer to wxRichToolTip::ShowFor() (John Roberts).
+- Add wxListCtrl::EnableAlternateRowColours() (troelsk).
+- Fix wrong tab order in wxAuiNotebook after dragging (Mark Barber).
 
 wxGTK:
 
@@ -579,6 +606,7 @@ wxGTK:
 - Improve drag-and-drop of URLs.
 - Make key event handling consistent with wxMSW (John Rails).
 - Fix printing in landscape mode (Marcin Wojdyr).
+- Fix path selection in wx{File,Dir}Dialog with GTK+ > 2.24.10 (obfuscated).
 
 wxMSW:
 
@@ -589,6 +617,12 @@ wxMSW:
 - Fix calling Iconize(false) on hidden top level windows (Christian Walther).
 - Don't send any events from wxSpinCtrl::SetRange() even if the value changed.
 - Display system drag images during drag and drop if available (PeterO).
+
+wxOSX/Cocoa:
+
+- Implement image support in wxNotebook (Malcolm MacLeod).
+- Add support for button mnemonics (joostn).
+- Implemented wxTextCtrl::SetDefaultStyle().
 
 
 2.9.4: (released 2012-07-09)
@@ -613,6 +647,7 @@ All:
 - Added wxDir::GetNameWithSep().
 - Allow unloading wxPluginLibrary objects in any order (manyleaves).
 - Fix passing strings with embedded NULs in wxThreadEvents (Steffen Olszewski).
+- Add wxList::AsVector<>() helper (troelsk).
 
 All (GUI):
 
@@ -655,6 +690,7 @@ All (GUI):
 - Added support for Korean Johab and Vietnamese encodings (jank9201).
 - Fix off by 1 bug with setting font size in points in wxHTML (gevorg).
 - Fix return value of wxGenericListCtrl::InsertColumn() (Sebastian Walderich).
+- Add wxDocManager::Get{Views,Documents,Templates}Vector() (troelsk).
 
 GTK:
 

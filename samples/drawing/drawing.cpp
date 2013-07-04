@@ -421,27 +421,27 @@ void MyCanvas::DrawTestBrushes(wxDC& dc)
     wxCoord x = 10,
             y = 10;
 
-    dc.SetBrush(wxBrush(*wxGREEN, wxSOLID));
+    dc.SetBrush(*wxGREEN_BRUSH);
     dc.DrawRectangle(x, y, WIDTH, HEIGHT);
     dc.DrawText(wxT("Solid green"), x + 10, y + 10);
 
     y += HEIGHT;
-    dc.SetBrush(wxBrush(*wxRED, wxCROSSDIAG_HATCH));
+    dc.SetBrush(wxBrush(*wxRED, wxBRUSHSTYLE_CROSSDIAG_HATCH));
     dc.DrawRectangle(x, y, WIDTH, HEIGHT);
     dc.DrawText(wxT("Diagonally hatched red"), x + 10, y + 10);
 
     y += HEIGHT;
-    dc.SetBrush(wxBrush(*wxBLUE, wxCROSS_HATCH));
+    dc.SetBrush(wxBrush(*wxBLUE, wxBRUSHSTYLE_CROSS_HATCH));
     dc.DrawRectangle(x, y, WIDTH, HEIGHT);
     dc.DrawText(wxT("Cross hatched blue"), x + 10, y + 10);
 
     y += HEIGHT;
-    dc.SetBrush(wxBrush(*wxCYAN, wxVERTICAL_HATCH));
+    dc.SetBrush(wxBrush(*wxCYAN, wxBRUSHSTYLE_VERTICAL_HATCH));
     dc.DrawRectangle(x, y, WIDTH, HEIGHT);
     dc.DrawText(wxT("Vertically hatched cyan"), x + 10, y + 10);
 
     y += HEIGHT;
-    dc.SetBrush(wxBrush(*wxBLACK, wxHORIZONTAL_HATCH));
+    dc.SetBrush(wxBrush(*wxBLACK, wxBRUSHSTYLE_HORIZONTAL_HATCH));
     dc.DrawRectangle(x, y, WIDTH, HEIGHT);
     dc.DrawText(wxT("Horizontally hatched black"), x + 10, y + 10);
 
@@ -458,7 +458,7 @@ void MyCanvas::DrawTestBrushes(wxDC& dc)
 
 void MyCanvas::DrawTestPoly(wxDC& dc)
 {
-    wxBrush brushHatch(*wxRED, wxFDIAGONAL_HATCH);
+    wxBrush brushHatch(*wxRED, wxBRUSHSTYLE_FDIAGONAL_HATCH);
     dc.SetBrush(brushHatch);
 
     wxPoint star[5];
@@ -495,39 +495,39 @@ void MyCanvas::DrawTestPoly(wxDC& dc)
 
 void MyCanvas::DrawTestLines( int x, int y, int width, wxDC &dc )
 {
-    dc.SetPen( wxPen( wxT("black"), width, wxSOLID) );
+    dc.SetPen( wxPen( *wxBLACK, width ) );
     dc.SetBrush( *wxRED_BRUSH );
     dc.DrawText(wxString::Format(wxT("Testing lines of width %d"), width), x + 10, y - 10);
     dc.DrawRectangle( x+10, y+10, 100, 190 );
 
     dc.DrawText(wxT("Solid/dot/short dash/long dash/dot dash"), x + 150, y + 10);
-    dc.SetPen( wxPen( wxT("black"), width, wxSOLID) );
+    dc.SetPen( wxPen( *wxBLACK, width ) );
     dc.DrawLine( x+20, y+20, 100, y+20 );
-    dc.SetPen( wxPen( wxT("black"), width, wxDOT) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_DOT) );
     dc.DrawLine( x+20, y+30, 100, y+30 );
-    dc.SetPen( wxPen( wxT("black"), width, wxSHORT_DASH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_SHORT_DASH) );
     dc.DrawLine( x+20, y+40, 100, y+40 );
-    dc.SetPen( wxPen( wxT("black"), width, wxLONG_DASH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_LONG_DASH) );
     dc.DrawLine( x+20, y+50, 100, y+50 );
-    dc.SetPen( wxPen( wxT("black"), width, wxDOT_DASH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_DOT_DASH) );
     dc.DrawLine( x+20, y+60, 100, y+60 );
 
     dc.DrawText(wxT("Misc hatches"), x + 150, y + 70);
-    dc.SetPen( wxPen( wxT("black"), width, wxBDIAGONAL_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_BDIAGONAL_HATCH) );
     dc.DrawLine( x+20, y+70, 100, y+70 );
-    dc.SetPen( wxPen( wxT("black"), width, wxCROSSDIAG_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_CROSSDIAG_HATCH) );
     dc.DrawLine( x+20, y+80, 100, y+80 );
-    dc.SetPen( wxPen( wxT("black"), width, wxFDIAGONAL_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_FDIAGONAL_HATCH) );
     dc.DrawLine( x+20, y+90, 100, y+90 );
-    dc.SetPen( wxPen( wxT("black"), width, wxCROSS_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_CROSS_HATCH) );
     dc.DrawLine( x+20, y+100, 100, y+100 );
-    dc.SetPen( wxPen( wxT("black"), width, wxHORIZONTAL_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_HORIZONTAL_HATCH) );
     dc.DrawLine( x+20, y+110, 100, y+110 );
-    dc.SetPen( wxPen( wxT("black"), width, wxVERTICAL_HATCH) );
+    dc.SetPen( wxPen( *wxBLACK, width, wxPENSTYLE_VERTICAL_HATCH) );
     dc.DrawLine( x+20, y+120, 100, y+120 );
 
     dc.DrawText(wxT("User dash"), x + 150, y + 140);
-    wxPen ud( wxT("black"), width, wxUSER_DASH );
+    wxPen ud( *wxBLACK, width, wxPENSTYLE_USER_DASH );
     wxDash dash1[6];
     dash1[0] = 8;  // Long dash  <---------+
     dash1[1] = 2;  // Short gap            |
@@ -733,12 +733,8 @@ void MyCanvas::DrawDefault(wxDC& dc)
     wxMemoryDC memdc2;
     memdc2.SelectObject(bitmap2);
 
-    wxColour clr(255, 255, 0);
-    wxBrush yellowBrush(clr, wxSOLID);
-    memdc2.SetBackground(yellowBrush);
+    memdc2.SetBackground(*wxYELLOW_BRUSH);
     memdc2.Clear();
-
-    wxPen yellowPen(clr, 1, wxSOLID);
 
     // Now draw a white rectangle with red outline. It should
     // entirely eclipse the yellow background.
@@ -757,8 +753,8 @@ void MyCanvas::DrawDefault(wxDC& dc)
     // Draw a yellow rectangle filling the bitmap
 
     x = 600; int y = 270;
-    dc.SetPen(yellowPen);
-    dc.SetBrush(yellowBrush);
+    dc.SetPen(*wxYELLOW_PEN);
+    dc.SetBrush(*wxYELLOW_BRUSH);
     dc.DrawRectangle(x, y, totalWidth, totalHeight);
 
     // Now draw a white rectangle with red outline. It should
@@ -890,7 +886,7 @@ void MyCanvas::DrawWithLogicalOps(wxDC& dc)
     static const wxCoord h = 60;
 
     // reuse the text colour here
-    dc.SetPen(wxPen(m_owner->m_colourForeground, 1, wxSOLID));
+    dc.SetPen(wxPen(m_owner->m_colourForeground));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     size_t n;
@@ -907,7 +903,7 @@ void MyCanvas::DrawWithLogicalOps(wxDC& dc)
     }
 
     // now some filled rectangles
-    dc.SetBrush(wxBrush(m_owner->m_colourForeground, wxSOLID));
+    dc.SetBrush(wxBrush(m_owner->m_colourForeground));
 
     for ( n = 0; n < WXSIZEOF(rasterOperations); n++ )
     {
@@ -936,22 +932,22 @@ void MyCanvas::DrawAlpha(wxDC& dc)
     wxDouble width = 180 ;
     wxDouble radius = 30 ;
 
-    dc.SetPen( wxPen( wxColour( 128, 0, 0, 255 ),12, wxSOLID));
-    dc.SetBrush( wxBrush( wxColour( 255, 0, 0, 255),wxSOLID));
+    dc.SetPen( wxPen( wxColour( 128, 0, 0 ), 12 ));
+    dc.SetBrush(*wxRED_BRUSH);
 
     wxRect r(margin,margin+width*0.66,width,width) ;
 
     dc.DrawRoundedRectangle( r.x, r.y, r.width, r.width, radius ) ;
 
-    dc.SetPen( wxPen( wxColour( 0, 0, 128, 255 ),12, wxSOLID));
-    dc.SetBrush( wxBrush( wxColour( 0, 0, 255, 255),wxSOLID));
+    dc.SetPen( wxPen( wxColour( 0, 0, 128 ), 12));
+    dc.SetBrush(*wxBLUE_BRUSH);
 
     r.Offset( width * 0.8 , - width * 0.66 ) ;
 
     dc.DrawRoundedRectangle( r.x, r.y, r.width, r.width, radius ) ;
 
-    dc.SetPen( wxPen( wxColour( 128, 128, 0, 255 ),12, wxSOLID));
-    dc.SetBrush( wxBrush( wxColour( 192, 192, 0, 255),wxSOLID));
+    dc.SetPen( wxPen( wxColour( 128, 128, 0 ), 12));
+    dc.SetBrush( wxBrush( wxColour( 192, 192, 0)));
 
     r.Offset( width * 0.8 , width *0.5 ) ;
 
@@ -998,7 +994,7 @@ void MyCanvas::DrawGraphics(wxGraphicsContext* gc)
     gc->PushState(); // save current translation/scale/other state
     gc->Translate(60, 75); // reposition the context origin
 
-    gc->SetPen(wxPen("navy", 1));
+    gc->SetPen(wxPen("navy"));
     gc->SetBrush(wxBrush("pink"));
 
     for( int i = 0 ; i < 3 ; ++i )
@@ -1230,9 +1226,9 @@ void MyCanvas::DrawSplines(wxDC& dc)
             letters[m][n].y = center.y + h[ letters[m][n].y ];
         }
 
-        dc.SetPen( wxPen( wxT("blue"), 1, wxDOT) );
+        dc.SetPen( wxPen( *wxBLUE, 1, wxDOT) );
         dc.DrawLines(5, letters[m]);
-        dc.SetPen( wxPen( wxT("black"), 4, wxSOLID) );
+        dc.SetPen( wxPen( *wxBLACK, 4) );
         dc.DrawSpline(5, letters[m]);
     }
 
@@ -1306,19 +1302,19 @@ void MyCanvas::DrawGradients(wxDC& dc)
     r3.y += 60;
     wxRect r4 = r2;
     r4.y += 60;
-    dc.SetPen(wxPen(wxColour(255, 0, 0)));
+    dc.SetPen(*wxRED_PEN);
     dc.DrawRectangle(r);
     r.Deflate(1);
-    dc.GradientFillLinear(r, wxColour(0,255,0), wxColour(0,0,0), wxNORTH);
+    dc.GradientFillLinear(r, *wxGREEN, *wxBLACK, wxNORTH);
     dc.DrawRectangle(r2);
     r2.Deflate(1);
-    dc.GradientFillLinear(r2, wxColour(0,0,0), wxColour(0,255,0), wxSOUTH);
+    dc.GradientFillLinear(r2, *wxBLACK, *wxGREEN, wxSOUTH);
     dc.DrawRectangle(r3);
     r3.Deflate(1);
-    dc.GradientFillLinear(r3, wxColour(0,255,0), wxColour(0,0,0), wxEAST);
+    dc.GradientFillLinear(r3, *wxGREEN, *wxBLACK, wxEAST);
     dc.DrawRectangle(r4);
     r4.Deflate(1);
-    dc.GradientFillLinear(r4, wxColour(0,0,0), wxColour(0,255,0), wxWEST);
+    dc.GradientFillLinear(r4, *wxBLACK, *wxGREEN, wxWEST);
 
 #if wxUSE_GRAPHICS_CONTEXT
     if (m_useContext)
@@ -1332,9 +1328,9 @@ void MyCanvas::DrawGradients(wxDC& dc)
         dc.DrawText(wxT("Linear Gradient with Stops"), gfr.x, gfr.y);
         gfr.Offset(0, TEXT_HEIGHT);
 
-        stops = wxGraphicsGradientStops(wxColour(255,0,0), wxColour(0,0,255));
+        stops = wxGraphicsGradientStops(*wxRED, *wxBLUE);
         stops.Add(wxColour(255,255,0), 0.33f);
-        stops.Add(wxColour(0,255,0), 0.67f);
+        stops.Add(*wxGREEN, 0.67f);
 
         gc->SetBrush(gc->CreateLinearGradientBrush(gfr.x, gfr.y,
                                                    gfr.x + gfr.width, gfr.y + gfr.height,
@@ -1369,11 +1365,11 @@ void MyCanvas::DrawGradients(wxDC& dc)
         dc.DrawText(wxT("Linear Gradient with Stops and Gaps"), gfr.x, gfr.y);
         gfr.Offset(0, TEXT_HEIGHT);
 
-        stops = wxGraphicsGradientStops(wxColour(255,0,0), wxColour(0,0,255));
+        stops = wxGraphicsGradientStops(*wxRED, *wxBLUE);
         stops.Add(wxColour(255,255,0), 0.33f);
         stops.Add(wxTransparentColour, 0.33f);
         stops.Add(wxTransparentColour, 0.67f);
-        stops.Add(wxColour(0,255,0), 0.67f);
+        stops.Add(*wxGREEN, 0.67f);
 
         gc->SetBrush(gc->CreateLinearGradientBrush(gfr.x, gfr.y + gfr.height,
                                                    gfr.x + gfr.width, gfr.y,
@@ -1408,12 +1404,12 @@ void MyCanvas::DrawGradients(wxDC& dc)
         dc.DrawText(wxT("Gradients with Stops and Transparency"), gfr.x, gfr.y);
         gfr.Offset(0, TEXT_HEIGHT);
 
-        stops = wxGraphicsGradientStops(wxColour(255,0,0), wxTransparentColour);
-        stops.Add(wxColour(255,0,0), 0.33f);
+        stops = wxGraphicsGradientStops(*wxRED, wxTransparentColour);
+        stops.Add(*wxRED, 0.33f);
         stops.Add(wxTransparentColour, 0.33f);
         stops.Add(wxTransparentColour, 0.67f);
-        stops.Add(wxColour(0,0,255), 0.67f);
-        stops.Add(wxColour(0,0,255), 1.0f);
+        stops.Add(*wxBLUE, 0.67f);
+        stops.Add(*wxBLUE, 1.0f);
 
         pth = gc->CreatePath();
         pth.MoveToPoint(gfr.x,gfr.y);
@@ -1557,9 +1553,7 @@ void MyCanvas::Draw(wxDC& pdc)
 
     if ( m_owner->m_textureBackground) {
         if ( ! m_owner->m_backgroundBrush.IsOk() ) {
-            wxColour clr(0,128,0);
-            wxBrush b(clr, wxSOLID);
-            dc.SetBackground(b);
+            dc.SetBackground(wxBrush(wxColour(0, 128, 0)));
         }
     }
 
@@ -1675,7 +1669,7 @@ void MyCanvas::OnMouseMove(wxMouseEvent &event)
         dc.SetPen( *wxGREY_PEN );
         dc.SetBrush( wxColour( 192,192,192,64 ) );
 #else
-        dc.SetPen( wxPen( *wxLIGHT_GREY, 2, wxSOLID ) );
+        dc.SetPen( wxPen( *wxLIGHT_GREY, 2 ) );
         dc.SetBrush( *wxTRANSPARENT_BRUSH );
 #endif
         dc.DrawRectangle( newrect );

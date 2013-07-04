@@ -83,6 +83,99 @@ void wxAuiGtkTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxR
                                        rect.x, rect.y, rect.width, rect.height);
 }
 
+void wxAuiGtkTabArt::DrawBorder(wxDC& WXUNUSED(dc), wxWindow* wnd, const wxRect& rect)
+{
+    if (!wnd) return;
+    if (!wnd->m_wxwindow) return;
+    if (!gtk_widget_is_drawable(wnd->m_wxwindow)) return;
+
+    GtkStyle *style_notebook = gtk_widget_get_style(wxGTKPrivate::GetNotebookWidget());
+    wxRect borderRect(rect);
+
+    int width = GetAdditionalBorderSpace(wnd);
+
+    // We need the rectangles here, because the background of a gtk-box
+    // is not transparent and can interfere with elements of the windows on
+    // top of them (e.g. scrollbar)
+    // The clipping-regin of the box is always a rectangle, so we need to
+    // draw the box three times to get all three sides.
+    // We just need one side and clip all the rest.
+    GdkRectangle clipRectLeft;
+    clipRectLeft.x = rect.x;
+    clipRectLeft.y = rect.y;
+    clipRectLeft.width = width;
+    clipRectLeft.height = rect.height;
+
+    GdkRectangle clipRectTop;
+    clipRectTop.x = rect.x;
+    clipRectTop.y = rect.y;
+    clipRectTop.width = rect.width;
+    clipRectTop.height = width;
+
+    GdkRectangle clipRectRight;
+    clipRectRight.x = rect.x + rect.width - width;
+    clipRectRight.y = rect.y;
+    clipRectRight.width = width;
+    clipRectRight.height = rect.height;
+
+    GdkRectangle clipRectBottom;
+    clipRectBottom.x = rect.x;
+    clipRectBottom.y = rect.y + rect.height - width;
+    clipRectBottom.width = rect.width;
+    clipRectBottom.height = width;
+
+    // We make the height/width of the rect 10 pixel larger than needed,
+    // because we nned just three sides and don't want the rounded corner
+    // of the fourth side, we do not show.
+    // The fourth side is drawn in DrawTab as gap-box
+    GdkRectangle clipRect[3];
+    if (IsHorizontal())
+    {
+        borderRect.x += 1;
+        borderRect.height += 10;
+        borderRect.width-=1;
+        clipRect[0] = clipRectLeft;
+        clipRect[1] = clipRectRight;
+        if (HasFlag(wxAUI_NB_TOP))
+        {
+            clipRect[2] = clipRectBottom;
+            borderRect.y -= 10;
+        }
+        if (HasFlag(wxAUI_NB_BOTTOM))
+        {
+            clipRect[2] = clipRectTop;
+        }
+    }
+    else
+    {
+        borderRect.y += 1;
+        borderRect.width += 10;
+        borderRect.height-=1;
+        clipRect[0] = clipRectTop;
+        clipRect[1] = clipRectBottom;
+        if (HasFlag(wxAUI_NB_LEFT))
+        {
+            clipRect[2] = clipRectRight;
+            borderRect.x -= 10;
+        }
+        if (HasFlag(wxAUI_NB_RIGHT))
+        {
+            clipRect[2] = clipRectLeft;
+        }
+    }
+
+    size_t i;
+    for (i = 0; i < 3; ++i)
+    {
+        gtk_paint_box(style_notebook, wnd->GTKGetDrawingWindow(), GTK_STATE_NORMAL, GTK_SHADOW_OUT,
+                      &clipRect[i], wnd->m_wxwindow,
+                      const_cast<char*>("notebook"),
+                      borderRect.x, borderRect.y,
+                      borderRect.width, borderRect.height);
+    }
+
+}
+
 void ButtonStateAndShadow(int buttonState, GtkStateType& state, GtkShadowType& shadow)
 {
 
@@ -175,6 +268,14 @@ wxRect DrawCloseButton(wxDC& dc, GtkWidget* widget, int buttonState, wxRect cons
     return outRect;
 }
 
+int GetGapSize(bool isHorizontal)
+{
+    if(isHorizontal)
+        return 3 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
+    else
+        return 3 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
+}
+
 void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page, const wxRect& inRect, int closeButtonState, bool haveFocus, wxRect* outTabRect, wxRect* outButtonRect, int* xExtent)
 {
     GtkWidget* widget = wnd->GetHandle();
@@ -191,7 +292,8 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
                                     page.HasFlag(wxAuiPaneInfo::optionActiveNotebook), closeButtonState, xExtent);
 
     wxRect tabRect = inRect;
-    wxRect gapRect = wnd->GetRect();
+    wxRect gapRect;
+
     int gapStart = 0, gapWidth = 0;
 
     GtkPositionType gapBoxPos;
@@ -199,63 +301,80 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
 
     if (IsHorizontal())
     {
-        tabRect.width = tabSize.x;
-        tabRect.height = tabSize.y;
-        if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
-            tabRect.height += 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
-        // if no bitmap is set, we need a tiny correction
-        if (! page.GetBitmap().IsOk())
-            tabRect.height += 1;
-        tabRect.y += GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder / 2;
-        gapRect.height = 6 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
+        gapRect.height = GetGapSize(IsHorizontal());
         gapRect.x = 1;
+        gapRect.width = dc.GetSize().x - 1;
+
+        tabRect.width = tabSize.x;
+
         gapStart = tabRect.x - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder / 2;
         gapWidth = tabRect.width;
+        int hborder = GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
 
         if (HasFlag(wxAUI_NB_TOP))
         {
+            gapRect.y = inRect.y + inRect.height - gapRect.height;
+            gapRect.height += 10;
+
             if (!page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
-                tabRect.y += 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
-            gapRect.y = tabRect.y + tabRect.height;
+                tabRect.y += 2 * hborder;
+            tabRect.height = gapRect.y - tabRect.y - hborder;
+            tabRect.y += hborder;
+
             gapBoxPos = GTK_POS_TOP;
             gapPos = GTK_POS_BOTTOM;
         }
         else//wxAUI_NB_BOTTOM
         {
-            tabRect.y += 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
-            tabRect.height += 2;
-            gapRect.y = tabRect.y - gapRect.height;
-            gapRect.y += GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder / 2;
+            gapRect.y = inRect.y - 10;
+            gapRect.height += 10;
+
+            tabRect.y = inRect.y + gapRect.y + gapRect.height;
+            tabRect.height = inRect.y + inRect.height - tabRect.y - hborder;
+            if (!page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
+                tabRect.height -= 2 * hborder;
+
             gapBoxPos = GTK_POS_BOTTOM;
             gapPos = GTK_POS_TOP;
         }
     }
     else
     {
-        tabRect.width -= 4 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
-        tabRect.height = tabSize.y;
-        gapRect.width = 6 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
+        gapRect.width = GetGapSize(IsHorizontal());
         gapRect.y = 1;
+        gapRect.height = dc.GetSize().y - 1;
+
+        tabRect.height = tabSize.y;
+
         gapStart = tabRect.y - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder / 2;
         gapWidth = tabRect.height;
+        int vborder = GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
 
         if (HasFlag(wxAUI_NB_LEFT))
         {
+            gapRect.x = inRect.x + inRect.width - gapRect.width;
+            gapRect.width += 10;
+
             if (!page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
-            {
-                tabRect.x += 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
-                tabRect.width -= 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
-            }
-            gapRect.x = tabRect.x + tabRect.width;
+                tabRect.x += 2 * vborder;
+
+            tabRect.width = gapRect.x - tabRect.x - vborder;
+            tabRect.x += vborder;
+
             gapBoxPos = GTK_POS_LEFT;
             gapPos = GTK_POS_RIGHT;
         }
         else//wxAUI_NB_RIGHT
         {
-            tabRect.x = inRect.width - tabRect.width;
+
+            gapRect.x = inRect.x - 10;
+            gapRect.width += 10;
+
+            tabRect.x = inRect.x + gapRect.x + gapRect.width;
+            tabRect.width = inRect.x + inRect.width - tabRect.x - vborder;
             if (!page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
-                tabRect.width -= 2 * GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
-            gapRect.x = tabRect.x - gapRect.width;
+                tabRect.width -= 2 * vborder;
+
             gapBoxPos = GTK_POS_RIGHT;
             gapPos = GTK_POS_LEFT;
         }
@@ -512,9 +631,21 @@ wxSize wxAuiGtkTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrArray
     SetSelectedFont(m_normalFont);
 
     wxSize tabSize = wxAuiGenericTabArt::GetBestTabSize(wnd, pages, requiredBmpSize);
-    tabSize.IncBy(3 * gtk_widget_get_style(wxGTKPrivate::GetNotebookWidget())->xthickness,
-                   3 * gtk_widget_get_style(wxGTKPrivate::GetNotebookWidget())->ythickness);
+
+    tabSize.IncBy(GetGapSize(IsHorizontal()));
+
     return tabSize;
+}
+
+int wxAuiGtkTabArt::GetBorderWidth(wxWindow* WXUNUSED(wnd))
+{
+    return wxMax(GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder,
+                 GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder);
+}
+
+int wxAuiGtkTabArt::GetAdditionalBorderSpace(wxWindow* wnd)
+{
+    return 2 * GetBorderWidth(wnd);
 }
 
 wxSize wxAuiGtkTabArt::GetTabSize(wxDC& dc, wxWindow* wnd, const wxString& caption, const wxBitmap& bitmap, bool active, int closeButtonState, int* extent)

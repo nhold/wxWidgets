@@ -156,8 +156,9 @@ const wxEventType wxEVT_NULL = wxNewEventType();
 
 wxDEFINE_EVENT( wxEVT_IDLE, wxIdleEvent );
 
-// Thread event
+// Thread and asynchronous call events
 wxDEFINE_EVENT( wxEVT_THREAD, wxThreadEvent );
+wxDEFINE_EVENT( wxEVT_ASYNC_METHOD_CALL, wxAsyncMethodCallEvent );
 
 #endif // wxUSE_BASE
 
@@ -1564,6 +1565,17 @@ bool wxEvtHandler::TryHereOnly(wxEvent& event)
     if ( GetEventHashTable().HandleEvent(event, this) )
         return true;
 
+#ifdef wxHAS_CALL_AFTER
+    // There is an implicit entry for async method calls processing in every
+    // event handler:
+    if ( event.GetEventType() == wxEVT_ASYNC_METHOD_CALL &&
+            event.GetEventObject() == this )
+    {
+        static_cast<wxAsyncMethodCallEvent&>(event).Execute();
+        return true;
+    }
+#endif // wxHAS_CALL_AFTER
+
     // We don't have a handler for this event.
     return false;
 }
@@ -1663,15 +1675,6 @@ wxEvtHandler::DoUnbind(int id,
     if (!m_dynamicEvents)
         return false;
 
-    // Remove connection from tracker node (wxEventConnectionRef)
-    wxEvtHandler *eventSink = func.GetEvtHandler();
-    if ( eventSink && eventSink != this )
-    {
-        wxEventConnectionRef *evtConnRef = FindRefInTrackerList(eventSink);
-        if ( evtConnRef )
-            evtConnRef->DecRef();
-    }
-
     wxList::compatibility_iterator node = m_dynamicEvents->GetFirst();
     while (node)
     {
@@ -1683,6 +1686,15 @@ wxEvtHandler::DoUnbind(int id,
             entry->m_fn->IsMatching(func) &&
             ((entry->m_callbackUserData == userData) || !userData))
         {
+            // Remove connection from tracker node (wxEventConnectionRef)
+            wxEvtHandler *eventSink = entry->m_fn->GetEvtHandler();
+            if ( eventSink && eventSink != this )
+            {
+                wxEventConnectionRef *evtConnRef = FindRefInTrackerList(eventSink);
+                if ( evtConnRef )
+                    evtConnRef->DecRef();
+            }
+
             delete entry->m_callbackUserData;
             m_dynamicEvents->Erase( node );
             delete entry;

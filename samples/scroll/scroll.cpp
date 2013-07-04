@@ -797,7 +797,7 @@ MySizerScrolledWindow::MySizerScrolledWindow(wxWindow *parent)
     m_button = new wxButton( this, wxID_RESIZE_FRAME, "Press me",
                              wxDefaultPosition, SMALL_BUTTON );
 
-    sizer->Add(m_button, wxSizerFlags().Centre().Border(20));
+    sizer->Add(m_button, wxSizerFlags().Centre().Border(wxALL, 20));
     sizer->Add(new wxStaticText(this, wxID_ANY, "This is just"),
                wxSizerFlags().Centre());
     sizer->Add(new wxStaticText(this, wxID_ANY, "some decoration"),
@@ -1233,10 +1233,8 @@ MyAutoScrollingWindow::DCNormalize(int x, int y, int w, int h)
 void MyAutoScrollingWindow::OnDraw(wxDC& dc)
 {
     dc.SetFont(m_font);
-    wxBrush normBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)
-            , wxSOLID);
-    wxBrush selBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT)
-            , wxSOLID);
+    wxBrush normBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    wxBrush selBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
     dc.SetPen(*wxTRANSPARENT_PEN);
     const wxString str = sm_testData;
     size_t strLength = str.length();

@@ -46,7 +46,13 @@ enum
 
     @library{wxcore}
     @category{ctrl}
-    @appearance{genericdirctrl.png}
+    @appearance{genericdirctrl}
+    @event{EVT_DIRCTRL_CHANGED(id, func)}
+          Selected directory has changed.
+          Processes a @c wxEVT_COMMAND_DIRCTRL_CHANGED event type.
+          Notice that this event is generated even for the changes done by the
+          program itself and not only those done by the user.
+          @since 2.9.5
 */
 class wxGenericDirCtrl : public wxControl
 {
@@ -161,6 +167,13 @@ public:
         Gets the currently-selected directory or filename.
     */
     virtual wxString GetPath() const;
+
+    /**
+        Gets the path corresponding to the given tree control item.
+
+        @since 2.9.5
+    */
+    wxString GetPath(wxTreeItemId itemId) const;
 
     /**
         Fills the array @a paths with the selected directories and filenames.

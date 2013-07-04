@@ -143,29 +143,26 @@ bool wxApp::DoIdle()
 #if wxUSE_THREADS
     wxMutexLocker lock(m_idleMutex);
 #endif
-    // if a new idle source was added during ProcessIdle
-    if (m_idleSourceId != 0)
-    {
-        // remove it
-        g_source_remove(m_idleSourceId);
-        m_idleSourceId = 0;
-    }
 
-    // Pending events can be added asynchronously,
-    // need to keep idle source if any have appeared
-    if (HasPendingEvents())
-        needMore = true;
-
-    // if more idle processing requested
-    if (needMore)
+    bool keepSource = false;
+    // if a new idle source has not been added, either as a result of idle
+    // processing above or by another thread calling WakeUpIdle()
+    if (m_idleSourceId == 0)
     {
-        // keep this source installed
-        m_idleSourceId = id_save;
-        return true;
+        // if more idle processing was requested or pending events have appeared
+        if (needMore || HasPendingEvents())
+        {
+            // keep this source installed
+            m_idleSourceId = id_save;
+            keepSource = true;
+        }
+        else // add hooks and remove this source
+            wx_add_idle_hooks();
     }
-    // add hooks and remove this source
-    wx_add_idle_hooks();
-    return false;
+    // else remove this source, leave new one installed
+    // we must keep an idle source, otherwise a wakeup could be lost
+
+    return keepSource;
 }
 
 //-----------------------------------------------------------------------------
@@ -202,6 +199,10 @@ wxApp::~wxApp()
 
 bool wxApp::SetNativeTheme(const wxString& theme)
 {
+#ifdef __WXGTK3__
+    wxUnusedVar(theme);
+    return false;
+#else
     wxString path;
     path = gtk_rc_get_theme_dir();
     path += "/";
@@ -222,6 +223,7 @@ bool wxApp::SetNativeTheme(const wxString& theme)
     gtk_rc_reparse_all_for_settings(gtk_settings_get_default(), TRUE);
 
     return true;
+#endif
 }
 
 bool wxApp::OnInitGui()
@@ -307,9 +309,9 @@ bool wxApp::Initialize(int& argc_, wxChar **argv_)
     if (encName.CmpNoCase(wxT("@locale")) == 0)
         encName.clear();
     encName.MakeUpper();
-#if wxUSE_INTL
     if (encName.empty())
     {
+#if wxUSE_INTL
         // (2) if a non default locale is set, assume that the user wants his
         //     filenames in this locale too
         encName = wxLocale::GetSystemEncodingName().Upper();
@@ -328,22 +330,14 @@ bool wxApp::Initialize(int& argc_, wxChar **argv_)
                 encName.clear();
             }
         }
+#endif // wxUSE_INTL
 
         // (3) finally use UTF-8 by default
         if ( encName.empty() )
             encName = wxT("UTF-8");
         wxSetEnv(wxT("G_FILENAME_ENCODING"), encName);
     }
-#else
-    if (encName.empty())
-        encName = wxT("UTF-8");
 
-    // if wxUSE_INTL==0 it probably indicates that only "C" locale is supported
-    // by the program anyhow so prevent GTK+ from calling setlocale(LC_ALL, "")
-    // from gtk_init_check() as it does by default
-    gtk_disable_setlocale();
-
-#endif // wxUSE_INTL
     static wxConvBrokenFileNames fileconv(encName);
     wxConvFileName = &fileconv;
 #endif // __UNIX__
@@ -364,13 +358,17 @@ bool wxApp::Initialize(int& argc_, wxChar **argv_)
 
     int argcGTK = argc_;
 
+    // Prevent gtk_init_check() from changing the locale automatically for
+    // consistency with the other ports that don't do it. If necessary,
+    // wxApp::SetCLocale() may be explicitly called.
+    gtk_disable_setlocale();
+
 #ifdef __WXGPE__
     init_result = true;  // is there a _check() version of this?
     gpe_application_init( &argcGTK, &argvGTK );
 #else
     init_result = gtk_init_check( &argcGTK, &argvGTK ) != 0;
 #endif
-    wxUpdateLocaleIsUtf8();
 
     if ( argcGTK != argc_ )
     {
@@ -530,6 +528,25 @@ void wxGUIAppTraits::MutexGuiLeave()
     gdk_threads_leave();
 }
 #endif // wxUSE_THREADS
+
+/* static */
+bool wxApp::GTKIsUsingGlobalMenu()
+{
+    static int s_isUsingGlobalMenu = -1;
+    if ( s_isUsingGlobalMenu == -1 )
+    {
+        // Currently we just check for this environment variable because this
+        // is how support for the global menu is implemented under Ubuntu.
+        //
+        // If we ever get false positives, we could also check for
+        // XDG_CURRENT_DESKTOP env var being set to "Unity".
+        wxString proxy;
+        s_isUsingGlobalMenu = wxGetEnv("UBUNTU_MENUPROXY", &proxy) &&
+                                !proxy.empty() && proxy != "0";
+    }
+
+    return s_isUsingGlobalMenu == 1;
+}
 
 #if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
 // Maemo-specific method: get the main program object

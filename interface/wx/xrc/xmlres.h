@@ -90,6 +90,12 @@ public:
     void AddHandler(wxXmlResourceHandler* handler);
 
     /**
+       Add a new handler at the begining of the handler list.
+     */
+    void InsertHandler(wxXmlResourceHandler *handler);
+
+    
+    /**
         Attaches an unknown control to the given panel/window/dialog.
         Unknown controls are used in conjunction with \<object class="unknown"\>.
     */
@@ -103,6 +109,14 @@ public:
     */
     void ClearHandlers();
 
+    /**
+       Registers subclasses factory for use in XRC.  This is useful only for
+       language bindings developers who need a way to implement subclassing in
+       wxWidgets ports that don't support wxRTTI (e.g. wxPython).
+    */
+    static void AddSubclassFactory(wxXmlSubclassFactory *factory);
+
+    
     /**
         Compares the XRC version to the argument.
 
@@ -260,7 +274,16 @@ public:
     bool LoadDialog(wxDialog* dlg, wxWindow* parent, const wxString& name);
 
     /**
-        Loads a frame.
+       Loads a frame from the resource. @a parent points to parent window (if any).
+    */
+    wxFrame *LoadFrame(wxWindow* parent, const wxString& name);
+
+    /**
+        Loads the contents of a frame onto an existing wxFrame.
+
+        This form is used to finish creation of an already existing instance
+        (the main reason for this is that you may want to use derived class
+        with a new event table).
     */
     bool LoadFrame(wxFrame* frame, wxWindow* parent,
                    const wxString& name);
@@ -514,7 +537,7 @@ protected:
     /**
         Creates an animation (see wxAnimation) from the filename specified in @a param.
     */
-    wxAnimation GetAnimation(const wxString& param = "animation");
+    wxAnimation* GetAnimation(const wxString& param = "animation");
 
     /**
         Gets a bitmap.
@@ -612,12 +635,17 @@ protected:
 
         @since 2.9.1
     */
-    wxImageList *GetImageList(const wxString& param = wxT("imagelist"));
+    wxImageList *GetImageList(const wxString& param = "imagelist");
 
     /**
         Gets the integer value from the parameter.
     */
     long GetLong(const wxString& param, long defaultv = 0);
+
+    /**
+        Gets a float value from the parameter.
+    */
+    float GetFloat(const wxString& param, float defaultv = 0);
 
     /**
         Returns the resource name.
@@ -714,5 +742,55 @@ protected:
         @since 2.9.0
      */
     void ReportParamError(const wxString& param, const wxString& message);
+
+
+    /**
+       After CreateResource has been called this will return the current
+       wxXmlResource object.
+       
+       @since 2.9.5
+    */
+    wxXmlResource* GetResource() const;
+
+    /**
+       After CreateResource has been called this will return the XML node
+       being processed.
+
+       @since 2.9.5
+    */
+    wxXmlNode* GetNode() const;
+
+    /**
+       After CreateResource has been called this will return the class name of
+       the XML resource node being processed.
+
+       @since 2.9.5
+    */
+    wxString GetClass() const;
+
+    /**
+       After CreateResource has been called this will return the current
+       item's parent, if any.
+
+       @since 2.9.5
+    */
+    wxObject* GetParent() const;
+
+    /**
+       After CreateResource has been called this will return the instance that
+       the XML resource content should be created upon, if it has already been
+       created.  If @NULL then the handler should create the object itself.
+
+       @since 2.9.5
+    */
+    wxObject* GetInstance() const;
+
+    /**
+       After CreateResource has been called this will return the item's parent
+       as a wxWindow.
+
+       @since 2.9.5
+    */
+    wxWindow* GetParentAsWindow() const;    
 };
 

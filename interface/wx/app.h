@@ -94,7 +94,7 @@ public:
     virtual int FilterEvent(wxEvent& event);
 
     /**
-        Returns the main event loop instance, i.e. the event loop which is started
+        Returns the main event loop instance, i.e.\ the event loop which is started
         by OnRun() and which dispatches all events sent from the native toolkit
         to the application (except when new event loops are temporarily set-up).
         The returned value maybe @NULL. Put initialization code which needs a
@@ -245,7 +245,7 @@ public:
     static wxAppConsole* GetInstance();
 
     /**
-        Returns @true if the main event loop is currently running, i.e. if the
+        Returns @true if the main event loop is currently running, i.e.\ if the
         application is inside OnRun().
 
         This can be useful to test whether events can be dispatched. For example,
@@ -260,7 +260,7 @@ public:
     //@{
 
     /**
-        This function is called when an assert failure occurs, i.e. the condition
+        This function is called when an assert failure occurs, i.e.\ the condition
         specified in wxASSERT() macro evaluated to @false.
 
         It is only called in debug mode (when @c __WXDEBUG__ is defined) as
@@ -288,7 +288,7 @@ public:
                                  const wxChar *msg);
 
     /**
-        Called when command line parsing fails (i.e. an incorrect command line option
+        Called when command line parsing fails (i.e.\ an incorrect command line option
         was specified by the user). The default behaviour is to show the program usage
         text and abort the program.
 
@@ -561,6 +561,33 @@ public:
 
     //@}
 
+    /**
+        Sets the C locale to the default locale for the current environment.
+
+        It is advised to call this to ensure that the underlying toolkit uses
+        the locale in which the numbers and monetary amounts are shown in the
+        format expected by user and so on.
+
+        Calling this function is roughly equivalent to calling
+        @code
+            setlocale(LC_ALL, "");
+        @endcode
+        but performs additional toolkit-specific tasks under some platforms and
+        so should be used instead of @c setlocale() itself. Alternatively, you
+        can use wxLocale to change the locale with more control.
+
+        Notice that this does @em not change the global C++ locale, you need to
+        do it explicitly if you want, e.g.
+        @code
+            std::locale::global(std::locale(""));
+        @endcode
+        but be warned that locale support in C++ standard library can be poor
+        or worse under some platforms, e.g. the above line results in an
+        immediate crash under OS X up to the version 10.8.2.
+
+        @since 2.9.5
+     */
+    void SetCLocale();
 
     /**
         Number of command line arguments (after environment-specific processing).
@@ -673,7 +700,7 @@ public:
     virtual wxWindow* GetTopWindow() const;
 
     /**
-        Returns @true if the application is active, i.e. if one of its windows is
+        Returns @true if the application is active, i.e.\ if one of its windows is
         currently in the foreground.
 
         If this function returns @false and you need to attract users attention to

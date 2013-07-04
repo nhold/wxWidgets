@@ -145,7 +145,7 @@ public:
     bool HasBackgroundColour() const;
 
     /**
-        Returns @true if a non-default (i.e. any) border is set.
+        Returns @true if a non-default (i.e.\ any) border is set.
     */
     bool HasBorder() const;
 
@@ -294,7 +294,7 @@ enum wxCalendarHitTestResult
 
     @library{wxadv}
     @category{ctrl}
-    @appearance{calendarctrl.png}
+    @appearance{calendarctrl}
 
     @nativeimpl{wxgtk,wxmsw}
 

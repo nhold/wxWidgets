@@ -26,6 +26,7 @@
 #include "wx/frame.h"
 
 #ifndef WX_PRECOMP
+    #include "wx/app.h"
     #include "wx/menu.h"
     #include "wx/menuitem.h"
     #include "wx/dcclient.h"
@@ -41,7 +42,6 @@ extern WXDLLEXPORT_DATA(const char) wxStatusLineNameStr[] = "status_line";
 // ----------------------------------------------------------------------------
 
 #if wxUSE_MENUS && wxUSE_STATUSBAR
-
 BEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
     EVT_MENU_OPEN(wxFrameBase::OnMenuOpen)
     EVT_MENU_CLOSE(wxFrameBase::OnMenuClose)
@@ -49,7 +49,23 @@ BEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
     EVT_MENU_HIGHLIGHT_ALL(wxFrameBase::OnMenuHighlight)
 END_EVENT_TABLE()
 
-#endif // wxUSE_MENUS && wxUSE_STATUSBAR
+#endif // wxUSE_MENUS && wxUSE_IDLEMENUUPDATES
+
+/* static */
+bool wxFrameBase::ShouldUpdateMenuFromIdle()
+{
+    // Usually this is determined at compile time and is determined by whether
+    // the platform supports wxEVT_MENU_OPEN, however in wxGTK we need to also
+    // check if we're using the global menu bar as we don't get EVT_MENU_OPEN
+    // for it and need to fall back to idle time updating even if normally
+    // wxUSE_IDLEMENUUPDATES is set to 0 for wxGTK.
+#ifdef __WXGTK20__
+    if ( wxApp::GTKIsUsingGlobalMenu() )
+        return true;
+#endif // !__WXGTK__
+
+    return wxUSE_IDLEMENUUPDATES != 0;
+}
 
 // ============================================================================
 // implementation
@@ -300,9 +316,7 @@ void wxFrameBase::UpdateWindowUI(long flags)
         // If coming from an idle event, we only want to update the menus if
         // we're in the wxUSE_IDLEMENUUPDATES configuration, otherwise they
         // will be update when the menu is opened later
-#if !wxUSE_IDLEMENUUPDATES
-        if ( !(flags & wxUPDATE_UI_FROMIDLE) )
-#endif // wxUSE_IDLEMENUUPDATES
+        if ( !(flags & wxUPDATE_UI_FROMIDLE) || ShouldUpdateMenuFromIdle() )
             DoMenuUpdates();
     }
 #endif // wxUSE_MENUS
@@ -323,12 +337,11 @@ void wxFrameBase::OnMenuHighlight(wxMenuEvent& event)
 
 void wxFrameBase::OnMenuOpen(wxMenuEvent& event)
 {
-#if wxUSE_IDLEMENUUPDATES
-    wxUnusedVar(event);
-#else // !wxUSE_IDLEMENUUPDATES
-    // as we didn't update the menus from idle time, do it now
-    DoMenuUpdates(event.GetMenu());
-#endif // wxUSE_IDLEMENUUPDATES/!wxUSE_IDLEMENUUPDATES
+    if ( !ShouldUpdateMenuFromIdle() )
+    {
+        // as we didn't update the menus from idle time, do it now
+        DoMenuUpdates(event.GetMenu());
+    }
 }
 
 void wxFrameBase::OnMenuClose(wxMenuEvent& WXUNUSED(event))
@@ -343,8 +356,8 @@ void wxFrameBase::OnInternalIdle()
 {
     wxTopLevelWindow::OnInternalIdle();
 
-#if wxUSE_MENUS && wxUSE_IDLEMENUUPDATES
-    if (wxUpdateUIEvent::CanUpdate(this))
+#if wxUSE_MENUS
+    if ( ShouldUpdateMenuFromIdle() && wxUpdateUIEvent::CanUpdate(this) )
         DoMenuUpdates();
 #endif
 }

@@ -798,23 +798,13 @@ BEGIN_EVENT_TABLE(wxAuiToolBar, wxControl)
     EVT_SET_CURSOR(wxAuiToolBar::OnSetCursor)
 END_EVENT_TABLE()
 
-
-wxAuiToolBar::wxAuiToolBar(wxWindow* parent,
-                           wxWindowID id,
-                           const wxPoint& position,
-                           const wxSize& size,
-                           long style)
-                            : wxControl(parent,
-                                        id,
-                                        position,
-                                        size,
-                                        style | wxBORDER_NONE)
+void wxAuiToolBar::Init()
 {
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_buttonWidth = -1;
     m_buttonHeight = -1;
     m_sizerElementCount = 0;
-    m_actionPos = wxPoint(-1,-1);
+    m_actionPos = wxDefaultPosition;
     m_actionItem = NULL;
     m_tipItem = NULL;
     m_art = new wxAuiDefaultToolBarArt;
@@ -824,15 +814,34 @@ wxAuiToolBar::wxAuiToolBar(wxWindow* parent,
     m_gripperSizerItem = NULL;
     m_overflowSizerItem = NULL;
     m_dragging = false;
+    m_gripperVisible = false;
+    m_overflowVisible = false;
+    m_overflowState = 0;
+    m_orientation = wxHORIZONTAL;
+}
+
+bool wxAuiToolBar::Create(wxWindow* parent,
+                           wxWindowID id,
+                           const wxPoint& pos,
+                           const wxSize& size,
+                           long style)
+{
+    style = style|wxBORDER_NONE;
+
+    if (!wxControl::Create(parent, id, pos, size, style))
+        return false;
+
+    m_windowStyle = style;
+
+    m_gripperVisible  = (style & wxAUI_TB_GRIPPER) ? true : false;
+    m_overflowVisible = (style & wxAUI_TB_OVERFLOW) ? true : false;
+
     m_orientation = GetOrientation(style);
     if (m_orientation == wxBOTH)
     {
         m_orientation = wxHORIZONTAL;
     }
-    m_style = style | wxBORDER_NONE;
-    m_gripperVisible = (m_style & wxAUI_TB_GRIPPER) ? true : false;
-    m_overflowVisible = (m_style & wxAUI_TB_OVERFLOW) ? true : false;
-    m_overflowState = 0;
+
     SetMargins(5, 5, 2, 2);
     SetFont(*wxNORMAL_FONT);
     SetArtFlags();
@@ -840,8 +849,9 @@ wxAuiToolBar::wxAuiToolBar(wxWindow* parent,
     if (style & wxAUI_TB_HORZ_LAYOUT)
         SetToolTextOrientation(wxAUI_TBTOOL_TEXT_RIGHT);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-}
 
+    return true;
+}
 
 wxAuiToolBar::~wxAuiToolBar()
 {
@@ -857,20 +867,20 @@ void wxAuiToolBar::SetWindowStyleFlag(long style)
 
     wxControl::SetWindowStyleFlag(style);
 
-    m_style = style;
+    m_windowStyle = style;
 
     if (m_art)
     {
         SetArtFlags();
     }
 
-    if (m_style & wxAUI_TB_GRIPPER)
+    if (m_windowStyle & wxAUI_TB_GRIPPER)
         m_gripperVisible = true;
     else
         m_gripperVisible = false;
 
 
-    if (m_style & wxAUI_TB_OVERFLOW)
+    if (m_windowStyle & wxAUI_TB_OVERFLOW)
         m_overflowVisible = true;
     else
         m_overflowVisible = false;
@@ -879,11 +889,6 @@ void wxAuiToolBar::SetWindowStyleFlag(long style)
         SetToolTextOrientation(wxAUI_TBTOOL_TEXT_RIGHT);
     else
         SetToolTextOrientation(wxAUI_TBTOOL_TEXT_BOTTOM);
-}
-
-long wxAuiToolBar::GetWindowStyleFlag() const
-{
-    return m_style;
 }
 
 void wxAuiToolBar::SetArtProvider(wxAuiToolBarArt* art)
@@ -1256,16 +1261,16 @@ void wxAuiToolBar::SetToolDropDown(int tool_id, bool dropdown)
     if (!item)
         return;
 
-    item->m_dropDown = dropdown;
+    item->SetHasDropDown(dropdown);
 }
 
 bool wxAuiToolBar::GetToolDropDown(int tool_id) const
 {
     wxAuiToolBarItem* item = FindTool(tool_id);
     if (!item)
-        return 0;
+        return false;
 
-    return item->m_dropDown;
+    return item->HasDropDown();
 }
 
 void wxAuiToolBar::SetToolSticky(int tool_id, bool sticky)
@@ -1368,9 +1373,9 @@ void wxAuiToolBar::SetGripperVisible(bool visible)
 {
     m_gripperVisible = visible;
     if (visible)
-        m_style |= wxAUI_TB_GRIPPER;
+        m_windowStyle |= wxAUI_TB_GRIPPER;
     else
-        m_style &= ~wxAUI_TB_GRIPPER;
+        m_windowStyle &= ~wxAUI_TB_GRIPPER;
     Realize();
     Refresh(false);
 }
@@ -1385,9 +1390,9 @@ void wxAuiToolBar::SetOverflowVisible(bool visible)
 {
     m_overflowVisible = visible;
     if (visible)
-        m_style |= wxAUI_TB_OVERFLOW;
+        m_windowStyle |= wxAUI_TB_OVERFLOW;
     else
-        m_style &= ~wxAUI_TB_OVERFLOW;
+        m_windowStyle &= ~wxAUI_TB_OVERFLOW;
     Refresh(false);
 }
 
@@ -1674,7 +1679,7 @@ wxSize wxAuiToolBar::GetHintSize(int dock_direction) const
 
 bool wxAuiToolBar::IsPaneValid(const wxAuiPaneInfo& pane) const
 {
-    return IsPaneValid(m_style, pane);
+    return IsPaneValid(m_windowStyle, pane);
 }
 
 bool wxAuiToolBar::IsPaneValid(long style, const wxAuiPaneInfo& pane)
@@ -1708,7 +1713,7 @@ bool wxAuiToolBar::IsPaneValid(long style) const
 
 void wxAuiToolBar::SetArtFlags() const
 {
-    unsigned int artflags = m_style & ~wxAUI_ORIENTATION_MASK;
+    unsigned int artflags = m_windowStyle & ~wxAUI_ORIENTATION_MASK;
     if (m_orientation == wxVERTICAL)
     {
         artflags |= wxAUI_TB_VERTICAL;
@@ -1943,7 +1948,7 @@ bool wxAuiToolBar::RealizeHelper(wxClientDC& dc, bool horizontal)
                 vert_sizer->AddStretchSpacer(1);
                 ctrl_m_sizerItem = vert_sizer->Add(item.m_window, 0, wxEXPAND);
                 vert_sizer->AddStretchSpacer(1);
-                if ( (m_style & wxAUI_TB_TEXT) &&
+                if ( (m_windowStyle & wxAUI_TB_TEXT) &&
                      m_toolTextOrientation == wxAUI_TBTOOL_TEXT_BOTTOM &&
                      !item.GetLabel().empty() )
                 {
@@ -1993,7 +1998,7 @@ bool wxAuiToolBar::RealizeHelper(wxClientDC& dc, bool horizontal)
     // add drop down area
     m_overflowSizerItem = NULL;
 
-    if (m_style & wxAUI_TB_OVERFLOW)
+    if (m_windowStyle & wxAUI_TB_OVERFLOW)
     {
         int overflow_size = m_art->GetElementSize(wxAUI_TBART_OVERFLOW_SIZE);
         if (overflow_size > 0 && m_overflowVisible)
@@ -2060,7 +2065,7 @@ bool wxAuiToolBar::RealizeHelper(wxClientDC& dc, bool horizontal)
     m_minWidth = size.x;
     m_minHeight = size.y;
 
-    if ((m_style & wxAUI_TB_NO_AUTORESIZE) == 0)
+    if ((m_windowStyle & wxAUI_TB_NO_AUTORESIZE) == 0)
     {
         wxSize curSize = GetClientSize();
         wxSize new_size = GetMinSize();
@@ -2280,7 +2285,7 @@ void wxAuiToolBar::OnIdle(wxIdleEvent& evt)
         // pane state member is public, so it might have been changed
         // without going through wxPaneInfo::SetFlag() check
         bool ok = pane.IsOk();
-        wxCHECK2_MSG(!ok || IsPaneValid(m_style, pane), ok = false,
+        wxCHECK2_MSG(!ok || IsPaneValid(m_windowStyle, pane), ok = false,
                     "window settings and pane settings are incompatible");
         if (ok)
         {
@@ -2302,7 +2307,7 @@ void wxAuiToolBar::OnIdle(wxIdleEvent& evt)
                 }
             }
             else if (pane.IsResizable() &&
-                    GetOrientation(m_style) == wxBOTH)
+                    GetOrientation(m_windowStyle) == wxBOTH)
             {
                 // changing orientation in OnSize causes havoc
                 int x, y;
@@ -2406,41 +2411,36 @@ void wxAuiToolBar::OnPaint(wxPaintEvent& WXUNUSED(evt))
             break;
         }
 
-        if (item.m_kind == wxITEM_SEPARATOR)
+        switch ( item.m_kind )
         {
-            // draw a separator
-            m_art->DrawSeparator(dc, this, item_rect);
-        }
-        else if (item.m_kind == wxITEM_LABEL)
-        {
-            // draw a text label only
-            m_art->DrawLabel(dc, this, item, item_rect);
-        }
-        else if (item.m_kind == wxITEM_NORMAL)
-        {
-            // draw a regular button or dropdown button
-            if (!item.m_dropDown)
+            case wxITEM_NORMAL:
+                // draw a regular or dropdown button
+                if (!item.m_dropDown)
+                    m_art->DrawButton(dc, this, item, item_rect);
+                else
+                    m_art->DrawDropDownButton(dc, this, item, item_rect);
+                break;
+
+            case wxITEM_CHECK:
+            case wxITEM_RADIO:
+                // draw a toggle button
                 m_art->DrawButton(dc, this, item, item_rect);
-            else
-                m_art->DrawDropDownButton(dc, this, item, item_rect);
-        }
-        else if (item.m_kind == wxITEM_CHECK)
-        {
-            // draw either a regular or dropdown toggle button
-            if (!item.m_dropDown)
-                m_art->DrawButton(dc, this, item, item_rect);
-            else
-                m_art->DrawDropDownButton(dc, this, item, item_rect);
-        }
-        else if (item.m_kind == wxITEM_RADIO)
-        {
-            // draw a toggle button
-            m_art->DrawButton(dc, this, item, item_rect);
-        }
-        else if (item.m_kind == wxITEM_CONTROL)
-        {
-            // draw the control's label
-            m_art->DrawControlLabel(dc, this, item, item_rect);
+                break;
+
+            case wxITEM_SEPARATOR:
+                // draw a separator
+                m_art->DrawSeparator(dc, this, item_rect);
+                break;
+
+            case wxITEM_LABEL:
+                // draw a text label only
+                m_art->DrawLabel(dc, this, item, item_rect);
+                break;
+
+            case wxITEM_CONTROL:
+                // draw the control's label
+                m_art->DrawControlLabel(dc, this, item, item_rect);
+                break;
         }
 
         // fire a signal to see if the item wants to be custom-rendered

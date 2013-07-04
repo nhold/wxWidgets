@@ -42,6 +42,7 @@
 
 #include "wx/wupdlock.h"
 #include "wx/stdpaths.h"
+#include "wx/filename.h"
 
 #include "widgets.h"
 
@@ -111,6 +112,7 @@ protected:
     void OnStdPath(wxCommandEvent& event);
     void OnCheckBox(wxCommandEvent& event);
     void OnRadioBox(wxCommandEvent& event);
+    void OnSelChanged(wxTreeEvent& event);
 
     // reset the control parameters
     void Reset();
@@ -153,6 +155,7 @@ BEGIN_EVENT_TABLE(DirCtrlWidgetsPage, WidgetsPage)
     EVT_BUTTON(DirCtrlPage_SetPath, DirCtrlWidgetsPage::OnButtonSetPath)
     EVT_CHECKBOX(wxID_ANY, DirCtrlWidgetsPage::OnCheckBox)
     EVT_RADIOBOX(wxID_ANY, DirCtrlWidgetsPage::OnRadioBox)
+    EVT_DIRCTRL_CHANGED(DirCtrlPage_Ctrl, DirCtrlWidgetsPage::OnSelChanged)
 END_EVENT_TABLE()
 
 // ============================================================================
@@ -167,6 +170,7 @@ DirCtrlWidgetsPage::DirCtrlWidgetsPage(WidgetsBookCtrl *book,
                                        wxImageList *imaglist)
                    :WidgetsPage(book, imaglist, dirctrl_xpm)
 {
+    m_dirCtrl = NULL;
 }
 
 void DirCtrlWidgetsPage::CreateContent()
@@ -349,11 +353,25 @@ void DirCtrlWidgetsPage::OnRadioBox(wxCommandEvent& WXUNUSED(event))
     }
 
     m_dirCtrl->SetPath(path);
-    if(!m_dirCtrl->GetPath().IsSameAs(path))
+
+    // Notice that we must use wxFileName comparison instead of simple wxString
+    // comparison as the paths returned may differ by case only.
+    if ( wxFileName(m_dirCtrl->GetPath()) != path )
     {
-        wxLogMessage(wxT("Selected standard path and path from control do not match!"));
-        m_radioStdPath->SetSelection(stdPathUnknown);
+        wxLogMessage("Failed to go to \"%s\", the current path is \"%s\".",
+                     path, m_dirCtrl->GetPath());
     }
+}
+
+void DirCtrlWidgetsPage::OnSelChanged(wxTreeEvent& event)
+{
+    if ( m_dirCtrl )
+    {
+        wxLogMessage("Selection changed to \"%s\"",
+                     m_dirCtrl->GetPath(event.GetItem()));
+    }
+
+    event.Skip();
 }
 
 #endif // wxUSE_DIRDLG

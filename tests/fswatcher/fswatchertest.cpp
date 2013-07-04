@@ -190,8 +190,9 @@ class EventHandler : public wxEvtHandler
 public:
     enum { WAIT_DURATION = 3 };
 
-    EventHandler() :
-        eg(EventGenerator::Get()), m_loop(0), m_count(0), m_watcher(0)
+    EventHandler(int types = wxFSW_EVENT_ALL) :
+        eg(EventGenerator::Get()), m_loop(0), m_count(0), m_watcher(0),
+        m_eventTypes(types)
     {
         m_loop = new wxEventLoop();
         Connect(wxEVT_IDLE, wxIdleEventHandler(EventHandler::OnIdle));
@@ -289,7 +290,7 @@ public:
 
         // add dir to be watched
         wxFileName dir = EventGenerator::GetWatchDir();
-        CPPUNIT_ASSERT(m_watcher->Add(dir, wxFSW_EVENT_ALL));
+        CPPUNIT_ASSERT(m_watcher->Add(dir, m_eventTypes));
 
         return true;
     }
@@ -389,6 +390,7 @@ protected:
     int m_count;                // idle events count
 
     wxFileSystemWatcher* m_watcher;
+    int m_eventTypes;  // Which event-types to watch. Normally all of them
     bool tested;  // indicates, whether we have already passed the test
 
     #include "wx/arrimpl.cpp"
@@ -436,6 +438,11 @@ private:
 #endif // __WINDOWS__
 #endif // !wxHAS_KQUEUE
 
+#ifdef wxHAS_INOTIFY
+        CPPUNIT_TEST( TestEventAttribute );
+        CPPUNIT_TEST( TestSingleWatchtypeEvent );
+#endif // wxHAS_INOTIFY
+
         CPPUNIT_TEST( TestNoEventsAfterRemove );
     CPPUNIT_TEST_SUITE_END();
 
@@ -444,6 +451,10 @@ private:
     void TestEventRename();
     void TestEventModify();
     void TestEventAccess();
+#ifdef wxHAS_INOTIFY
+    void TestEventAttribute();
+    void TestSingleWatchtypeEvent();
+#endif // wxHAS_INOTIFY
 #if !defined(__VISUALC__) || wxCHECK_VISUALC_VERSION(7)
     void TestTrees();   // Visual C++ 6 can't build this
 #endif
@@ -635,6 +646,75 @@ void FileSystemWatcherTestCase::TestEventAccess()
     tester.Run();
 }
 
+#ifdef wxHAS_INOTIFY
+// ----------------------------------------------------------------------------
+// TestEventAttribute
+// ----------------------------------------------------------------------------
+void FileSystemWatcherTestCase::TestEventAttribute()
+{
+    wxLogDebug("TestEventAttribute()");
+
+    class EventTester : public EventHandler
+    {
+    public:
+        virtual void GenerateEvent()
+        {
+            CPPUNIT_ASSERT(eg.TouchFile());
+        }
+
+        virtual wxFileSystemWatcherEvent ExpectedEvent()
+        {
+            wxFileSystemWatcherEvent event(wxFSW_EVENT_ATTRIB);
+            event.SetPath(eg.m_file);
+            event.SetNewPath(eg.m_file);
+            return event;
+        }
+    };
+
+    // we need to create a file to touch
+    EventGenerator::Get().CreateFile();
+
+    EventTester tester;
+    tester.Run();
+}
+
+// ----------------------------------------------------------------------------
+// TestSingleWatchtypeEvent: Watch only wxFSW_EVENT_ACCESS
+// ----------------------------------------------------------------------------
+void FileSystemWatcherTestCase::TestSingleWatchtypeEvent()
+{
+    wxLogDebug("TestSingleWatchtypeEvent()");
+
+    class EventTester : public EventHandler
+    {
+    public:
+        // We could pass wxFSW_EVENT_CREATE or MODIFY instead, but not RENAME or
+        // DELETE as the event path fields would be wrong in CheckResult()
+        EventTester() : EventHandler(wxFSW_EVENT_ACCESS) {}
+
+        virtual void GenerateEvent()
+        {
+            // As wxFSW_EVENT_ACCESS is passed to the ctor only ReadFile() will
+            // generate an event. Without it they all will, and the test fails
+            CPPUNIT_ASSERT(eg.CreateFile());
+            CPPUNIT_ASSERT(eg.ModifyFile());
+            CPPUNIT_ASSERT(eg.ReadFile());
+        }
+
+        virtual wxFileSystemWatcherEvent ExpectedEvent()
+        {
+            wxFileSystemWatcherEvent event(wxFSW_EVENT_ACCESS);
+            event.SetPath(eg.m_file);
+            event.SetNewPath(eg.m_file);
+            return event;
+        }
+    };
+
+    EventTester tester;
+    tester.Run();
+}
+#endif // wxHAS_INOTIFY
+
 // ----------------------------------------------------------------------------
 // TestTrees
 // ----------------------------------------------------------------------------
@@ -650,12 +730,17 @@ void FileSystemWatcherTestCase::TestTrees()
     public:
         TreeTester() : subdirs(5), files(3) {}
 
-        void GrowTree(wxFileName dir)
+        void GrowTree(wxFileName dir
+#ifdef __UNIX__
+                      , bool withSymlinks = false
+#endif
+                      )
         {
             CPPUNIT_ASSERT(dir.Mkdir());
             // Now add a subdir with an easy name to remember in WatchTree()
             dir.AppendDir("child");
             CPPUNIT_ASSERT(dir.Mkdir());
+            wxFileName child(dir);  // Create a copy to which to symlink
 
             // Create a branch of 5 numbered subdirs, each containing 3
             // numbered files
@@ -672,6 +757,18 @@ void FileSystemWatcherTestCase::TestTrees()
                     wxFile(prefix + wxString::Format("file%u", f+1) + ext[f],
                            wxFile::write);
                 }
+#if defined(__UNIX__)
+                if ( withSymlinks )
+                {
+                    // Create a symlink to a files, and another to 'child'
+                    CPPUNIT_ASSERT_EQUAL(0,
+                        symlink(wxString(prefix + "file1").c_str(),
+                        wxString(prefix + "file.lnk").c_str()));
+                    CPPUNIT_ASSERT_EQUAL(0,
+                        symlink(child.GetFullPath().c_str(),
+                        wxString(prefix + "dir.lnk").c_str()));
+                }
+#endif // __UNIX__
             }
         }
 
@@ -750,6 +847,22 @@ void FileSystemWatcherTestCase::TestTrees()
             CPPUNIT_ASSERT(initial < m_watcher->GetWatchedPathsCount());
             m_watcher->RemoveTree(dir);
             CPPUNIT_ASSERT_EQUAL(initial, m_watcher->GetWatchedPathsCount());
+#if defined(__UNIX__)
+            // Finally, test a tree containing internal symlinks
+            RmDir(dir);
+            GrowTree(dir, true /* test symlinks */);
+
+            // Without the DontFollowLink() call AddTree() would now assert
+            // (and without the assert, it would infinitely loop)
+            wxFileName fn = dir;
+            fn.DontFollowLink();
+            CPPUNIT_ASSERT(m_watcher->AddTree(fn));
+            CPPUNIT_ASSERT(m_watcher->RemoveTree(fn));
+
+            // Regrow the tree without symlinks, ready for the next test
+            RmDir(dir);
+            GrowTree(dir, false);
+#endif // __UNIX__
         }
 
         void WatchTreeWithFilespec(const wxFileName& dir)

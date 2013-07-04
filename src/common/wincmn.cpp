@@ -1317,6 +1317,20 @@ void wxWindowBase::RemoveChild(wxWindowBase *child)
     child->SetParent(NULL);
 }
 
+void wxWindowBase::SetParent(wxWindowBase *parent)
+{
+    // This assert catches typos which may result in using "this" instead of
+    // "parent" when creating the window. This doesn't happen often but when it
+    // does the results are unpleasant because the program typically just
+    // crashes when due to a stack overflow or something similar and this
+    // assert doesn't cost much (OTOH doing a more general check that the
+    // parent is not one of our children would be more expensive and probably
+    // not worth it).
+    wxASSERT_MSG( parent != this, wxS("Can't use window as its own parent") );
+
+    m_parent = (wxWindow *)parent;
+}
+
 bool wxWindowBase::Reparent(wxWindowBase *newParent)
 {
     wxWindow *oldParent = GetParent();
@@ -2249,7 +2263,7 @@ void wxWindowBase::UnsetConstraints(wxLayoutConstraints *c)
 {
     if ( c )
     {
-        if ( c->left.GetOtherWindow() && (c->top.GetOtherWindow() != this) )
+        if ( c->left.GetOtherWindow() && (c->left.GetOtherWindow() != this) )
             c->left.GetOtherWindow()->RemoveConstraintReference(this);
         if ( c->top.GetOtherWindow() && (c->top.GetOtherWindow() != this) )
             c->top.GetOtherWindow()->RemoveConstraintReference(this);

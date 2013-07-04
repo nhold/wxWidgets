@@ -3,7 +3,7 @@
 // Purpose:     Native MSW implementation of wxRichToolTip.
 // Author:      Vadim Zeitlin
 // Created:     2011-10-18
-// RCS-ID:      $Id: wxhead.cpp,v 1.11 2010-04-22 12:44:51 zeitlin Exp $
+// RCS-ID:      $Id$
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -123,13 +123,15 @@ public:
         }
     }
 
-    virtual void SetTimeout(unsigned milliseconds)
+    virtual void SetTimeout(unsigned millisecondsTimeout,
+                            unsigned millisecondsDelay)
     {
-        // We don't support changing the timeout (maybe TTM_SETDELAYTIME could
-        // be used for this?).
+        // We don't support changing the timeout or the delay
+        // (maybe TTM_SETDELAYTIME could be used for this?).
         m_canUseNative = false;
 
-        wxRichToolTipGenericImpl::SetTimeout(milliseconds);
+        wxRichToolTipGenericImpl::SetTimeout(millisecondsTimeout,
+                                             millisecondsDelay);
     }
 
     virtual void SetTipKind(wxTipKind tipKind)
@@ -149,13 +151,13 @@ public:
         wxRichToolTipGenericImpl::SetTitleFont(font);
     }
 
-    virtual void ShowFor(wxWindow* win)
+    virtual void ShowFor(wxWindow* win, wxRect* rect)
     {
         // TODO: We could use native tooltip control to show native balloon
         //       tooltips for any window but right now we use the simple
         //       EM_SHOWBALLOONTIP API which can only be used with text
         //       controls.
-        if ( m_canUseNative )
+        if ( m_canUseNative && !rect )
         {
             wxTextCtrl* const text = wxDynamicCast(win, wxTextCtrl);
             if ( text )
@@ -173,7 +175,7 @@ public:
         // Don't set m_canUseNative to false here, we could be able to use the
         // native tooltips if we're called for a different window the next
         // time.
-        wxRichToolTipGenericImpl::ShowFor(win);
+        wxRichToolTipGenericImpl::ShowFor(win, rect);
     }
 
 private:

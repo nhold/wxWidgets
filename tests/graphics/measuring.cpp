@@ -31,6 +31,8 @@
 #endif
 
 #include "wx/dcclient.h"
+#include "wx/dcps.h"
+#include "wx/metafile.h"
 
 // ----------------------------------------------------------------------------
 // test class
@@ -51,9 +53,6 @@ private:
 #endif // TEST_GC
     CPPUNIT_TEST_SUITE_END();
 
-    template <typename T>
-    void DoTestGetTextExtent(const T& obj);
-
     void DCGetTextExtent();
     void WindowGetTextExtent();
 
@@ -73,28 +72,36 @@ CPPUNIT_TEST_SUITE_REGISTRATION( MeasuringTextTestCase );
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MeasuringTextTestCase, "MeasuringTextTestCase" );
 
 // ----------------------------------------------------------------------------
-// tests themselves
+// helper for XXXTextExtent() methods
 // ----------------------------------------------------------------------------
 
 template <typename T>
-void MeasuringTextTestCase::DoTestGetTextExtent(const T& obj)
+struct GetTextExtentTester
 {
-    // Test that getting the height only doesn't crash.
-    int y;
-    obj.GetTextExtent("H", NULL, &y);
+    // Constructor runs a couple of simple tests for GetTextExtent().
+    GetTextExtentTester(const T& obj)
+    {
+        // Test that getting the height only doesn't crash.
+        int y;
+        obj.GetTextExtent("H", NULL, &y);
 
-    CPPUNIT_ASSERT( y > 1 );
+        CPPUNIT_ASSERT( y > 1 );
 
-    wxSize size = obj.GetTextExtent("Hello");
-    CPPUNIT_ASSERT( size.x > 1 );
-    CPPUNIT_ASSERT_EQUAL( y, size.y );
-}
+        wxSize size = obj.GetTextExtent("Hello");
+        CPPUNIT_ASSERT( size.x > 1 );
+        CPPUNIT_ASSERT_EQUAL( y, size.y );
+    }
+};
+
+// ----------------------------------------------------------------------------
+// tests themselves
+// ----------------------------------------------------------------------------
 
 void MeasuringTextTestCase::DCGetTextExtent()
 {
     wxClientDC dc(wxTheApp->GetTopWindow());
 
-    DoTestGetTextExtent(dc);
+    GetTextExtentTester<wxClientDC> testDC(dc);
 
     int w;
     dc.GetMultiLineTextExtent("Good\nbye", &w, NULL);
@@ -102,13 +109,29 @@ void MeasuringTextTestCase::DCGetTextExtent()
     CPPUNIT_ASSERT_EQUAL( sz.x, w );
 
     CPPUNIT_ASSERT( dc.GetMultiLineTextExtent("Good\nbye").y >= 2*sz.y );
+
+    // Test the functions with some other DC kinds also.
+#if wxUSE_PRINTING_ARCHITECTURE && wxUSE_POSTSCRIPT
+    wxPostScriptDC psdc;
+    // wxPostScriptDC doesn't have any font set by default but its
+    // GetTextExtent() requires one to be set. This is probably a bug and we
+    // should set the default font in it implicitly but for now just work
+    // around it.
+    psdc.SetFont(*wxNORMAL_FONT);
+    GetTextExtentTester<wxPostScriptDC> testPS(psdc);
+#endif
+
+#if wxUSE_ENH_METAFILE
+    wxEnhMetaFileDC metadc;
+    GetTextExtentTester<wxEnhMetaFileDC> testMF(metadc);
+#endif
 }
 
 void MeasuringTextTestCase::WindowGetTextExtent()
 {
     wxWindow* const win = wxTheApp->GetTopWindow();
 
-    DoTestGetTextExtent(*win);
+    GetTextExtentTester<wxWindow> testWin(*win);
 }
 
 void MeasuringTextTestCase::GetPartialTextExtent()
