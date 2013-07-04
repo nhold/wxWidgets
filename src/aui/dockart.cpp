@@ -476,7 +476,7 @@ void wxAuiDefaultDockArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(window), i
     dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
 }
 
-void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow* WXUNUSED(window), const wxRect& _rect,
+void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow* window, const wxRect& _rect,
                                   wxAuiPaneInfo& pane)
 {
     dc.SetPen(m_borderPen);
