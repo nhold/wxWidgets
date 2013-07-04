@@ -5688,8 +5688,10 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
 
         if (m_actionPart)
         {
+            bool passHitTest = false;
+            int buttonid = 0;
             // make sure we're still over the item that was originally clicked
-            if (m_actionPart == HitTest(event.GetX(), event.GetY()))
+            if (m_actionPart == HitTest(evt.GetX(), evt.GetY()))
             {
                 wxAuiTabContainerButton* hitbutton;
                 if(m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton))
