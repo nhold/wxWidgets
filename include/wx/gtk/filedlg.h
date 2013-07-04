@@ -43,7 +43,6 @@ public:
 
     virtual wxString GetPath() const;
     virtual void GetPaths(wxArrayString& paths) const;
-    virtual wxString GetDirectory() const;
     virtual wxString GetFilename() const;
     virtual void GetFilenames(wxArrayString& files) const;
     virtual int GetFilterIndex() const;
@@ -60,8 +59,8 @@ public:
     virtual bool SupportsExtraControl() const { return true; }
 
     // Implementation only.
-    void GTKOnAccept();
-    void GTKOnCancel();
+    void GTKSelectionChanged(const wxString& filename);
+
 
 protected:
     // override this from wxTLW since the native
@@ -72,10 +71,10 @@ protected:
 
 
 private:
+    void OnFakeOk( wxCommandEvent &event );
     void OnSize(wxSizeEvent&);
     virtual void AddChildGTK(wxWindowGTK* child);
 
-    wxString m_selectedDirectory;
     wxGtkFileChooser    m_fc;
 
     DECLARE_DYNAMIC_CLASS(wxFileDialog)

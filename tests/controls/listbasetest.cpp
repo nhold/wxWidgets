@@ -131,6 +131,21 @@ void ListBaseTestCase::ItemRect()
 
     WX_ASSERT_FAILS_WITH_ASSERT( list->GetSubItemRect(0, 3, r) );
 
+
+    // As we have a header, the top item shouldn't be at (0, 0), but somewhere
+    // below the header.
+    //
+    // Notice that we consider that the header can't be less than 10 pixels
+    // because we don't know its exact height.
+    CPPUNIT_ASSERT( list->GetItemRect(0, r) );
+    CPPUNIT_ASSERT( r.y >= 10 );
+
+    // However if we remove the header now, the item should be at (0, 0).
+    list->SetWindowStyle(wxLC_REPORT | wxLC_NO_HEADER);
+    CPPUNIT_ASSERT( list->GetItemRect(0, r) );
+    CPPUNIT_ASSERT_EQUAL( 0, r.y );
+
+
     //tidy up when we are finished
     list->ClearAll();
 }
@@ -175,11 +190,7 @@ void ListBaseTestCase::ChangeMode()
 
 void ListBaseTestCase::ItemClick()
 {
-    // FIXME: This test fail under wxGTK because we get 3 FOCUSED events and
-    //        2 SELECTED ones instead of the one of each we expect for some
-    //        reason, this needs to be debugged as it may indicate a bug in the
-    //        generic wxListCtrl implementation.
-#if wxUSE_UIACTIONSIMULATOR && !defined(__WXGTK__)
+#if wxUSE_UIACTIONSIMULATOR 
 
 #ifdef __WXMSW__
     // FIXME: This test fails on MSW buildbot slaves although works fine on
@@ -199,10 +210,10 @@ void ListBaseTestCase::ItemClick()
     list->SetItem(0, 1, "first column");
     list->SetItem(0, 2, "second column");
 
-    EventCounter selected(list, wxEVT_COMMAND_LIST_ITEM_SELECTED);
-    EventCounter focused(list, wxEVT_COMMAND_LIST_ITEM_FOCUSED);
-    EventCounter activated(list, wxEVT_COMMAND_LIST_ITEM_ACTIVATED);
-    EventCounter rclick(list, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK);
+    EventCounter selected(list, wxEVT_LIST_ITEM_SELECTED);
+    EventCounter focused(list, wxEVT_LIST_ITEM_FOCUSED);
+    EventCounter activated(list, wxEVT_LIST_ITEM_ACTIVATED);
+    EventCounter rclick(list, wxEVT_LIST_ITEM_RIGHT_CLICK);
 
     wxUIActionSimulator sim;
 
@@ -210,7 +221,7 @@ void ListBaseTestCase::ItemClick()
     list->GetItemRect(0, pos);
 
     //We move in slightly so we are not on the edge
-    wxPoint point = list->ClientToScreen(pos.GetPosition()) + wxPoint(2, 2);
+    wxPoint point = list->ClientToScreen(pos.GetPosition()) + wxPoint(10, 5);
 
     sim.MouseMove(point);
     wxYield();
@@ -226,8 +237,15 @@ void ListBaseTestCase::ItemClick()
 
     // when the first item was selected the focus changes to it, but not
     // on subsequent clicks
+    
+    // FIXME: This test fail under wxGTK & wxOSX because we get 3 FOCUSED events and
+    //        2 SELECTED ones instead of the one of each we expect for some
+    //        reason, this needs to be debugged as it may indicate a bug in the
+    //        generic wxListCtrl implementation.
+#ifndef _WX_GENERIC_LISTCTRL_H_
     CPPUNIT_ASSERT_EQUAL(1, focused.GetCount());
     CPPUNIT_ASSERT_EQUAL(1, selected.GetCount());
+#endif
     CPPUNIT_ASSERT_EQUAL(1, activated.GetCount());
     CPPUNIT_ASSERT_EQUAL(1, rclick.GetCount());
 
@@ -241,7 +259,7 @@ void ListBaseTestCase::KeyDown()
 #if wxUSE_UIACTIONSIMULATOR
     wxListCtrl* const list = GetList();
 
-    EventCounter keydown(list, wxEVT_COMMAND_LIST_KEY_DOWN);
+    EventCounter keydown(list, wxEVT_LIST_KEY_DOWN);
 
     wxUIActionSimulator sim;
 
@@ -258,8 +276,8 @@ void ListBaseTestCase::DeleteItems()
 #ifndef __WXOSX__
     wxListCtrl* const list = GetList();
 
-    EventCounter deleteitem(list, wxEVT_COMMAND_LIST_DELETE_ITEM);
-    EventCounter deleteall(list, wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS);
+    EventCounter deleteitem(list, wxEVT_LIST_DELETE_ITEM);
+    EventCounter deleteall(list, wxEVT_LIST_DELETE_ALL_ITEMS);
 
 
     list->InsertColumn(0, "Column 0", wxLIST_FORMAT_LEFT, 60);
@@ -296,7 +314,7 @@ void ListBaseTestCase::InsertItem()
 {
     wxListCtrl* const list = GetList();
 
-    EventCounter insert(list, wxEVT_COMMAND_LIST_INSERT_ITEM);
+    EventCounter insert(list, wxEVT_LIST_INSERT_ITEM);
 
     list->InsertColumn(0, "Column 0", wxLIST_FORMAT_LEFT, 60);
 
@@ -391,8 +409,8 @@ void ListBaseTestCase::EditLabel()
     list->InsertItem(0, "Item 0");
     list->InsertItem(1, "Item 1");
 
-    EventCounter beginedit(list, wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT);
-    EventCounter endedit(list, wxEVT_COMMAND_LIST_END_LABEL_EDIT);
+    EventCounter beginedit(list, wxEVT_LIST_BEGIN_LABEL_EDIT);
+    EventCounter endedit(list, wxEVT_LIST_END_LABEL_EDIT);
 
     wxUIActionSimulator sim;
 

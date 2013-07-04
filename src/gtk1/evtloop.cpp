@@ -65,16 +65,31 @@ wxGUIEventLoop::~wxGUIEventLoop()
     wxASSERT_MSG( !m_impl, wxT("should have been deleted in Run()") );
 }
 
-int wxGUIEventLoop::Run()
+int wxGUIEventLoop::DoRun()
 {
-    // event loops are not recursive, you need to create another loop!
-    wxCHECK_MSG( !IsRunning(), -1, wxT("can't reenter a message loop") );
-
-    wxEventLoopActivator activate(this);
-
     m_impl = new wxEventLoopImpl;
 
-    gtk_main();
+    guint loopLevel = gtk_main_level();
+
+    // This is placed inside of a loop to take into account nested
+    // event loops.  For example, inside this event loop, we may recieve
+    // Exit() for a different event loop (which we are currently inside of)
+    // That Exit() will cause this gtk_main() to exit so we need to re-enter it.
+    while ( !m_shouldExit )
+    {
+        gtk_main();
+    }
+
+    // Force the enclosing event loop to also exit to see if it is done
+    // in case that event loop ended inside of this one.  If it is not time
+    // yet for that event loop to exit, it will be executed again due to
+    // the while() loop on m_shouldExit().
+    //
+    // This is unnecessary if we are the top level loop, i.e. loop of level 0.
+    if ( loopLevel )
+    {
+        gtk_main_quit();
+    }
 
     OnExit();
 
@@ -84,11 +99,13 @@ int wxGUIEventLoop::Run()
     return exitcode;
 }
 
-void wxGUIEventLoop::Exit(int rc)
+void wxGUIEventLoop::ScheduleExit(int rc)
 {
-    wxCHECK_RET( IsRunning(), wxT("can't call Exit() if not running") );
+    wxCHECK_RET( IsInsideRun(), wxT("can't call ScheduleExit() if not started") );
 
     m_impl->SetExitCode(rc);
+
+    m_shouldExit = true;
 
     gtk_main_quit();
 }

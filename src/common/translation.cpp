@@ -155,13 +155,13 @@ wxString GetPreferredUILanguage(const wxArrayString& available)
                 {
                     wxString lang(*j);
                     lang.Replace("-", "_");
-                    if ( available.Index(lang) != wxNOT_FOUND )
+                    if ( available.Index(lang, /*bCase=*/false) != wxNOT_FOUND )
                         return lang;
                     size_t pos = lang.find('_');
                     if ( pos != wxString::npos )
                     {
                         lang = lang.substr(0, pos);
-                        if ( available.Index(lang) != wxNOT_FOUND )
+                        if ( available.Index(lang, /*bCase=*/false) != wxNOT_FOUND )
                             return lang;
                     }
                 }
@@ -1512,7 +1512,6 @@ bool wxTranslations::AddCatalog(const wxString& domain,
 
 bool wxTranslations::LoadCatalog(const wxString& domain, const wxString& lang)
 {
-    m_loader->GetAvailableTranslations(domain);
     wxCHECK_MSG( m_loader, false, "loader can't be NULL" );
 
     wxMsgCatalog *cat = NULL;
@@ -1765,13 +1764,13 @@ wxString GetMsgCatalogSubdirs(const wxString& prefix, const wxString& lang)
     //    breaking apps after they are recompiled against the latest wx
     // b) it makes it possible to package app's support files in the same
     //    way on all target platforms
-    const wxString pathPrefix = wxFileName(prefix, lang).GetFullPath();
+    const wxString prefixAndLang = wxFileName(prefix, lang).GetFullPath();
 
     wxString searchPath;
-    searchPath.reserve(4*pathPrefix.length());
-    searchPath << pathPrefix << wxFILE_SEP_PATH << "LC_MESSAGES" << wxPATH_SEP
-            << prefix << wxFILE_SEP_PATH << wxPATH_SEP
-            << pathPrefix;
+    searchPath.reserve(4*prefixAndLang.length());
+    searchPath << prefixAndLang << wxFILE_SEP_PATH << "LC_MESSAGES" << wxPATH_SEP
+               << prefixAndLang << wxPATH_SEP
+               << prefix;
 
     return searchPath;
 }

@@ -390,8 +390,14 @@ void wxApp::MacReopenApp()
 
         if ( firstIconized )
             firstIconized->Iconize( false ) ;
+        
+        // showing hidden windows is not really always a good solution, also non-modal dialogs when closed end up
+        // as hidden tlws, we don't want to reshow those, so let's just reopen the minimized a.k.a. iconized tlws
+        // unless we find a regression ...
+#if 0
         else if ( firstHidden )
             firstHidden->Show( true );
+#endif
     }
 }
 
@@ -1132,7 +1138,7 @@ CGKeyCode wxCharCodeWXToOSX(wxKeyCode code)
         case WXK_RETURN:      keycode = kVK_Return; break;
         case WXK_ESCAPE:      keycode = kVK_Escape; break;
         case WXK_SPACE:       keycode = kVK_Space; break;
-        case WXK_DELETE:      keycode = kVK_Delete; break;
+        case WXK_DELETE:      keycode = kVK_ForwardDelete; break;
             
         case WXK_SHIFT:       keycode = kVK_Shift; break;
         case WXK_ALT:         keycode = kVK_Option; break;
@@ -1485,7 +1491,7 @@ bool wxApp::MacSendCharEvent( wxWindow* focus , long keymessage , long modifiers
                     wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
                     if ( def && def->IsEnabled() )
                     {
-                        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, def->GetId() );
+                        wxCommandEvent event(wxEVT_BUTTON, def->GetId() );
                         event.SetEventObject(def);
                         def->Command(event);
 
@@ -1496,7 +1502,7 @@ bool wxApp::MacSendCharEvent( wxWindow* focus , long keymessage , long modifiers
             else if (keyval == WXK_ESCAPE || (keyval == '.' && modifiers & cmdKey ) )
             {
                 // generate wxID_CANCEL if command-. or <esc> has been pressed (typically in dialogs)
-                wxCommandEvent new_event(wxEVT_COMMAND_BUTTON_CLICKED,wxID_CANCEL);
+                wxCommandEvent new_event(wxEVT_BUTTON,wxID_CANCEL);
                 new_event.SetEventObject( focus );
                 handled = focus->HandleWindowEvent( new_event );
             }

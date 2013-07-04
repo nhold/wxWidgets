@@ -12,6 +12,8 @@ enum
     wxDIRCTRL_DIR_ONLY       = 0x0010,
     // When setting the default path, select the first file in the directory
     wxDIRCTRL_SELECT_FIRST   = 0x0020,
+    // Show the filter list
+    wxDIRCTRL_SHOW_FILTERS   = 0x0040,
     // Use 3D borders on internal controls
     wxDIRCTRL_3D_INTERNAL    = 0x0080,
     // Editable labels
@@ -38,6 +40,8 @@ enum
     @style{wxDIRCTRL_SELECT_FIRST}
            When setting the default path, select the first file in the
            directory.
+    @style{wxDIRCTRL_SHOW_FILTERS}
+           Show the drop-down filter list.
     @style{wxDIRCTRL_EDIT_LABELS}
            Allow the folder and file labels to be editable.
     @style{wxDIRCTRL_MULTIPLE}
@@ -47,11 +51,14 @@ enum
     @library{wxcore}
     @category{ctrl}
     @appearance{genericdirctrl}
-    @event{EVT_DIRCTRL_CHANGED(id, func)}
+    @event{EVT_DIRCTRL_SELECTIONCHANGED(id, func)}
           Selected directory has changed.
-          Processes a @c wxEVT_COMMAND_DIRCTRL_CHANGED event type.
+          Processes a @c wxEVT_DIRCTRL_SELECTIONCHANGED event type.
           Notice that this event is generated even for the changes done by the
           program itself and not only those done by the user.
+          @since 2.9.5
+    @event{EVT_DIRCTRL_FILEACTIVATED(id, func)}
+          The user activated a file by double-clicking or pressing Enter.
           @since 2.9.5
 */
 class wxGenericDirCtrl : public wxControl
@@ -273,3 +280,6 @@ public:
     //// Operations
     void FillFilterList(const wxString& filter, int defaultFilter);
 };
+
+wxEventType wxEVT_DIRCTRL_SELECTIONCHANGED;
+wxEventType wxEVT_DIRCTRL_FILEACTIVATED;

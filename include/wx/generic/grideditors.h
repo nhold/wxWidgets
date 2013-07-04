@@ -52,7 +52,7 @@ private:
 class WXDLLIMPEXP_ADV wxGridCellTextEditor : public wxGridCellEditor
 {
 public:
-    wxGridCellTextEditor();
+    wxEXPLICIT wxGridCellTextEditor(size_t maxChars = 0);
 
     virtual void Create(wxWindow* parent,
                         wxWindowID id,
@@ -75,9 +75,9 @@ public:
 
     // parameters string format is "max_width"
     virtual void SetParameters(const wxString& params);
+    virtual void SetValidator(const wxValidator& validator);
 
-    virtual wxGridCellEditor *Clone() const
-        { return new wxGridCellTextEditor; }
+    virtual wxGridCellEditor *Clone() const;
 
     // added GetValue so we can get the value which is in the control
     virtual wxString GetValue() const;
@@ -92,8 +92,9 @@ protected:
     void DoReset(const wxString& startValue);
 
 private:
-    size_t   m_maxChars;        // max number of chars allowed
-    wxString m_value;
+    size_t                   m_maxChars;        // max number of chars allowed
+    wxScopedPtr<wxValidator> m_validator;
+    wxString                 m_value;
 
     wxDECLARE_NO_COPY_CLASS(wxGridCellTextEditor);
 };

@@ -913,6 +913,47 @@ wxInputStream& wxInputStream::Read(wxOutputStream& stream_out)
     return *this;
 }
 
+bool wxInputStream::ReadAll(void *buffer_, size_t size)
+{
+    char* buffer = static_cast<char*>(buffer_);
+
+    size_t totalCount = 0;
+
+    for ( ;; )
+    {
+        const size_t lastCount = Read(buffer, size).LastRead();
+
+        // There is no point in continuing looping if we can't read anything at
+        // all.
+        if ( !lastCount )
+            break;
+
+        totalCount += lastCount;
+
+        // ... Or if an error occurred on the stream.
+        if ( !IsOk() )
+            break;
+
+        // Return successfully if we read exactly the requested number of
+        // bytes (normally the ">" case should never occur and so we could use
+        // "==" test, but be safe and avoid overflowing size even in case of
+        // bugs in LastRead()).
+        if ( lastCount >= size )
+        {
+            size = 0;
+            break;
+        }
+
+        // Advance the buffer before trying to read the rest of data.
+        size -= lastCount;
+        buffer += lastCount;
+    }
+
+    m_lastcount = totalCount;
+
+    return size == 0;
+}
+
 wxFileOffset wxInputStream::SeekI(wxFileOffset pos, wxSeekMode mode)
 {
     // RR: This code is duplicated in wxBufferedInputStream. This is
@@ -1030,6 +1071,38 @@ wxOutputStream& wxOutputStream::Write(wxInputStream& stream_in)
     return *this;
 }
 
+bool wxOutputStream::WriteAll(const void *buffer_, size_t size)
+{
+    // This exactly mirrors ReadAll(), see there for more comments.
+    const char* buffer = static_cast<const char*>(buffer_);
+
+    size_t totalCount = 0;
+
+    for ( ;; )
+    {
+        const size_t lastCount = Write(buffer, size).LastWrite();
+        if ( !lastCount )
+            break;
+
+        totalCount += lastCount;
+
+        if ( !IsOk() )
+            break;
+
+        if ( lastCount >= size )
+        {
+            size = 0;
+            break;
+        }
+
+        size -= lastCount;
+        buffer += lastCount;
+    }
+
+    m_lastcount = totalCount;
+    return size == 0;
+}
+
 wxFileOffset wxOutputStream::TellO() const
 {
     return OnSysTell();
@@ -1053,22 +1126,23 @@ IMPLEMENT_DYNAMIC_CLASS(wxCountingOutputStream, wxOutputStream)
 
 wxCountingOutputStream::wxCountingOutputStream ()
 {
-     m_currentPos = 0;
+    m_currentPos =
+    m_lastPos = 0;
 }
 
 wxFileOffset wxCountingOutputStream::GetLength() const
 {
-    return m_lastcount;
+    return m_lastPos;
 }
 
 size_t wxCountingOutputStream::OnSysWrite(const void *WXUNUSED(buffer),
                                           size_t size)
 {
     m_currentPos += size;
-    if (m_currentPos > m_lastcount)
-        m_lastcount = m_currentPos;
+    if ( m_currentPos > m_lastPos )
+        m_lastPos = m_currentPos;
 
-    return m_currentPos;
+    return size;
 }
 
 wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
@@ -1082,12 +1156,12 @@ wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode
             break;
 
         case wxFromEnd:
-            new_pos = m_lastcount + new_pos;
-            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_lastcount + pos), wxInvalidOffset, wxT("huge position not supported") );
+            new_pos += m_lastPos;
+            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_lastPos + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
         case wxFromCurrent:
-            new_pos = m_currentPos + new_pos;
+            new_pos += m_currentPos;
             wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_currentPos + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
@@ -1098,8 +1172,8 @@ wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode
 
     m_currentPos = new_pos;
 
-    if (m_currentPos > m_lastcount)
-        m_lastcount = m_currentPos;
+    if ( m_currentPos > m_lastPos )
+        m_lastPos = m_currentPos;
 
     return m_currentPos;
 }

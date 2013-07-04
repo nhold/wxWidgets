@@ -117,7 +117,7 @@
     @event{EVT_COMMAND_SCROLL_CHANGED(func)}
         Process @c wxEVT_SCROLL_CHANGED end of scrolling events (MSW only).
     @event{EVT_SLIDER(id, func)}
-        Process @c wxEVT_COMMAND_SLIDER_UPDATED which is generated after any
+        Process @c wxEVT_SLIDER which is generated after any
         change of wxSlider position in addition to one of the events above.
     @endEventTable
 
@@ -295,6 +295,27 @@ public:
         @see GetLineSize()
     */
     virtual void SetLineSize(int lineSize);
+
+
+    /**
+        Sets the minimum slider value.
+
+        @param minValue
+            The new bottom end of the slider range.
+            
+        @see GetMin(), SetRange()
+    */
+    void SetMin( int minValue );
+
+    /**
+        Sets the maximum slider value.
+
+        @param maxValue
+            The new top end of the slider range.
+            
+        @see GetMax(), SetRange()
+    */
+    void SetMax( int maxValue );
 
     /**
         Sets the page size for the slider.

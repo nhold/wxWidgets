@@ -19,7 +19,7 @@
 #if wxUSE_COLOURDLG
 
 #include "wx/colordlg.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
@@ -28,6 +28,7 @@
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/dialogcount.h"
 
 #if wxUSE_LIBHILDON
     #include <hildon-widgets/hildon-color-selector.h>
@@ -83,9 +84,11 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
 
 int wxColourDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     ColourDataToDialog();
+
+    wxOpenModalDialogLocker modalLocker;
 
     gint result = gtk_dialog_run(GTK_DIALOG(m_widget));
     gtk_widget_hide(m_widget);

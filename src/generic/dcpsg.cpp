@@ -597,7 +597,7 @@ void wxPostScriptDCImpl::DoDrawPoint (wxCoord x, wxCoord y)
     CalcBoundingBox( x, y );
 }
 
-void wxPostScriptDCImpl::DoDrawPolygon (int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
+void wxPostScriptDCImpl::DoDrawPolygon (int n, const wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
@@ -667,7 +667,7 @@ void wxPostScriptDCImpl::DoDrawPolygon (int n, wxPoint points[], wxCoord xoffset
     }
 }
 
-void wxPostScriptDCImpl::DoDrawPolyPolygon (int n, int count[], wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
+void wxPostScriptDCImpl::DoDrawPolyPolygon (int n, const int count[], const wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
@@ -743,7 +743,7 @@ void wxPostScriptDCImpl::DoDrawPolyPolygon (int n, int count[], wxPoint points[]
     }
 }
 
-void wxPostScriptDCImpl::DoDrawLines (int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset)
+void wxPostScriptDCImpl::DoDrawLines (int n, const wxPoint points[], wxCoord xoffset, wxCoord yoffset)
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
@@ -1136,8 +1136,12 @@ void wxPostScriptDCImpl::SetPen( const wxPen& pen )
     if (!pen.IsOk()) return;
 
     int oldStyle = m_pen.IsOk() ? m_pen.GetStyle() : wxPENSTYLE_INVALID;
+    wxPenCap oldCap = m_pen.IsOk() ? m_pen.GetCap() : wxCAP_INVALID;
+    wxPenJoin oldJoin = m_pen.IsOk() ? m_pen.GetJoin() : wxJOIN_INVALID;
 
     m_pen = pen;
+    wxPenCap cap = m_pen.IsOk() ? m_pen.GetCap() : wxCAP_INVALID;
+    wxPenJoin join = m_pen.IsOk() ? m_pen.GetJoin() : wxJOIN_INVALID;
 
     double width;
 
@@ -1199,6 +1203,35 @@ void wxPostScriptDCImpl::SetPen( const wxPen& pen )
     {
         PsPrint( psdash );
         PsPrint( " setdash\n" );
+    }
+
+    if ( cap != wxCAP_INVALID && cap != oldCap )
+    {
+        switch ( cap )
+        {
+            case wxCAP_ROUND:      buffer = "1"; break;
+            case wxCAP_PROJECTING: buffer = "2"; break;
+            case wxCAP_BUTT:       buffer = "0"; break;
+
+            // This case is just to fix compiler warning, this is impossible
+            // due to the test above.
+            case wxCAP_INVALID: break;
+        }
+        buffer << " setlinecap\n";
+        PsPrint( buffer );
+    }
+
+    if ( join != wxJOIN_INVALID && join != oldJoin )
+    {
+        switch ( join )
+        {
+            case wxJOIN_BEVEL: buffer = "2"; break;
+            case wxJOIN_ROUND: buffer = "1"; break;
+            case wxJOIN_MITER: buffer = "0"; break;
+            case wxJOIN_INVALID: break;
+        }
+        buffer << " setlinejoin\n";
+        PsPrint( buffer );
     }
 
     // Line colour

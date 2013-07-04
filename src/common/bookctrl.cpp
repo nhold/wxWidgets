@@ -431,6 +431,18 @@ int wxBookCtrlBase::GetNextPage(bool forward) const
     return nPage;
 }
 
+int wxBookCtrlBase::FindPage(const wxWindow* page) const
+{
+    const size_t nCount = m_pages.size();
+    for ( size_t nPage = 0; nPage < nCount; nPage++ )
+    {
+        if ( m_pages[nPage] == page )
+            return (int)nPage;
+    }
+
+    return wxNOT_FOUND;
+}
+
 bool wxBookCtrlBase::DoSetSelectionAfterInsertion(size_t n, bool bSelect)
 {
     if ( bSelect )
@@ -442,6 +454,26 @@ bool wxBookCtrlBase::DoSetSelectionAfterInsertion(size_t n, bool bSelect)
 
     // Return true to indicate that we selected this page.
     return true;
+}
+
+void wxBookCtrlBase::DoSetSelectionAfterRemoval(size_t n)
+{
+    if ( m_selection >= (int)n )
+    {
+        // ensure that the selection is valid
+        int sel;
+        if ( GetPageCount() == 0 )
+            sel = wxNOT_FOUND;
+        else
+            sel = m_selection ? m_selection - 1 : 0;
+
+        // if deleting current page we shouldn't try to hide it
+        m_selection = m_selection == (int)n ? wxNOT_FOUND
+                                            : m_selection - 1;
+
+        if ( sel != wxNOT_FOUND && sel != m_selection )
+            SetSelection(sel);
+    }
 }
 
 int wxBookCtrlBase::DoSetSelection(size_t n, int flags)

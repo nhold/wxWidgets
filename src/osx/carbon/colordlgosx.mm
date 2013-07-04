@@ -22,7 +22,7 @@
 
 #include "wx/colordlg.h"
 #include "wx/fontdlg.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 // ============================================================================
 // implementation
@@ -106,12 +106,13 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
     NSAutoreleasePool *thePool;
     thePool = [[NSAutoreleasePool alloc] init];
 
+    [[NSColorPanel sharedColorPanel] setShowsAlpha:YES];
     if(m_colourData.GetColour().IsOk())
         [[NSColorPanel sharedColorPanel] setColor:
             [NSColor colorWithCalibratedRed:(CGFloat) (m_colourData.GetColour().Red() / 255.0)
                                         green:(CGFloat) (m_colourData.GetColour().Green() / 255.0)
                                         blue:(CGFloat) (m_colourData.GetColour().Blue() / 255.0)
-                                        alpha:(CGFloat) 1.0]
+                                        alpha:(CGFloat) (m_colourData.GetColour().Alpha() / 255.0)]
         ];
     else
         [[NSColorPanel sharedColorPanel] setColor:[NSColor blackColor]];
@@ -123,7 +124,7 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
 }
 int wxColourDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     //Start the pool.  Required for carbon interaction
     //(For those curious, the only thing that happens
@@ -167,8 +168,9 @@ int wxColourDialog::ShowModal()
     m_colourData.GetColour().Set(
                                 (unsigned char) ([theColor redComponent] * 255.0),
                                 (unsigned char) ([theColor greenComponent] * 255.0),
-                                (unsigned char) ([theColor blueComponent] * 255.0)
-                                   );
+                                (unsigned char) ([theColor blueComponent] * 255.0),
+                                (unsigned char) ([theColor alphaComponent] * 255.0)
+                                 );
 
     //Release the pool, we're done :)
     [thePool release];

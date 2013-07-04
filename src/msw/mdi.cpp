@@ -62,9 +62,17 @@ namespace
 // constants
 // ---------------------------------------------------------------------------
 
-// This range gives a maximum of 500 MDI children. Should be enough :-)
+// First ID for the MDI child menu item in the "Window" menu.
 const int wxFIRST_MDI_CHILD = 4100;
-const int wxLAST_MDI_CHILD = 4600;
+
+// There can be no more than 9 children in the "Window" menu as beginning with
+// the tenth one they're not shown and "More windows..." menu item is used
+// instead.
+const int wxLAST_MDI_CHILD = wxFIRST_MDI_CHILD + 8;
+
+// The ID of the "More windows..." menu item is the next one after the last
+// child.
+const int wxID_MDI_MORE_WINDOWS = wxLAST_MDI_CHILD + 1;
 
 // The MDI "Window" menu label
 const char *WINDOW_MENU_LABEL = gettext_noop("&Window");
@@ -420,11 +428,14 @@ void wxMDIParentFrame::DoMenuUpdates(wxMenu* menu)
 
 wxMenuItem *wxMDIParentFrame::FindItemInMenuBar(int menuId) const
 {
-    wxMenuItem *item = wxFrame::FindItemInMenuBar(menuId);
-    if ( !item && GetActiveChild() )
-    {
-        item = GetActiveChild()->FindItemInMenuBar(menuId);
-    }
+    // We must look in the child menu first: if it has an item with the same ID
+    // as in our own menu bar, the child item should be used to determine
+    // whether it's currently enabled.
+    wxMenuItem *item = GetActiveChild()
+                            ? GetActiveChild()->FindItemInMenuBar(menuId)
+                            : NULL;
+    if ( !item )
+        item = wxFrame::FindItemInMenuBar(menuId);
 
     if ( !item && m_windowMenu )
         item = m_windowMenu->FindItem(menuId);
@@ -562,8 +573,9 @@ WXLRESULT wxMDIParentFrame::MSWWindowProc(WXUINT message,
                 WXHWND hwnd;
                 UnpackCommand(wParam, lParam, &id, &hwnd, &cmd);
 
-                if ( cmd == 0 /* menu */ &&
-                        id >= SC_SIZE /* first system menu command */ )
+                if ( id == wxID_MDI_MORE_WINDOWS ||
+                     (cmd == 0 /* menu */ &&
+                        id >= SC_SIZE /* first system menu command */) )
                 {
                     MSWDefWindowProc(message, wParam, lParam);
                     processed = true;
@@ -685,20 +697,6 @@ void wxMDIParentFrame::OnMDICommand(wxCommandEvent& event)
 }
 
 #endif // wxUSE_MENUS
-
-bool wxMDIParentFrame::TryBefore(wxEvent& event)
-{
-    // menu (and toolbar) events should be sent to the active child frame
-    // first, if any
-    if ( event.GetEventType() == wxEVT_COMMAND_MENU_SELECTED )
-    {
-        wxMDIChildFrame * const child = GetActiveChild();
-        if ( child && child->ProcessWindowEventLocally(event) )
-            return true;
-    }
-
-    return wxMDIParentFrameBase::TryBefore(event);
-}
 
 WXLRESULT wxMDIParentFrame::MSWDefWindowProc(WXUINT message,
                                         WXWPARAM wParam,

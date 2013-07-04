@@ -23,7 +23,7 @@
 
     @beginEventEmissionTable{wxCommandEvent}
     @event{EVT_RADIOBOX(id, func)}
-           Process a @c wxEVT_COMMAND_RADIOBOX_SELECTED event, when a radiobutton
+           Process a @c wxEVT_RADIOBOX event, when a radiobutton
            is clicked.
     @endEventTable
 
@@ -288,6 +288,14 @@ public:
     void SetItemToolTip(unsigned int item, const wxString& text);
 
     /**
+        Sets the selection to the given item.
+
+        Notice that a radio box always has selection, so @a n must be valid
+        here and passing @c wxNOT_FOUND is not allowed.
+     */
+    virtual void SetSelection(int n);
+
+    /**
         Shows or hides individual buttons.
 
         @param show
@@ -310,7 +318,6 @@ public:
     virtual unsigned int GetCount() const;
     virtual wxString GetString(unsigned int n) const;
     virtual void SetString(unsigned int n, const wxString& string);
-    virtual void SetSelection(int n);
     virtual int GetSelection() const;
 
 };

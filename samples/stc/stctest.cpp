@@ -263,44 +263,18 @@ BEGIN_EVENT_TABLE (AppFrame, wxFrame)
     EVT_MENU (wxID_PREVIEW,          AppFrame::OnPrintPreview)
     EVT_MENU (wxID_PRINT,            AppFrame::OnPrint)
     EVT_MENU (wxID_EXIT,             AppFrame::OnExit)
-    // edit
+    // Menu items with standard IDs forwarded to the editor.
     EVT_MENU (wxID_CLEAR,            AppFrame::OnEdit)
     EVT_MENU (wxID_CUT,              AppFrame::OnEdit)
     EVT_MENU (wxID_COPY,             AppFrame::OnEdit)
     EVT_MENU (wxID_PASTE,            AppFrame::OnEdit)
-    EVT_MENU (myID_INDENTINC,        AppFrame::OnEdit)
-    EVT_MENU (myID_INDENTRED,        AppFrame::OnEdit)
     EVT_MENU (wxID_SELECTALL,        AppFrame::OnEdit)
-    EVT_MENU (myID_SELECTLINE,       AppFrame::OnEdit)
     EVT_MENU (wxID_REDO,             AppFrame::OnEdit)
     EVT_MENU (wxID_UNDO,             AppFrame::OnEdit)
-    // find
     EVT_MENU (wxID_FIND,             AppFrame::OnEdit)
-    EVT_MENU (myID_FINDNEXT,         AppFrame::OnEdit)
-    EVT_MENU (myID_REPLACE,          AppFrame::OnEdit)
-    EVT_MENU (myID_REPLACENEXT,      AppFrame::OnEdit)
-    EVT_MENU (myID_BRACEMATCH,       AppFrame::OnEdit)
-    EVT_MENU (myID_GOTO,             AppFrame::OnEdit)
-    // view
-    EVT_MENU_RANGE (myID_HILIGHTFIRST, myID_HILIGHTLAST,
+    // And all our edit-related menu commands.
+    EVT_MENU_RANGE (myID_EDIT_FIRST, myID_EDIT_LAST,
                                      AppFrame::OnEdit)
-    EVT_MENU (myID_DISPLAYEOL,       AppFrame::OnEdit)
-    EVT_MENU (myID_INDENTGUIDE,      AppFrame::OnEdit)
-    EVT_MENU (myID_LINENUMBER,       AppFrame::OnEdit)
-    EVT_MENU (myID_LONGLINEON,       AppFrame::OnEdit)
-    EVT_MENU (myID_WHITESPACE,       AppFrame::OnEdit)
-    EVT_MENU (myID_FOLDTOGGLE,       AppFrame::OnEdit)
-    EVT_MENU (myID_OVERTYPE,         AppFrame::OnEdit)
-    EVT_MENU (myID_READONLY,         AppFrame::OnEdit)
-    EVT_MENU (myID_WRAPMODEON,       AppFrame::OnEdit)
-    // extra
-    EVT_MENU (myID_CHANGELOWER,      AppFrame::OnEdit)
-    EVT_MENU (myID_CHANGEUPPER,      AppFrame::OnEdit)
-    EVT_MENU (myID_CONVERTCR,        AppFrame::OnEdit)
-    EVT_MENU (myID_CONVERTCRLF,      AppFrame::OnEdit)
-    EVT_MENU (myID_CONVERTLF,        AppFrame::OnEdit)
-    EVT_MENU (myID_CHARSETANSI,      AppFrame::OnEdit)
-    EVT_MENU (myID_CHARSETMAC,       AppFrame::OnEdit)
     // help
     EVT_MENU (wxID_ABOUT,            AppFrame::OnAbout)
 END_EVENT_TABLE ()
@@ -541,6 +515,20 @@ void AppFrame::CreateMenu ()
     menuView->AppendSeparator();
     menuView->Append (myID_USECHARSET, _("Use &code page of .."), menuCharset);
 
+    // Annotations menu
+    wxMenu* menuAnnotations = new wxMenu;
+    menuAnnotations->Append(myID_ANNOTATION_ADD, _("&Add or edit an annotation..."),
+                            _("Add an annotation for the current line"));
+    menuAnnotations->Append(myID_ANNOTATION_REMOVE, _("&Remove annotation"),
+                            _("Remove the annotation for the current line"));
+    menuAnnotations->Append(myID_ANNOTATION_CLEAR, _("&Clear all annotations"));
+
+    wxMenu* menuAnnotationsStyle = new wxMenu;
+    menuAnnotationsStyle->AppendRadioItem(myID_ANNOTATION_STYLE_HIDDEN, _("&Hidden"));
+    menuAnnotationsStyle->AppendRadioItem(myID_ANNOTATION_STYLE_STANDARD, _("&Standard"));
+    menuAnnotationsStyle->AppendRadioItem(myID_ANNOTATION_STYLE_BOXED, _("&Boxed"));
+    menuAnnotations->AppendSubMenu(menuAnnotationsStyle, "&Style");
+
     // change case submenu
     wxMenu *menuChangeCase = new wxMenu;
     menuChangeCase->Append (myID_CHANGEUPPER, _("&Upper case"));
@@ -574,10 +562,13 @@ void AppFrame::CreateMenu ()
     m_menuBar->Append (menuFile, _("&File"));
     m_menuBar->Append (menuEdit, _("&Edit"));
     m_menuBar->Append (menuView, _("&View"));
+    m_menuBar->Append (menuAnnotations, _("&Annotations"));
     m_menuBar->Append (menuExtra, _("E&xtra"));
     m_menuBar->Append (menuWindow, _("&Window"));
     m_menuBar->Append (menuHelp, _("&Help"));
     SetMenuBar (m_menuBar);
+
+    m_menuBar->Check(myID_ANNOTATION_STYLE_BOXED, true);
 }
 
 void AppFrame::FileOpen (wxString fname)

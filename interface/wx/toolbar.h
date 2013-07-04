@@ -18,12 +18,12 @@ enum wxToolBarToolStyle
 enum
 {
     /** lay out the toolbar horizontally */
-    wxTB_HORIZONTAL,
-    wxTB_TOP,
+    wxTB_HORIZONTAL  = wxHORIZONTAL,
+    wxTB_TOP         = wxTB_HORIZONTAL,
 
     /** lay out the toolbar vertically */
-    wxTB_VERTICAL,
-    wxTB_LEFT,
+    wxTB_VERTICAL    = wxVERTICAL,
+    wxTB_LEFT        = wxTB_VERTICAL,
 
     /** show 3D buttons (wxToolBarSimple only) */
     wxTB_3DBUTTONS,
@@ -48,7 +48,7 @@ enum
 
     /** show the text and the icons alongside, not vertically stacked (Win32/GTK) */
     wxTB_HORZ_LAYOUT,
-    wxTB_HORZ_TEXT,
+    wxTB_HORZ_TEXT   = wxTB_HORZ_LAYOUT | wxTB_TEXT,
 
     /** don't show the toolbar short help tooltips */
     wxTB_NO_TOOLTIPS,
@@ -57,7 +57,10 @@ enum
     wxTB_BOTTOM,
 
     /** lay out toolbar at the right edge of the window */
-    wxTB_RIGHT
+    wxTB_RIGHT,
+
+    /** flags that are closest to the native look*/
+    wxTB_DEFAULT_STYLE = wxTB_HORIZONTAL | wxTB_FLAT
 };
 
 
@@ -216,6 +219,9 @@ public:
         Align the toolbar at the bottom of parent window.
     @style{wxTB_RIGHT}
         Align the toolbar at the right side of parent window.
+    @style{wxTB_DEFAULT_STYLE}
+        Combination of @c wxTB_HORIZONTAL and @c wxTB_FLAT. This style is new
+        since wxWidgets 2.9.5.
     @endStyleTable
 
     See also @ref overview_windowstyles. Note that the wxMSW native toolbar
@@ -224,27 +230,27 @@ public:
 
     @beginEventEmissionTable{wxCommandEvent}
     @event{EVT_TOOL(id, func)}
-        Process a @c wxEVT_COMMAND_TOOL_CLICKED event (a synonym for @c
-        wxEVT_COMMAND_MENU_SELECTED). Pass the id of the tool.
+        Process a @c wxEVT_TOOL event (a synonym for @c
+        wxEVT_MENU). Pass the id of the tool.
     @event{EVT_MENU(id, func)}
         The same as EVT_TOOL().
     @event{EVT_TOOL_RANGE(id1, id2, func)}
-        Process a @c wxEVT_COMMAND_TOOL_CLICKED event for a range of
+        Process a @c wxEVT_TOOL event for a range of
         identifiers. Pass the ids of the tools.
     @event{EVT_MENU_RANGE(id1, id2, func)}
         The same as EVT_TOOL_RANGE().
     @event{EVT_TOOL_RCLICKED(id, func)}
-        Process a @c wxEVT_COMMAND_TOOL_RCLICKED event. Pass the id of the
+        Process a @c wxEVT_TOOL_RCLICKED event. Pass the id of the
         tool.  (Not available on wxOSX.)
     @event{EVT_TOOL_RCLICKED_RANGE(id1, id2, func)}
-        Process a @c wxEVT_COMMAND_TOOL_RCLICKED event for a range of ids. Pass
+        Process a @c wxEVT_TOOL_RCLICKED event for a range of ids. Pass
         the ids of the tools.  (Not available on wxOSX.)
     @event{EVT_TOOL_ENTER(id, func)}
-        Process a @c wxEVT_COMMAND_TOOL_ENTER event. Pass the id of the toolbar
+        Process a @c wxEVT_TOOL_ENTER event. Pass the id of the toolbar
         itself. The value of wxCommandEvent::GetSelection() is the tool id, or
         -1 if the mouse cursor has moved off a tool.  (Not available on wxOSX.)
     @event{EVT_TOOL_DROPDOWN(id, func)}
-        Process a @c wxEVT_COMMAND_TOOL_DROPDOWN_CLICKED event. If unhandled,
+        Process a @c wxEVT_TOOL_DROPDOWN event. If unhandled,
         displays the default dropdown menu set using
         wxToolBar::SetDropdownMenu().
     @endEventTable

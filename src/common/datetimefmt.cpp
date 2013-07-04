@@ -655,6 +655,18 @@ wxString wxDateTime::Format(const wxString& formatp, const TimeZone& tz) const
                 case wxT('z'):       // time zone as [-+]HHMM
                     {
                         int ofs = tz.GetOffset();
+
+                        // The time zone offset does not include the DST, but
+                        // we do need to take it into account when showing the
+                        // time in the local time zone to the user.
+                        if ( ofs == -wxGetTimeZone() && IsDST() == 1 )
+                        {
+                            // FIXME: As elsewhere in wxDateTime, we assume
+                            // that the DST is always 1 hour, but this is not
+                            // true in general.
+                            ofs += 3600;
+                        }
+
                         if ( ofs < 0 )
                         {
                             res += '-';
@@ -2105,6 +2117,8 @@ wxDateTime::ParseTime(const wxString& time, wxString::const_iterator *end)
         "%H:%M:%S",     // could be the same or 24 hour one so try it too
         "%I:%M %p",     // 12hour with AM/PM but without seconds
         "%H:%M",        // and a possibly 24 hour version without seconds
+        "%I %p",        // just hour with AM/AM
+        "%H",           // just hour in 24 hour version
         "%X",           // possibly something from above or maybe something
                         // completely different -- try it last
 

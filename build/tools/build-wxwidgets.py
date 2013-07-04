@@ -26,6 +26,7 @@ contribDir = None
 options = None
 configure_opts = None
 exitWithException = True
+nmakeCommand = 'nmake.exe'
 
 verbose = False
 
@@ -54,8 +55,9 @@ def numCPUs():
     return 1 # Default
 
 
-def getXcodePath():
-    return getoutput("xcode-select -print-path")
+def getXcodePaths():
+    base = getoutput("xcode-select -print-path")
+    return [base, base+"/Platforms/MacOSX.platform/Developer"]
 
 
 def getVisCVersion():
@@ -64,6 +66,8 @@ def getVisCVersion():
         return '71'
     if 'Version 15' in text:
         return '90'
+    if 'Version 16' in text:
+        return '100'
     # TODO: Add more tests to get the other versions...
     else:
         return 'FIXME'
@@ -168,6 +172,7 @@ def main(scriptName, args):
     global options
     global configure_opts
     global wxBuilder
+    global nmakeCommand
     
     scriptDir = os.path.dirname(os.path.abspath(scriptName))
     wxRootDir = os.path.abspath(os.path.join(scriptDir, "..", ".."))
@@ -214,6 +219,7 @@ def main(scriptName, args):
         "extra_make"    : ("", "Extra args to pass on [n]make's command line."),
         "features"      : ("", "A comma-separated list of wxUSE_XYZ defines on Win, or a list of configure flags on unix."),
         "verbose"       : (False, "Print commands as they are run, (to aid with debugging this script)"),
+        "jom"           : (False, "Use jom.exe instead of nmake for MSW builds."),
     }
         
     parser = optparse.OptionParser(usage="usage: %prog [options]", version="%prog 1.0")
@@ -283,19 +289,20 @@ def main(scriptName, args):
         # but other cases it is optional and is left up to the developer.
         # TODO: there should be a command line option to set the SDK...
         if sys.platform.startswith("darwin"):
-            xcodePath = getXcodePath()
-            sdks = [
-                xcodePath+"/SDKs/MacOSX10.5.sdk",
-                xcodePath+"/SDKs/MacOSX10.6.sdk",
-                xcodePath+"/SDKs/MacOSX10.7.sdk",
-            ]
+            for xcodePath in getXcodePaths():
+                sdks = [
+                    xcodePath+"/SDKs/MacOSX10.5.sdk",
+                    xcodePath+"/SDKs/MacOSX10.6.sdk",
+                    xcodePath+"/SDKs/MacOSX10.7.sdk",
+                    xcodePath+"/SDKs/MacOSX10.8.sdk",
+                    ]
             
-            # use the lowest available sdk
-            for sdk in sdks:
-                if os.path.exists(sdk):
-                    wxpy_configure_opts.append(
-                        "--with-macosx-sdk=%s" % sdk)
-                    break
+                # use the lowest available sdk
+                for sdk in sdks:
+                    if os.path.exists(sdk):
+                        wxpy_configure_opts.append(
+                            "--with-macosx-sdk=%s" % sdk)
+                        break
 
         if not options.mac_framework:
             if installDir and not prefixDir:
@@ -437,8 +444,11 @@ def main(scriptName, args):
                 args.append(
                     "CPPFLAGS=/I%s" %
                      os.path.join(os.environ.get("CAIRO_ROOT", ""), 'include\\cairo'))
+                
+            if options.jom:
+                nmakeCommand = 'jom.exe'
     
-            wxBuilder = builder.MSVCBuilder()
+            wxBuilder = builder.MSVCBuilder(commandName=nmakeCommand)
             
         if toolkit == "msvcProject":
             args = []
@@ -616,7 +626,7 @@ def main(scriptName, args):
         os.makedirs(packagedir)
         basename = os.path.basename(prefixDir.split(".")[0])
         packageName = basename + "-" + getWxRelease()
-        packageMakerPath = getXcodePath()+"/usr/bin/packagemaker "
+        packageMakerPath = getXcodePaths()[0]+"/usr/bin/packagemaker "
         args = []
         args.append("--root %s" % options.installdir)
         args.append("--id org.wxwidgets.%s" % basename.lower())

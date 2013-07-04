@@ -859,22 +859,6 @@ wxTranslateGTKKeyEventToWx(wxKeyEvent& event,
 }
 
 
-struct wxGtkIMData
-{
-    GtkIMContext *context;
-    GdkEventKey  *lastKeyEvent;
-
-    wxGtkIMData()
-    {
-        context = gtk_im_multicontext_new();
-        lastKeyEvent = NULL;
-    }
-    ~wxGtkIMData()
-    {
-        g_object_unref (context);
-    }
-};
-
 namespace
 {
 
@@ -977,7 +961,7 @@ gtk_window_key_press_callback( GtkWidget *WXUNUSED(widget),
             int command = ancestor->GetAcceleratorTable()->GetCommand( event );
             if (command != -1)
             {
-                wxCommandEvent menu_event( wxEVT_COMMAND_MENU_SELECTED, command );
+                wxCommandEvent menu_event( wxEVT_MENU, command );
                 ret = ancestor->HandleWindowEvent( menu_event );
 
                 if ( !ret )
@@ -985,7 +969,7 @@ gtk_window_key_press_callback( GtkWidget *WXUNUSED(widget),
                     // if the accelerator wasn't handled as menu event, try
                     // it as button click (for compatibility with other
                     // platforms):
-                    wxCommandEvent button_event( wxEVT_COMMAND_BUTTON_CLICKED, command );
+                    wxCommandEvent button_event( wxEVT_BUTTON, command );
                     ret = ancestor->HandleWindowEvent( button_event );
                 }
 
@@ -1008,17 +992,21 @@ gtk_window_key_press_callback( GtkWidget *WXUNUSED(widget),
         return_after_IM = true;
     }
 
-    if (!ret && win->m_imData)
+    if ( !ret )
     {
-        win->m_imData->lastKeyEvent = gdk_event;
+        // Indicate that IM handling is in process by setting this pointer
+        // (which will remain valid for all the code called during IM key
+        // handling).
+        win->m_imKeyEvent = gdk_event;
 
         // We should let GTK+ IM filter key event first. According to GTK+ 2.0 API
         // docs, if IM filter returns true, no further processing should be done.
         // we should send the key_down event anyway.
-        bool intercepted_by_IM =
-            gtk_im_context_filter_keypress(win->m_imData->context, gdk_event) != 0;
-        win->m_imData->lastKeyEvent = NULL;
-        if (intercepted_by_IM)
+        const int intercepted_by_IM = win->GTKIMFilterKeypress(gdk_event);
+
+        win->m_imKeyEvent = NULL;
+
+        if ( intercepted_by_IM )
         {
             wxLogTrace(TRACE_KEYS, wxT("Key event intercepted by IM"));
             return TRUE;
@@ -1070,30 +1058,43 @@ gtk_window_key_press_callback( GtkWidget *WXUNUSED(widget),
 }
 }
 
+int wxWindowGTK::GTKIMFilterKeypress(GdkEventKey* event) const
+{
+    return m_imContext ? gtk_im_context_filter_keypress(m_imContext, event)
+                       : FALSE;
+}
+
 extern "C" {
 static void
 gtk_wxwindow_commit_cb (GtkIMContext * WXUNUSED(context),
                         const gchar  *str,
                         wxWindow     *window)
 {
+    // Ignore the return value here, it doesn't matter for the "commit" signal.
+    window->GTKDoInsertTextFromIM(str);
+}
+}
+
+bool wxWindowGTK::GTKDoInsertTextFromIM(const char* str)
+{
     wxKeyEvent event( wxEVT_CHAR );
 
     // take modifiers, cursor position, timestamp etc. from the last
     // key_press_event that was fed into Input Method:
-    if (window->m_imData->lastKeyEvent)
+    if ( m_imKeyEvent )
     {
-        wxFillOtherKeyEventFields(event,
-                                  window, window->m_imData->lastKeyEvent);
+        wxFillOtherKeyEventFields(event, this, m_imKeyEvent);
     }
     else
     {
-        event.SetEventObject( window );
+        event.SetEventObject(this);
     }
 
     const wxString data(wxGTK_CONV_BACK_SYS(str));
     if( data.empty() )
-        return;
+        return false;
 
+    bool processed = false;
     for( wxString::const_iterator pstr = data.begin(); pstr != data.end(); ++pstr )
     {
 #if wxUSE_UNICODE
@@ -1107,9 +1108,22 @@ gtk_wxwindow_commit_cb (GtkIMContext * WXUNUSED(context),
 
         AdjustCharEventKeyCodes(event);
 
-        window->HandleWindowEvent(event);
+        if ( HandleWindowEvent(event) )
+            processed = true;
     }
+
+    return processed;
 }
+
+bool wxWindowGTK::GTKOnInsertText(const char* text)
+{
+    if ( !m_imKeyEvent )
+    {
+        // We're not inside IM key handling at all.
+        return false;
+    }
+
+    return GTKDoInsertTextFromIM(text);
 }
 
 
@@ -1635,6 +1649,7 @@ window_scroll_event(GtkWidget*, GdkEventScroll* gdk_event, wxWindow* win)
 
     // FIXME: Get these values from GTK or GDK
     event.m_linesPerAction = 3;
+    event.m_columnsPerAction = 3;
     event.m_wheelDelta = 120;
 
     // Determine the scroll direction.
@@ -1910,6 +1925,12 @@ size_allocate(GtkWidget*, GtkAllocation* alloc, wxWindow* win)
         if (w < 0) w = 0;
         if (h < 0) h = 0;
     }
+    GtkAllocation a;
+    gtk_widget_get_allocation(win->m_widget, &a);
+    // update position for widgets in native containers, such as wxToolBar
+    // (for widgets in a wxPizza, the values should already be the same)
+    win->m_x = a.x;
+    win->m_y = a.y;
     win->m_useCachedClientSize = true;
     if (win->m_clientWidth != w || win->m_clientHeight != h)
     {
@@ -1917,8 +1938,6 @@ size_allocate(GtkWidget*, GtkAllocation* alloc, wxWindow* win)
         win->m_clientHeight = h;
         // this callback can be connected to m_wxwindow,
         // so always get size from m_widget->allocation
-        GtkAllocation a;
-        gtk_widget_get_allocation(win->m_widget, &a);
         win->m_width  = a.width;
         win->m_height = a.height;
         if (!win->m_nativeSizeEvent)
@@ -1982,12 +2001,14 @@ void wxWindowGTK::GTKHandleRealized()
     if (IsFrozen())
         DoFreeze();
 
-    if (m_imData)
+    GdkWindow* const window = GTKGetDrawingWindow();
+
+    if (m_imContext)
     {
         gtk_im_context_set_client_window
         (
-            m_imData->context,
-            m_wxwindow ? GTKGetDrawingWindow()
+            m_imContext,
+            window ? window
                        : gtk_widget_get_window(m_widget)
         );
     }
@@ -1998,7 +2019,6 @@ void wxWindowGTK::GTKHandleRealized()
 #if wxGTK_HAS_COMPOSITING_SUPPORT
         if (IsTransparentBackgroundSupported())
         {
-            GdkWindow* const window = GTKGetDrawingWindow();
             if (window)
                 gdk_window_set_composited(window, true);
         }
@@ -2010,16 +2030,14 @@ void wxWindowGTK::GTKHandleRealized()
         }
     }
 
-
-    // We cannot set colours and fonts before the widget
-    // been realized, so we do this directly after realization
-    // or otherwise in idle time
-
-    if (m_needsStyleChange)
+#ifndef __WXGTK3__
+    if (window && (
+        m_backgroundStyle == wxBG_STYLE_PAINT ||
+        m_backgroundStyle == wxBG_STYLE_TRANSPARENT))
     {
-        SetBackgroundStyle(GetBackgroundStyle());
-        m_needsStyleChange = false;
+        gdk_window_set_back_pixmap(window, NULL, false);
     }
+#endif
 
     wxWindowCreateEvent event(static_cast<wxWindow*>(this));
     event.SetEventObject( this );
@@ -2052,8 +2070,8 @@ void wxWindowGTK::GTKHandleUnrealize()
 
     if (m_wxwindow)
     {
-        if (m_imData)
-            gtk_im_context_set_client_window(m_imData->context, NULL);
+        if (m_imContext)
+            gtk_im_context_set_client_window(m_imContext, NULL);
 
         if (IsTopLevel())
         {
@@ -2214,11 +2232,11 @@ void wxWindowGTK::Init()
 
     m_clipPaintRegion = false;
 
-    m_needsStyleChange = false;
-
     m_cursor = *wxSTANDARD_CURSOR;
 
-    m_imData = NULL;
+    m_imContext = NULL;
+    m_imKeyEvent = NULL;
+
     m_dirtyTabOrder = false;
 }
 
@@ -2408,8 +2426,11 @@ wxWindowGTK::~wxWindowGTK()
         Show( false );
 
     // delete before the widgets to avoid a crash on solaris
-    delete m_imData;
-    m_imData = NULL;
+    if ( m_imContext )
+    {
+        g_object_unref(m_imContext);
+        m_imContext = NULL;
+    }
 
     // avoid problem with GTK+ 2.18 where a frozen window causes the whole
     // TLW to be frozen, and if the window is then destroyed, nothing ever
@@ -2494,12 +2515,12 @@ void wxWindowGTK::PostCreation()
         }
 
         // Create input method handler
-        m_imData = new wxGtkIMData;
+        m_imContext = gtk_im_multicontext_new();
 
         // Cannot handle drawing preedited text yet
-        gtk_im_context_set_use_preedit( m_imData->context, FALSE );
+        gtk_im_context_set_use_preedit( m_imContext, FALSE );
 
-        g_signal_connect (m_imData->context, "commit",
+        g_signal_connect (m_imContext, "commit",
                           G_CALLBACK (gtk_wxwindow_commit_cb), this);
     }
 
@@ -2582,6 +2603,9 @@ void wxWindowGTK::PostCreation()
 
     if (!WX_IS_PIZZA(gtk_widget_get_parent(m_widget)) && !GTK_IS_WINDOW(m_widget))
         gtk_widget_set_size_request(m_widget, m_width, m_height);
+
+    // apply any font or color changes made before creation
+    GTKApplyWidgetStyle();
 
     InheritAttributes();
 
@@ -3194,8 +3218,8 @@ bool wxWindowGTK::GTKHandleFocusIn()
                "handling focus_in event for %s(%p, %s)",
                GetClassInfo()->GetClassName(), this, GetLabel());
 
-    if (m_imData)
-        gtk_im_context_focus_in(m_imData->context);
+    if (m_imContext)
+        gtk_im_context_focus_in(m_imContext);
 
     gs_currentFocus = this;
     gs_pendingFocus = NULL;
@@ -3257,8 +3281,8 @@ void wxWindowGTK::GTKHandleFocusOutNoDeferring()
                "handling focus_out event for %s(%p, %s)",
                GetClassInfo()->GetClassName(), this, GetLabel());
 
-    if (m_imData)
-        gtk_im_context_focus_out(m_imData->context);
+    if (m_imContext)
+        gtk_im_context_focus_out(m_imContext);
 
     if ( gs_currentFocus != this )
     {
@@ -4012,46 +4036,46 @@ void wxWindowGTK::GTKApplyToolTip(const char* tip)
 
 bool wxWindowGTK::SetBackgroundColour( const wxColour &colour )
 {
-    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid window") );
-
     if (!wxWindowBase::SetBackgroundColour(colour))
         return false;
 
-#ifndef __WXGTK3__
-    if (colour.IsOk())
+    if (m_widget)
     {
-        // We need the pixel value e.g. for background clearing.
-        m_backgroundColour.CalcPixel(gtk_widget_get_colormap(m_widget));
-    }
+#ifndef __WXGTK3__
+        if (colour.IsOk())
+        {
+            // We need the pixel value e.g. for background clearing.
+            m_backgroundColour.CalcPixel(gtk_widget_get_colormap(m_widget));
+        }
 #endif
 
-    // apply style change (forceStyle=true so that new style is applied
-    // even if the bg colour changed from valid to wxNullColour)
-    GTKApplyWidgetStyle(true);
+        // apply style change (forceStyle=true so that new style is applied
+        // even if the bg colour changed from valid to wxNullColour)
+        GTKApplyWidgetStyle(true);
+    }
 
     return true;
 }
 
 bool wxWindowGTK::SetForegroundColour( const wxColour &colour )
 {
-    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid window") );
-
     if (!wxWindowBase::SetForegroundColour(colour))
-    {
         return false;
-    }
 
-#ifndef __WXGTK3__
-    if (colour.IsOk())
+    if (m_widget)
     {
-        // We need the pixel value e.g. for background clearing.
-        m_foregroundColour.CalcPixel(gtk_widget_get_colormap(m_widget));
-    }
+#ifndef __WXGTK3__
+        if (colour.IsOk())
+        {
+            // We need the pixel value e.g. for background clearing.
+            m_foregroundColour.CalcPixel(gtk_widget_get_colormap(m_widget));
+        }
 #endif
 
-    // apply style change (forceStyle=true so that new style is applied
-    // even if the bg colour changed from valid to wxNullColour):
-    GTKApplyWidgetStyle(true);
+        // apply style change (forceStyle=true so that new style is applied
+        // even if the bg colour changed from valid to wxNullColour):
+        GTKApplyWidgetStyle(true);
+    }
 
     return true;
 }
@@ -4221,40 +4245,10 @@ bool wxWindowGTK::SetBackgroundStyle(wxBackgroundStyle style)
 
 #ifndef __WXGTK3__
     GdkWindow *window;
-    if ( m_wxwindow )
+    if ((style == wxBG_STYLE_PAINT || style == wxBG_STYLE_TRANSPARENT) &&
+        (window = GTKGetDrawingWindow()))
     {
-        window = GTKGetDrawingWindow();
-    }
-    else
-    {
-        GtkWidget * const w = GetConnectWidget();
-        window = w ? gtk_widget_get_window(w) : NULL;
-    }
-
-    bool wantNoBackPixmap = style == wxBG_STYLE_PAINT || style == wxBG_STYLE_TRANSPARENT;
-
-    if ( wantNoBackPixmap )
-    {
-        if (window)
-        {
-            // Make sure GDK/X11 doesn't refresh the window
-            // automatically.
-            gdk_window_set_back_pixmap( window, NULL, FALSE );
-            m_needsStyleChange = false;
-        }
-        else // window not realized yet
-        {
-            // Do when window is realized
-            m_needsStyleChange = true;
-        }
-
-        // Don't apply widget style, or we get a grey background
-    }
-    else
-    {
-        // apply style change (forceStyle=true so that new style is applied
-        // even if the bg colour changed from valid to wxNullColour):
-        GTKApplyWidgetStyle(true);
+        gdk_window_set_back_pixmap(window, NULL, false);
     }
 #endif // !__WXGTK3__
 
@@ -4423,14 +4417,15 @@ GdkWindow *wxWindowGTK::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 
 bool wxWindowGTK::SetFont( const wxFont &font )
 {
-    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid window") );
-
     if (!wxWindowBase::SetFont(font))
         return false;
 
-    // apply style change (forceStyle=true so that new style is applied
-    // even if the font changed from valid to wxNullFont):
-    GTKApplyWidgetStyle(true);
+    if (m_widget)
+    {
+        // apply style change (forceStyle=true so that new style is applied
+        // even if the font changed from valid to wxNullFont):
+        GTKApplyWidgetStyle(true);
+    }
 
     return true;
 }

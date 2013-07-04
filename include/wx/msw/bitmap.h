@@ -144,6 +144,9 @@ public:
 
     virtual bool Create(int width, int height, const wxDC& dc);
     virtual bool Create(const void* data, wxBitmapType type, int width, int height, int depth = 1);
+    virtual bool CreateScaled(int w, int h, int d, double logicalScale)
+        { return Create(w*logicalScale,h*logicalScale,d); }
+
     virtual bool LoadFile(const wxString& name, wxBitmapType type = wxBITMAP_DEFAULT_TYPE);
     virtual bool SaveFile(const wxString& name, wxBitmapType type, const wxPalette *cmap = NULL) const;
 
@@ -160,13 +163,19 @@ public:
 #endif // wxUSE_PALETTE
 
     wxMask *GetMask() const;
-    wxBitmap GetMaskBitmap() const;
     void SetMask(wxMask *mask);
 
     // these functions are internal and shouldn't be used, they risk to
     // disappear in the future
     bool HasAlpha() const;
     void UseAlpha();
+
+    // support for scaled bitmaps
+    virtual double GetScaleFactor() const { return 1.0; }
+    virtual double GetScaledWidth() const { return GetWidth() / GetScaleFactor(); }
+    virtual double GetScaledHeight() const { return GetHeight() / GetScaleFactor(); }
+    virtual wxSize GetScaledSize() const
+    { return wxSize(GetScaledWidth(), GetScaledHeight()); }
 
     // implementation only from now on
     // -------------------------------
@@ -237,6 +246,8 @@ public:
     bool Create(const wxBitmap& bitmap, const wxColour& colour);
     bool Create(const wxBitmap& bitmap, int paletteIndex);
     bool Create(const wxBitmap& bitmap);
+
+    wxBitmap GetBitmap() const;
 
     // Implementation
     WXHBITMAP GetMaskBitmap() const { return m_maskBitmap; }

@@ -24,12 +24,13 @@
     #include "wx/intl.h"
 #endif
 
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/messagetype.h"
 #include "wx/gtk/private/mnemonics.h"
+#include "wx/gtk/private/dialogcount.h"
 
 #if wxUSE_LIBHILDON
     #include <hildon-widgets/hildon-note.h>
@@ -275,7 +276,7 @@ void wxMessageDialog::GTKCreateMsgDialog()
 
 int wxMessageDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     // break the mouse capture as it would interfere with modal dialog (see
     // wxDialog::ShowModal)
@@ -294,6 +295,8 @@ int wxMessageDialog::ShowModal()
     // parent TLW will disappear..
     if (m_parent)
         gtk_window_present( GTK_WINDOW(m_parent->m_widget) );
+
+    wxOpenModalDialogLocker modalLocker;
 
     gint result = gtk_dialog_run(GTK_DIALOG(m_widget));
     GTKDisconnect(m_widget);

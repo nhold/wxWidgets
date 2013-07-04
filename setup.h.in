@@ -1240,6 +1240,9 @@
 /* Define if getgrgid_r is available. */
 #undef HAVE_GETGRGID_R
 
+/* Define if setpriority() is available. */
+#undef HAVE_SETPRIORITY
+
 /* Define if locale_t is available */
 #undef HAVE_LOCALE_T
 
@@ -1254,10 +1257,6 @@
    ------------------------------------------------------------------------- */
 
 #ifdef __WIN32__
-
-/* we need to define wxUSE_XPM_IN_MSW for MSW compilation for compatibility
-   with wx/msw/setup.h */
-#define wxUSE_XPM_IN_MSW wxUSE_XPM
 
 /* When using an external jpeg library and the Windows headers already define
  * boolean, define to the type used by the jpeg library for boolean.  */

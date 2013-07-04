@@ -1391,7 +1391,7 @@ bool wxToolBar::MSWOnNotify(int WXUNUSED(idCtrl),
     {
         LPNMTOOLBAR tbhdr = (LPNMTOOLBAR)lParam;
 
-        wxCommandEvent evt(wxEVT_COMMAND_TOOL_DROPDOWN_CLICKED, tbhdr->iItem);
+        wxCommandEvent evt(wxEVT_TOOL_DROPDOWN, tbhdr->iItem);
         if ( HandleWindowEvent(evt) )
         {
             // Event got handled, don't display default popup menu
@@ -1695,7 +1695,9 @@ void wxToolBar::OnMouseEvent(wxMouseEvent& event)
 // toolbar icons with comctl32.dll < 6.0.
 void wxToolBar::OnEraseBackground(wxEraseEvent& event)
 {
+#ifdef wxHAS_MSW_BACKGROUND_ERASE_HOOK
     MSWDoEraseBackground(event.GetDC()->GetHDC());
+#endif // wxHAS_MSW_BACKGROUND_ERASE_HOOK
 }
 
 bool wxToolBar::HandleSize(WXWPARAM WXUNUSED(wParam), WXLPARAM lParam)

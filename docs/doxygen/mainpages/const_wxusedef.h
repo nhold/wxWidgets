@@ -59,7 +59,7 @@ library:
 @itemdef{wxUSE_ARTPROVIDER_STD, Use standard low quality icons in wxArtProvider.}
 @itemdef{wxUSE_ARTPROVIDER_TANGO, Use Tango icons in wxArtProvider.}
 @itemdef{wxUSE_ANY, Use wxAny class.}
-@itemdef{wxUSE_APPLE_IEEE, IEEE Extended to/from double routines; see src/common/extended.c file.}
+@itemdef{wxUSE_APPLE_IEEE, IEEE Extended to/from double routines, see wxDataOutputStream.}
 @itemdef{wxUSE_ARCHIVE_STREAMS, Enable streams for archive formats.}
 @itemdef{wxUSE_AUI, Use AUI (dockable windows) library.}
 @itemdef{wxUSE_BASE64, Enables Base64 support.}
@@ -91,7 +91,7 @@ library:
 @itemdef{wxUSE_DATAVIEWCTRL, Use wxDataViewCtrl class.}
 @itemdef{wxUSE_DATEPICKCTRL, Use wxDatePickerCtrl class.}
 @itemdef{wxUSE_DATETIME, Use wxDateTime and related classes.}
-@itemdef{wxUSE_DBGHELP, Use wxDbgHelpDLL class.}
+@itemdef{wxUSE_DBGHELP, Predefine as 0 to avoid using wxDbgHelpDLL and related classes.}
 @itemdef{wxUSE_DC_TRANSFORM_MATRIX, Use wxDC::SetTransformMatrix() and related methods.}
 @itemdef{wxUSE_DEBUG_CONTEXT, Use wxDebugContext class.}
 @itemdef{wxUSE_DEBUG_NEW_ALWAYS, See @ref overview_debugging}
@@ -342,7 +342,8 @@ library:
 @itemdef{wxUSE_HOTKEY, Use wxWindow::RegisterHotKey() and wxWindow::UnregisterHotKey}
 @itemdef{wxUSE_INKEDIT, Use InkEdit library. Related to Tablet PCs.}
 @itemdef{wxUSE_MS_HTML_HELP, Use wxCHMHelpController class.}
-@itemdef{wxUSE_NO_MANIFEST, Use to prevent the auto generation, under MSVC, of manifest file needed by windows XP and above.}
+@itemdef{wxUSE_NO_MANIFEST, Can be predefined to disable inclusion of the
+manifest from wxWidgets RC file. See also wxUSE_RC_MANIFEST.}
 @itemdef{wxUSE_NORLANDER_HEADERS, Using headers whose author is Anders Norlander.}
 @itemdef{wxUSE_OLE, Enables OLE helper routines.}
 @itemdef{wxUSE_OLE_AUTOMATION, Enable OLE automation utilities.}
@@ -350,6 +351,11 @@ library:
 @itemdef{wxUSE_PENWINDOWS, See src/msw/penwin.cpp file.}
 @itemdef{wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW, Use PS printing in wxMSW.}
 @itemdef{wxUSE_PS_PRINTING, See src/msw/dcprint.cpp file.}
+@itemdef{wxUSE_RC_MANIFEST, Include manifest for common controls library v6
+from wxWidgets RC file. This may be needed to be defined explicitly for MSVC 6
+and 7 (98 and 2003) only as later versions of MSVC generate this manifest
+themselves and the manifest generation is enabled by default for the other
+compilers. See also wxUSE_NO_MANIFEST.}
 @itemdef{wxUSE_REGKEY, Use wxRegKey class.}
 @itemdef{wxUSE_RICHEDIT, Enable use of riched32.dll in wxTextCtrl}
 @itemdef{wxUSE_RICHEDIT2, Enable use of riched20.dll in wxTextCtrl}
@@ -358,7 +364,6 @@ library:
 @itemdef{wxUSE_UXTHEME, Enable support for XP themes.}
 @itemdef{wxUSE_WIN_METAFILES_ALWAYS, Use wxMetaFile even when wxUSE_ENH_METAFILE=1.}
 @itemdef{wxUSE_WXDIB, Use wxDIB class.}
-@itemdef{wxUSE_XPM_IN_MSW, See also wxUSE_XPM}
 @endDefList
 
 

@@ -75,7 +75,8 @@ bool wxRichTextHTMLHandler::DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream&
 
     ClearTemporaryImageLocations();
 
-    buffer->Defragment();
+    wxRichTextDrawingContext context(buffer);
+    buffer->Defragment(context);
 
 #if wxUSE_UNICODE
     wxCSConv* customEncoding = NULL;
@@ -225,9 +226,9 @@ void wxRichTextHTMLHandler::BeginCharacterFormatting(const wxRichTextAttr& curre
         m_font = true;
     }
 
-    if (thisStyle.GetFontWeight() == wxBOLD)
+    if (thisStyle.GetFontWeight() == wxFONTWEIGHT_BOLD)
         str << wxT("<b>");
-    if (thisStyle.GetFontStyle() == wxITALIC)
+    if (thisStyle.GetFontStyle() == wxFONTSTYLE_ITALIC)
         str << wxT("<i>");
     if (thisStyle.GetFontUnderlined())
         str << wxT("<u>");
@@ -253,9 +254,9 @@ void wxRichTextHTMLHandler::EndCharacterFormatting(const wxRichTextAttr& WXUNUSE
 
     if (thisStyle.GetFontUnderlined())
         stream << wxT("</u>");
-    if (thisStyle.GetFontStyle() == wxITALIC)
+    if (thisStyle.GetFontStyle() == wxFONTSTYLE_ITALIC)
         stream << wxT("</i>");
-    if (thisStyle.GetFontWeight() == wxBOLD)
+    if (thisStyle.GetFontWeight() == wxFONTWEIGHT_BOLD)
         stream << wxT("</b>");
 
     if (thisStyle.HasTextEffects())
@@ -521,7 +522,7 @@ void wxRichTextHTMLHandler::WriteImage(wxRichTextImage* image, wxOutputStream& s
             if (img.IsOk())
             {
                 wxString ext(image->GetImageBlock().GetExtension());
-                wxString tempFilename(wxString::Format(wxT("image%d.%s"), sm_fileCounter, ext));
+                wxString tempFilename(wxString::Format(wxT("image%d.%s"), sm_fileCounter, ext.c_str()));
                 wxMemoryFSHandler::AddFile(tempFilename, img, image->GetImageBlock().GetImageType());
 
                 m_imageLocations.Add(tempFilename);
@@ -550,7 +551,7 @@ void wxRichTextHTMLHandler::WriteImage(wxRichTextImage* image, wxOutputStream& s
                 tempDir = wxFileName::GetTempDir();
 
             wxString ext(image->GetImageBlock().GetExtension());
-            wxString tempFilename(wxString::Format(wxT("%s/image%d.%s"), tempDir, sm_fileCounter, ext));
+            wxString tempFilename(wxString::Format(wxT("%s/image%d.%s"), tempDir.c_str(), sm_fileCounter, ext.c_str()));
             image->GetImageBlock().Write(tempFilename);
 
             m_imageLocations.Add(tempFilename);

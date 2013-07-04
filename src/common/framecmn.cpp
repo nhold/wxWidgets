@@ -41,15 +41,16 @@ extern WXDLLEXPORT_DATA(const char) wxStatusLineNameStr[] = "status_line";
 // event table
 // ----------------------------------------------------------------------------
 
-#if wxUSE_MENUS && wxUSE_STATUSBAR
+#if wxUSE_MENUS
+
+#if wxUSE_STATUSBAR
 BEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
     EVT_MENU_OPEN(wxFrameBase::OnMenuOpen)
     EVT_MENU_CLOSE(wxFrameBase::OnMenuClose)
 
     EVT_MENU_HIGHLIGHT_ALL(wxFrameBase::OnMenuHighlight)
 END_EVENT_TABLE()
-
-#endif // wxUSE_MENUS && wxUSE_IDLEMENUUPDATES
+#endif // wxUSE_STATUSBAR
 
 /* static */
 bool wxFrameBase::ShouldUpdateMenuFromIdle()
@@ -66,6 +67,8 @@ bool wxFrameBase::ShouldUpdateMenuFromIdle()
 
     return wxUSE_IDLEMENUUPDATES != 0;
 }
+
+#endif // wxUSE_MENUS
 
 // ============================================================================
 // implementation
@@ -128,7 +131,7 @@ wxEND_FLAGS( wxFrameStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxFrame, wxTopLevelWindow, "wx/frame.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxFrame)
-wxEVENT_PROPERTY( Menu, wxEVT_COMMAND_MENU_SELECTED, wxCommandEvent)
+wxEVENT_PROPERTY( Menu, wxEVT_MENU, wxCommandEvent)
 
 wxPROPERTY( Title,wxString, SetTitle, GetTitle, wxString(), 0 /*flags*/, \
            wxT("Helpstring"), wxT("group"))
@@ -559,7 +562,7 @@ wxToolBar* wxFrameBase::CreateToolBar(long style,
         //      a) this allows us to have different defaults for different
         //         platforms (even if we don't have them right now)
         //      b) we don't need to include wx/toolbar.h in the header then
-        style = wxBORDER_NONE | wxTB_HORIZONTAL | wxTB_FLAT;
+        style = wxTB_DEFAULT_STYLE;
     }
 
     SetToolBar(OnCreateToolBar(style, id, name));

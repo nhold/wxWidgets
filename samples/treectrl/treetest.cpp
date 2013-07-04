@@ -30,6 +30,7 @@
 #include "wx/treectrl.h"
 #include "wx/math.h"
 #include "wx/renderer.h"
+#include "wx/wupdlock.h"
 
 #ifdef __WIN32__
     // this is not supported by native control
@@ -122,6 +123,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     MENU_LINK(EnsureVisible)
     MENU_LINK(SetFocus)
     MENU_LINK(AddItem)
+    MENU_LINK(AddManyItems)
     MENU_LINK(InsertItem)
     MENU_LINK(IncIndent)
     MENU_LINK(DecIndent)
@@ -227,8 +229,10 @@ MyFrame::MyFrame(const wxString& title, int x, int y, int w, int h)
            *tree_menu = new wxMenu,
            *item_menu = new wxMenu;
 
+#if wxUSE_LOG
     file_menu->Append(TreeTest_ClearLog, wxT("&Clear log\tCtrl-L"));
     file_menu->AppendSeparator();
+#endif // wxUSE_LOG
     file_menu->Append(TreeTest_About, wxT("&About"));
     file_menu->AppendSeparator();
     file_menu->Append(TreeTest_Quit, wxT("E&xit\tAlt-X"));
@@ -262,6 +266,7 @@ MyFrame::MyFrame(const wxString& title, int x, int y, int w, int h)
     tree_menu->Append(TreeTest_CollapseAndReset, wxT("C&ollapse and reset"));
     tree_menu->AppendSeparator();
     tree_menu->Append(TreeTest_AddItem, wxT("Append a &new item"));
+    tree_menu->Append(TreeTest_AddManyItems, wxT("Appends &many items"));
     tree_menu->Append(TreeTest_InsertItem, wxT("&Insert a new item"));
     tree_menu->Append(TreeTest_Delete, wxT("&Delete this item"));
     tree_menu->Append(TreeTest_DeleteChildren, wxT("Delete &children"));
@@ -336,6 +341,16 @@ MyFrame::MyFrame(const wxString& title, int x, int y, int w, int h)
     m_textCtrl = new wxTextCtrl(m_panel, wxID_ANY, wxT(""),
                                 wxDefaultPosition, wxDefaultSize,
                                 wxTE_MULTILINE | wxSUNKEN_BORDER);
+
+#ifdef __WXMOTIF__
+    // For some reason, we get a memcpy crash in wxLogStream::DoLogStream
+    // on gcc/wxMotif, if we use wxLogTextCtl. Maybe it's just gcc?
+    delete wxLog::SetActiveTarget(new wxLogStderr);
+#else
+    // set our text control as the log target
+    wxLogTextCtrl *logWindow = new wxLogTextCtrl(m_textCtrl);
+    delete wxLog::SetActiveTarget(logWindow);
+#endif
 #endif // wxUSE_LOG
 
     CreateTreeWithDefStyle();
@@ -349,18 +364,6 @@ MyFrame::MyFrame(const wxString& title, int x, int y, int w, int h)
     // create a status bar
     CreateStatusBar(2);
 #endif // wxUSE_STATUSBAR
-
-#if wxUSE_LOG
-#ifdef __WXMOTIF__
-    // For some reason, we get a memcpy crash in wxLogStream::DoLogStream
-    // on gcc/wxMotif, if we use wxLogTextCtl. Maybe it's just gcc?
-    delete wxLog::SetActiveTarget(new wxLogStderr);
-#else
-    // set our text control as the log target
-    wxLogTextCtrl *logWindow = new wxLogTextCtrl(m_textCtrl);
-    delete wxLog::SetActiveTarget(logWindow);
-#endif
-#endif // wxUSE_LOG
 }
 
 MyFrame::~MyFrame()
@@ -780,6 +783,17 @@ void MyFrame::OnAddItem(wxCommandEvent& WXUNUSED(event))
     m_treeCtrl->AppendItem(m_treeCtrl->GetRootItem(),
                            text /*,
                            MyTreeCtrl::TreeCtrlIcon_File */ );
+}
+
+void MyFrame::OnAddManyItems(wxCommandEvent& WXUNUSED(event))
+{
+    wxWindowUpdateLocker lockUpdates(this);
+
+    const wxTreeItemId root = m_treeCtrl->GetRootItem();
+    for ( int n = 0; n < 1000; n++ )
+    {
+        m_treeCtrl->AppendItem(root, wxString::Format("Item #%03d", n));
+    }
 }
 
 void MyFrame::OnIncIndent(wxCommandEvent& WXUNUSED(event))

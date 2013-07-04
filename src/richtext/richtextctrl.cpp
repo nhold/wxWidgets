@@ -49,26 +49,26 @@
 #include "wx/app.h"
 WX_CHECK_BUILD_OPTIONS("wxRichTextCtrl")
 
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_LEFT_CLICK, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_MIDDLE_CLICK, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_RIGHT_CLICK, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_LEFT_DCLICK, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_RETURN, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_CHARACTER, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_DELETE, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_LEFT_CLICK, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_MIDDLE_CLICK, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_RIGHT_CLICK, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_LEFT_DCLICK, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_RETURN, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_CHARACTER, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_DELETE, wxRichTextEvent );
 
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_STYLESHEET_REPLACING, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_STYLESHEET_REPLACED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_STYLESHEET_CHANGING, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_STYLESHEET_CHANGED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLESHEET_REPLACING, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLESHEET_REPLACED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLESHEET_CHANGING, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLESHEET_CHANGED, wxRichTextEvent );
 
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_CONTENT_INSERTED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_CONTENT_DELETED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_STYLE_CHANGED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_PROPERTIES_CHANGED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_SELECTION_CHANGED, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_BUFFER_RESET, wxRichTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RICHTEXT_FOCUS_OBJECT_CHANGED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_CONTENT_INSERTED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_CONTENT_DELETED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLE_CHANGED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_PROPERTIES_CHANGED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_SELECTION_CHANGED, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_BUFFER_RESET, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_FOCUS_OBJECT_CHANGED, wxRichTextEvent );
 
 #if wxRICHTEXT_USE_OWN_CARET
 
@@ -355,6 +355,7 @@ void wxRichTextCtrl::Init()
     m_selectionAnchorObject = NULL;
     m_selectionState = wxRichTextCtrlSelectionState_Normal;
     m_editable = true;
+    m_useVirtualAttributes = false;
     m_verticalScrollbarEnabled = true;
     m_caretAtLineStart = false;
     m_dragging = false;
@@ -437,9 +438,6 @@ void wxRichTextCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
 
         dc.SetFont(GetFont());
 
-        // Paint the background
-        PaintBackground(dc);
-
         wxRect drawingArea(GetUpdateRegion().GetBox());
         drawingArea.SetPosition(GetUnscaledPoint(GetLogicalPoint(drawingArea.GetPosition())));
         drawingArea.SetSize(GetUnscaledSize(drawingArea.GetSize()));
@@ -457,6 +455,9 @@ void wxRichTextCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
 
             SetupScrollbars();
         }
+
+        // Paint the background
+        PaintBackground(dc);
 
         wxRect clipRect(availableSpace);
         clipRect.x += GetBuffer().GetLeftMargin();
@@ -690,7 +691,7 @@ void wxRichTextCtrl::OnLeftUp(wxMouseEvent& event)
         if ((hit != wxRICHTEXT_HITTEST_NONE) && !(hit & wxRICHTEXT_HITTEST_OUTSIDE))
         {
             wxRichTextEvent cmdEvent(
-                wxEVT_COMMAND_RICHTEXT_LEFT_CLICK,
+                wxEVT_RICHTEXT_LEFT_CLICK,
                 GetId());
             cmdEvent.SetEventObject(this);
             cmdEvent.SetPosition(position);
@@ -751,6 +752,14 @@ void wxRichTextCtrl::OnLeftUp(wxMouseEvent& event)
 /// Mouse-movements
 void wxRichTextCtrl::OnMoveMouse(wxMouseEvent& event)
 {
+    if (!event.Dragging() && m_dragging)
+    {
+        // We may have accidentally lost a mouse-up event, especially on Linux
+        m_dragging = false;
+        if (GetCapture() == this)
+            ReleaseMouse();
+    }
+
 #if wxUSE_DRAG_AND_DROP
     size_t distance = 0;
     if (m_preDrag || m_dragging)
@@ -981,7 +990,7 @@ void wxRichTextCtrl::OnRightClick(wxMouseEvent& event)
     }
 
     wxRichTextEvent cmdEvent(
-        wxEVT_COMMAND_RICHTEXT_RIGHT_CLICK,
+        wxEVT_RICHTEXT_RIGHT_CLICK,
         GetId());
     cmdEvent.SetEventObject(this);
     cmdEvent.SetPosition(position);
@@ -996,7 +1005,7 @@ void wxRichTextCtrl::OnRightClick(wxMouseEvent& event)
 void wxRichTextCtrl::OnLeftDClick(wxMouseEvent& WXUNUSED(event))
 {
     wxRichTextEvent cmdEvent(
-        wxEVT_COMMAND_RICHTEXT_LEFT_DCLICK,
+        wxEVT_RICHTEXT_LEFT_DCLICK,
         GetId());
     cmdEvent.SetEventObject(this);
     cmdEvent.SetPosition(m_caretPosition+1);
@@ -1012,7 +1021,7 @@ void wxRichTextCtrl::OnLeftDClick(wxMouseEvent& WXUNUSED(event))
 void wxRichTextCtrl::OnMiddleClick(wxMouseEvent& event)
 {
     wxRichTextEvent cmdEvent(
-        wxEVT_COMMAND_RICHTEXT_MIDDLE_CLICK,
+        wxEVT_RICHTEXT_MIDDLE_CLICK,
         GetId());
     cmdEvent.SetEventObject(this);
     cmdEvent.SetPosition(m_caretPosition+1);
@@ -1188,7 +1197,7 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
         ScrollIntoView(m_caretPosition, WXK_RIGHT);
 
         wxRichTextEvent cmdEvent(
-            wxEVT_COMMAND_RICHTEXT_RETURN,
+            wxEVT_RICHTEXT_RETURN,
             GetId());
         cmdEvent.SetEventObject(this);
         cmdEvent.SetFlags(flags);
@@ -1198,7 +1207,7 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
         if (!GetEventHandler()->ProcessEvent(cmdEvent))
         {
             // Generate conventional event
-            wxCommandEvent textEvent(wxEVT_COMMAND_TEXT_ENTER, GetId());
+            wxCommandEvent textEvent(wxEVT_TEXT_ENTER, GetId());
             InitCommandEvent(textEvent);
 
             GetEventHandler()->ProcessEvent(textEvent);
@@ -1268,10 +1277,10 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
 
         ScrollIntoView(m_caretPosition, WXK_LEFT);
 
-        // Always send this event; wxEVT_COMMAND_RICHTEXT_CONTENT_DELETED will be sent only if there is an actual deletion.
+        // Always send this event; wxEVT_RICHTEXT_CONTENT_DELETED will be sent only if there is an actual deletion.
         {
             wxRichTextEvent cmdEvent(
-                wxEVT_COMMAND_RICHTEXT_DELETE,
+                wxEVT_RICHTEXT_DELETE,
                 GetId());
             cmdEvent.SetEventObject(this);
             cmdEvent.SetFlags(flags);
@@ -1307,7 +1316,7 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
                 }
 
                 wxRichTextEvent cmdEvent(
-                    wxEVT_COMMAND_RICHTEXT_CHARACTER,
+                    wxEVT_RICHTEXT_CHARACTER,
                     GetId());
                 cmdEvent.SetEventObject(this);
                 cmdEvent.SetFlags(flags);
@@ -1492,10 +1501,10 @@ bool wxRichTextCtrl::ProcessBackKey(wxKeyEvent& event, int flags)
 
         ScrollIntoView(m_caretPosition, WXK_LEFT);
 
-        // Always send this event; wxEVT_COMMAND_RICHTEXT_CONTENT_DELETED will be sent only if there is an actual deletion.
+        // Always send this event; wxEVT_RICHTEXT_CONTENT_DELETED will be sent only if there is an actual deletion.
         {
             wxRichTextEvent cmdEvent(
-                wxEVT_COMMAND_RICHTEXT_DELETE,
+                wxEVT_RICHTEXT_DELETE,
                 GetId());
             cmdEvent.SetEventObject(this);
             cmdEvent.SetFlags(flags);
@@ -2933,7 +2942,8 @@ void wxRichTextCtrl::DoWriteText(const wxString& value, int flags)
     wxString valueUnix = wxTextFile::Translate(value, wxTextFileType_Unix);
 
     GetFocusObject()->InsertTextWithUndo(& GetBuffer(), m_caretPosition+1, valueUnix, this, wxRICHTEXT_INSERT_WITH_PREVIOUS_PARAGRAPH_STYLE);
-    GetBuffer().Defragment();
+    wxRichTextDrawingContext context(& GetBuffer());
+    GetBuffer().Defragment(context);
 
     if ( flags & SetValue_SendEvent )
         wxTextCtrl::SendTextUpdatedEvent(this);
@@ -3252,7 +3262,7 @@ void wxRichTextCtrl::Replace(long from, long to,
 
     SetSelection(from, to);
 
-    wxRichTextAttr attr = GetDefaultStyle();
+    wxRichTextAttr attr(GetDefaultStyle());
 
     DeleteSelectedContent();
 
@@ -3747,7 +3757,9 @@ void wxRichTextCtrl::PositionCaret(wxRichTextParagraphLayoutBox* container)
     wxRect caretRect;
     if (GetCaretPositionForIndex(GetCaretPosition(), caretRect, container))
     {
+#if !wxRICHTEXT_USE_OWN_CARET
         caretRect = GetScaledRect(caretRect);
+#endif
         int topMargin = (int) (0.5 + GetScale()*GetBuffer().GetTopMargin());
         int bottomMargin = (int) (0.5 + GetScale()*GetBuffer().GetBottomMargin());
         wxPoint newPt = caretRect.GetPosition();
@@ -3880,12 +3892,15 @@ bool wxRichTextCtrl::LayoutContent(bool onlyVisibleRect)
 
         PrepareDC(dc);
         dc.SetFont(GetFont());
+        dc.SetUserScale(GetScale(), GetScale());
 
         wxRichTextDrawingContext context(& GetBuffer());
-        GetBuffer().Defragment();
+        GetBuffer().Defragment(context);
         GetBuffer().UpdateRanges();     // If items were deleted, ranges need recalculation
         GetBuffer().Layout(dc, context, availableSpace, availableSpace, flags);
         GetBuffer().Invalidate(wxRICHTEXT_NONE);
+
+        dc.SetUserScale(1.0, 1.0);
 
         if (!IsFrozen() && !onlyVisibleRect)
             SetupScrollbars();
@@ -4539,7 +4554,7 @@ bool wxRichTextCtrl::SetFocusObject(wxRichTextParagraphLayoutBox* obj, bool setC
         SetDefaultStyleToCursorStyle();
 
         wxRichTextEvent cmdEvent(
-            wxEVT_COMMAND_RICHTEXT_FOCUS_OBJECT_CHANGED,
+            wxEVT_RICHTEXT_FOCUS_OBJECT_CHANGED,
             GetId());
         cmdEvent.SetEventObject(this);
         cmdEvent.SetPosition(m_caretPosition+1);
@@ -4786,8 +4801,9 @@ void wxRichTextCaret::DoMove()
         {
             if (m_richTextCtrl && m_refreshEnabled)
             {
-                wxRect rect(GetPosition(), GetSize());
-                m_richTextCtrl->RefreshRect(rect, false);
+                wxRect rect(wxPoint(m_xOld, m_yOld), GetSize());
+                wxRect scaledRect = m_richTextCtrl->GetScaledRect(rect);
+                m_richTextCtrl->RefreshRect(scaledRect, false);
             }
         }
     }
@@ -4838,7 +4854,8 @@ void wxRichTextCaret::Refresh()
     if (m_richTextCtrl && m_refreshEnabled)
     {
         wxRect rect(GetPosition(), GetSize());
-        m_richTextCtrl->RefreshRect(rect, false);
+        wxRect rectScaled = m_richTextCtrl->GetScaledRect(rect);
+        m_richTextCtrl->RefreshRect(rectScaled, false);
     }
 }
 

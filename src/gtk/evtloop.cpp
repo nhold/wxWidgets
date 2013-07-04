@@ -2,10 +2,10 @@
 // Name:        src/gtk/evtloop.cpp
 // Purpose:     implements wxEventLoop for GTK+
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     10.07.01
 // RCS-ID:      $Id$
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
+//              (c) 2013 Rob Bresalier, Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +32,9 @@
     #include "wx/log.h"
 #endif // WX_PRECOMP
 
+#include "wx/private/eventloopsourcesmanager.h"
+#include "wx/apptrait.h"
+
 #include <gtk/gtk.h>
 #include <glib.h>
 
@@ -50,25 +53,42 @@ wxGUIEventLoop::wxGUIEventLoop()
     m_exitcode = 0;
 }
 
-int wxGUIEventLoop::Run()
+int wxGUIEventLoop::DoRun()
 {
-    // event loops are not recursive, you need to create another loop!
-    wxCHECK_MSG( !IsRunning(), -1, "can't reenter a message loop" );
+    guint loopLevel = gtk_main_level();
 
-    wxEventLoopActivator activate(this);
+    // This is placed inside of a loop to take into account nested
+    // event loops.  For example, inside this event loop, we may receive
+    // Exit() for a different event loop (which we are currently inside of)
+    // That Exit() will cause this gtk_main() to exit so we need to re-enter it.
+    while ( !m_shouldExit )
+    {
+        gtk_main();
+    }
 
-    gtk_main();
+    // Force the enclosing event loop to also exit to see if it is done in case
+    // that event loop had Exit() called inside of the just ended loop. If it
+    // is not time yet for that event loop to exit, it will be executed again
+    // due to the while() loop on m_shouldExit().
+    //
+    // This is unnecessary if we are the top level loop, i.e. loop of level 0.
+    if ( loopLevel )
+    {
+        gtk_main_quit();
+    }
 
     OnExit();
 
     return m_exitcode;
 }
 
-void wxGUIEventLoop::Exit(int rc)
+void wxGUIEventLoop::ScheduleExit(int rc)
 {
-    wxCHECK_RET( IsRunning(), "can't call Exit() if not running" );
+    wxCHECK_RET( IsInsideRun(), wxT("can't call ScheduleExit() if not started") );
 
     m_exitcode = rc;
+
+    m_shouldExit = true;
 
     gtk_main_quit();
 }
@@ -104,53 +124,72 @@ static gboolean wx_on_channel_event(GIOChannel *channel,
     wxEventLoopSourceHandler * const
         handler = static_cast<wxEventLoopSourceHandler *>(data);
 
-    if (condition & G_IO_IN || condition & G_IO_PRI)
+    if ( (condition & G_IO_IN) || (condition & G_IO_PRI) || (condition & G_IO_HUP) )
         handler->OnReadWaiting();
+
     if (condition & G_IO_OUT)
         handler->OnWriteWaiting();
-    else if (condition & G_IO_ERR || condition & G_IO_NVAL)
+
+    if ( (condition & G_IO_ERR) || (condition & G_IO_NVAL) )
         handler->OnExceptionWaiting();
 
     // we never want to remove source here, so always return true
+    //
+    // The source may have been removed by the handler, so it may be
+    // a good idea to return FALSE when the source has already been
+    // removed.  However, that would involve somehow informing this function
+    // that the source was removed, which is not trivial to implement
+    // and handle all cases.  It has been found through testing
+    // that if the source was removed by the handler, that even if we
+    // return TRUE here, the source/callback will not get called again.
     return TRUE;
 }
 }
 
-wxEventLoopSource *
-wxGUIEventLoop::AddSourceForFD(int fd,
-                               wxEventLoopSourceHandler *handler,
-                               int flags)
+class wxGUIEventLoopSourcesManager : public wxEventLoopSourcesManagerBase
 {
-    wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
+public:
+    virtual wxEventLoopSource*
+    AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags)
+    {
+        wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
 
-    int condition = 0;
-    if (flags & wxEVENT_SOURCE_INPUT)
-        condition |= G_IO_IN | G_IO_PRI;
-    if (flags & wxEVENT_SOURCE_OUTPUT)
-        condition |= G_IO_OUT;
-    if (flags & wxEVENT_SOURCE_EXCEPTION)
-        condition |= G_IO_ERR | G_IO_HUP | G_IO_NVAL;
+        int condition = 0;
+        if ( flags & wxEVENT_SOURCE_INPUT )
+            condition |= G_IO_IN | G_IO_PRI | G_IO_HUP;
+        if ( flags & wxEVENT_SOURCE_OUTPUT )
+            condition |= G_IO_OUT;
+        if ( flags & wxEVENT_SOURCE_EXCEPTION )
+            condition |= G_IO_ERR | G_IO_NVAL;
 
-    GIOChannel* channel = g_io_channel_unix_new(fd);
-    const unsigned sourceId  = g_io_add_watch
-                               (
-                                channel,
-                                (GIOCondition)condition,
-                                &wx_on_channel_event,
-                                handler
-                               );
-    // it was ref'd by g_io_add_watch() so we can unref it here
-    g_io_channel_unref(channel);
+        GIOChannel* channel = g_io_channel_unix_new(fd);
+        const unsigned sourceId  = g_io_add_watch
+                                   (
+                                    channel,
+                                    (GIOCondition)condition,
+                                    &wx_on_channel_event,
+                                    handler
+                                   );
+        // it was ref'd by g_io_add_watch() so we can unref it here
+        g_io_channel_unref(channel);
 
-    if ( !sourceId )
-        return NULL;
+        if ( !sourceId )
+            return NULL;
 
-    wxLogTrace(wxTRACE_EVT_SOURCE,
-               "Adding event loop source for fd=%d with GTK id=%u",
-               fd, sourceId);
+        wxLogTrace(wxTRACE_EVT_SOURCE,
+                   "Adding event loop source for fd=%d with GTK id=%u",
+                   fd, sourceId);
 
 
-    return new wxGTKEventLoopSource(sourceId, handler, flags);
+        return new wxGTKEventLoopSource(sourceId, handler, flags);
+    }
+};
+
+wxEventLoopSourcesManagerBase* wxGUIAppTraits::GetEventLoopSourcesManager()
+{
+    static wxGUIEventLoopSourcesManager s_eventLoopSourcesManager;
+
+    return &s_eventLoopSourcesManager;
 }
 
 wxGTKEventLoopSource::~wxGTKEventLoopSource()

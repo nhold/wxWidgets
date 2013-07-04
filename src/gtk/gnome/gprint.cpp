@@ -34,7 +34,7 @@
 #include "wx/dynlib.h"
 #include "wx/paper.h"
 #include "wx/dcprint.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #include <libgnomeprint/gnome-print.h>
 #include <libgnomeprint/gnome-print-pango.h>
@@ -592,7 +592,7 @@ wxGnomePrintDialog::~wxGnomePrintDialog()
 
 int wxGnomePrintDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     int response = gtk_dialog_run (GTK_DIALOG (m_widget));
 
@@ -739,7 +739,7 @@ wxPageSetupDialogData& wxGnomePageSetupDialog::GetPageSetupDialogData()
 
 int wxGnomePageSetupDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     wxGnomePrintNativeData *native =
       (wxGnomePrintNativeData*) m_pageDialogData.GetPrintData().GetNativeData();
@@ -1189,7 +1189,7 @@ void wxGnomePrinterDCImpl::DoDrawPoint(wxCoord WXUNUSED(x), wxCoord WXUNUSED(y))
 {
 }
 
-void wxGnomePrinterDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset)
+void wxGnomePrinterDCImpl::DoDrawLines(int n, const wxPoint points[], wxCoord xoffset, wxCoord yoffset)
 {
     if (n <= 0) return;
 
@@ -1210,7 +1210,7 @@ void wxGnomePrinterDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset,
     gs_libGnomePrint->gnome_print_stroke ( m_gpc);
 }
 
-void wxGnomePrinterDCImpl::DoDrawPolygon(int n, wxPoint points[],
+void wxGnomePrinterDCImpl::DoDrawPolygon(int n, const wxPoint points[],
                                    wxCoord xoffset, wxCoord yoffset,
                                    wxPolygonFillMode WXUNUSED(fillStyle))
 {
@@ -1258,7 +1258,7 @@ void wxGnomePrinterDCImpl::DoDrawPolygon(int n, wxPoint points[],
     }
 }
 
-void wxGnomePrinterDCImpl::DoDrawPolyPolygon(int n, int count[], wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
+void wxGnomePrinterDCImpl::DoDrawPolyPolygon(int n, const int count[], const wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
 {
 #if wxUSE_NEW_DC
     wxDCImpl::DoDrawPolyPolygon( n, count, points, xoffset, yoffset, fillStyle );

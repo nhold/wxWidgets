@@ -330,7 +330,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
     }
 #endif // wxUSE_UNICODE
 
-    GetEventParameter( event, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &charCode );
+    GetEventParameter( event, kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
     GetEventParameter( event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode );
     GetEventParameter( event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
 
@@ -542,6 +542,7 @@ WXDLLEXPORT void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEve
             wxevent.m_wheelRotation = delta;
             wxevent.m_wheelDelta = 1;
             wxevent.m_linesPerAction = 1;
+            wxevent.m_columnsPerAction = 1;
             if ( axis == kEventMouseWheelAxisX )
                 wxevent.m_wheelAxis = wxMOUSE_WHEEL_HORIZONTAL;
         }

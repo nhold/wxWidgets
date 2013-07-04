@@ -217,7 +217,7 @@ public:
     // the image list
     wxXPButtonImageData(wxAnyButton *btn, const wxBitmap& bitmap)
         : m_iml(bitmap.GetWidth(), bitmap.GetHeight(), true /* use mask */,
-                wxAnyButton::State_Max),
+                wxAnyButton::State_Max + 1 /* see "pulse" comment below */),
           m_hwndBtn(GetHwndOf(btn))
     {
         // initialize all bitmaps except for the disabled one to normal state
@@ -230,6 +230,20 @@ public:
             m_iml.Add(bitmap);
 #endif
         }
+
+        // In addition to the states supported by wxWidgets such as normal,
+        // hot, pressed, disabled and focused, we need to add bitmap for
+        // another state when running under Windows 7 -- the so called "stylus
+        // hot" state corresponding to PBS_STYLUSHOT constant. While it's
+        // documented in MSDN as being only used with tablets, it is a lie as
+        // a focused button actually alternates between the image list elements
+        // with PBS_DEFAULTED and PBS_STYLUSHOT indices and, in particular,
+        // just disappears during half of the time if the latter is not set so
+        // we absolutely must set it.
+        //
+        // This also explains why we need to allocate an extra slot in the
+        // image list ctor above, the slot State_Max is used for this one.
+        m_iml.Add(bitmap);
 
         m_data.himl = GetHimagelistOf(&m_iml);
 
@@ -253,6 +267,11 @@ public:
     virtual void SetBitmap(const wxBitmap& bitmap, wxAnyButton::State which)
     {
         m_iml.Replace(which, bitmap);
+
+        // As we want the focused button to always show its bitmap, we need to
+        // update the "stylus hot" one to match it to avoid any pulsing.
+        if ( which == wxAnyButton::State_Focused )
+            m_iml.Replace(wxAnyButton::State_Max, bitmap);
 
         UpdateImageInfo();
     }
@@ -429,27 +448,31 @@ wxSize wxMSWButton::IncreaseToStdSizeAndCache(wxControl *btn, const wxSize& size
 {
     wxSize sizeBtn(size);
 
-    // All buttons have at least the standard height and, unless the user
-    // explicitly wants them to be as small as possible and used wxBU_EXACTFIT
-    // style to indicate this, of at least the standard width too.
-    //
-    // Notice that we really want to make all buttons equally high, otherwise
-    // they look ugly and the existing code using wxBU_EXACTFIT only uses it to
-    // control width and not height.
-
     // The 50x14 button size is documented in the "Recommended sizing and
     // spacing" section of MSDN layout article.
     //
     // Note that we intentionally don't use GetDefaultSize() here, because
     // it's inexact -- dialog units depend on this dialog's font.
     const wxSize sizeDef = btn->ConvertDialogToPixels(wxSize(50, 14));
-    if ( !btn->HasFlag(wxBU_EXACTFIT) )
+
+    // All buttons should have at least the standard size, unless the user
+    // explicitly wants them to be as small as possible and used wxBU_EXACTFIT
+    // style to indicate this.
+    const bool incToStdSize = !btn->HasFlag(wxBU_EXACTFIT);
+    if ( incToStdSize )
     {
         if ( sizeBtn.x < sizeDef.x )
             sizeBtn.x = sizeDef.x;
     }
-    if ( sizeBtn.y < sizeDef.y )
-        sizeBtn.y = sizeDef.y;
+
+    // Notice that we really want to make all buttons with text label equally
+    // high, otherwise they look ugly and the existing code using wxBU_EXACTFIT
+    // only uses it to control width and not height.
+    if ( incToStdSize || !btn->GetLabel().empty() )
+    {
+        if ( sizeBtn.y < sizeDef.y )
+            sizeBtn.y = sizeDef.y;
+    }
 
     btn->CacheBestSize(sizeBtn);
 

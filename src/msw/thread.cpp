@@ -442,7 +442,7 @@ public:
         m_thread = thread;
         m_hThread = 0;
         m_state = STATE_NEW;
-        m_priority = WXTHREAD_DEFAULT_PRIORITY;
+        m_priority = wxPRIORITY_DEFAULT;
         m_nRef = 1;
     }
 
@@ -699,7 +699,7 @@ bool wxThreadInternal::Create(wxThread *thread, unsigned int stackSize)
         return false;
     }
 
-    if ( m_priority != WXTHREAD_DEFAULT_PRIORITY )
+    if ( m_priority != wxPRIORITY_DEFAULT )
     {
         SetPriority(m_priority);
     }
@@ -905,7 +905,8 @@ bool wxThreadInternal::Suspend()
     DWORD nSuspendCount = ::SuspendThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Cannot suspend thread %x"), m_hThread);
+        wxLogSysError(_("Cannot suspend thread %lx"),
+                      static_cast<unsigned long>(wxPtrToUInt(m_hThread)));
 
         return false;
     }
@@ -920,7 +921,8 @@ bool wxThreadInternal::Resume()
     DWORD nSuspendCount = ::ResumeThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Cannot resume thread %x"), m_hThread);
+        wxLogSysError(_("Cannot resume thread %lx"),
+                      static_cast<unsigned long>(wxPtrToUInt(m_hThread)));
 
         return false;
     }
@@ -1104,6 +1106,14 @@ wxThreadError wxThread::Create(unsigned int stackSize)
 wxThreadError wxThread::Run()
 {
     wxCriticalSectionLocker lock(m_critsect);
+
+    // Create the thread if it wasn't created yet with an explicit
+    // Create() call:
+    if ( !m_internal->GetHandle() )
+    {
+        if ( !m_internal->Create(this, 0) )
+            return wxTHREAD_NO_RESOURCE;
+    }
 
     wxCHECK_MSG( m_internal->GetState() == STATE_NEW, wxTHREAD_RUNNING,
              wxT("thread may only be started once after Create()") );

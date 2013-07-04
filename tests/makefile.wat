@@ -31,12 +31,23 @@ WATCOM_CWD = $+ $(%cdrive):$(%cwd) $-
 
 ### Conditionally set variables: ###
 
+WIN32_TOOLKIT_LOWERCASE =
+!ifeq TOOLKIT GTK
+WIN32_TOOLKIT_LOWERCASE = gtk
+!endif
+!ifeq TOOLKIT MSW
+WIN32_TOOLKIT_LOWERCASE = msw
+!endif
 PORTNAME =
 !ifeq USE_GUI 0
 PORTNAME = base
 !endif
 !ifeq USE_GUI 1
-PORTNAME = msw
+PORTNAME = $(WIN32_TOOLKIT_LOWERCASE)$(TOOLKIT_VERSION)
+!endif
+WXBASEPORT =
+!ifeq TOOLKIT MAC
+WXBASEPORT = _carbon
 !endif
 COMPILER_VERSION =
 !ifeq OFFICIAL_BUILD 1
@@ -71,6 +82,14 @@ EXTRALIBS_FOR_BASE =
 !endif
 !ifeq MONOLITHIC 1
 EXTRALIBS_FOR_BASE =   
+!endif
+LIB_GTK =
+!ifeq TOOLKIT GTK
+!ifeq TOOLKIT_VERSION 2
+LIB_GTK = gtk-win32-2.0.lib gdk-win32-2.0.lib pangocairo-1.0.lib &
+	gdk_pixbuf-2.0.lib cairo.lib pango-1.0.lib gobject-2.0.lib gthread-2.0.lib &
+	glib-2.0.lib
+!endif
 !endif
 __LIB_PNG_IF_MONO_p =
 !ifeq MONOLITHIC 1
@@ -199,17 +218,17 @@ __EXCEPTIONSFLAG = -xs
 __WXLIB_NET_p =
 !ifeq MONOLITHIC 0
 __WXLIB_NET_p = &
-	wxbase$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_net.lib
+	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_net.lib
 !endif
 __WXLIB_XML_p =
 !ifeq MONOLITHIC 0
 __WXLIB_XML_p = &
-	wxbase$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_xml.lib
+	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_xml.lib
 !endif
 __WXLIB_BASE_p =
 !ifeq MONOLITHIC 0
 __WXLIB_BASE_p = &
-	wxbase$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR).lib
+	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR).lib
 !endif
 __WXLIB_MONO_p =
 !ifeq MONOLITHIC 1
@@ -279,13 +298,13 @@ LIBDIRNAME = &
 SETUPHDIR = &
 	$(LIBDIRNAME)\$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)
 TEST_CXXFLAGS = $(__DEBUGINFO) $(__OPTIMIZEFLAG) $(__THREADSFLAG) &
-	$(__RUNTIME_LIBS) -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) &
-	$(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) &
-	$(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p) -i=$(SETUPHDIR) -i=.\..\include &
-	$(____CAIRO_INCLUDEDIR_FILENAMES) -wx -wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. &
-	$(__DLLFLAG_p) -dwxUSE_GUI=0 $(CPPUNIT_CFLAGS) &
-	/fh=$(OBJS)\testprec_test.pch $(__RTTIFLAG) $(__EXCEPTIONSFLAG) $(CPPFLAGS) &
-	$(CXXFLAGS)
+	$(__RUNTIME_LIBS) -d__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) &
+	$(__DEBUG_DEFINE_p) $(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) &
+	$(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p) &
+	-i=$(SETUPHDIR) -i=.\..\include $(____CAIRO_INCLUDEDIR_FILENAMES) -wx &
+	-wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. $(__DLLFLAG_p) -dwxUSE_GUI=0 &
+	$(CPPUNIT_CFLAGS) /fh=$(OBJS)\testprec_test.pch $(__RTTIFLAG) &
+	$(__EXCEPTIONSFLAG) $(CPPFLAGS) $(CXXFLAGS)
 TEST_OBJECTS =  &
 	$(OBJS)\test_dummy.obj &
 	$(OBJS)\test_test.obj &
@@ -300,6 +319,7 @@ TEST_OBJECTS =  &
 	$(OBJS)\test_regconf.obj &
 	$(OBJS)\test_datetimetest.obj &
 	$(OBJS)\test_evthandler.obj &
+	$(OBJS)\test_evtlooptest.obj &
 	$(OBJS)\test_evtsource.obj &
 	$(OBJS)\test_stopwatch.obj &
 	$(OBJS)\test_timertest.obj &
@@ -372,13 +392,13 @@ TEST_OBJECTS =  &
 	$(OBJS)\test_xlocale.obj &
 	$(OBJS)\test_xmltest.obj
 TEST_GUI_CXXFLAGS = $(__DEBUGINFO) $(__OPTIMIZEFLAG) $(__THREADSFLAG) &
-	$(__RUNTIME_LIBS) -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) &
-	$(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) &
-	$(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p) -i=$(SETUPHDIR) -i=.\..\include &
-	$(____CAIRO_INCLUDEDIR_FILENAMES) -wx -wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. &
-	$(__DLLFLAG_p) -i=.\..\samples -dNOPCH $(CPPUNIT_CFLAGS) &
-	/fh=$(OBJS)\testprec_test_gui.pch $(__RTTIFLAG) $(__EXCEPTIONSFLAG) &
-	$(CPPFLAGS) $(CXXFLAGS)
+	$(__RUNTIME_LIBS) -d__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) &
+	$(__DEBUG_DEFINE_p) $(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) &
+	$(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p) &
+	-i=$(SETUPHDIR) -i=.\..\include $(____CAIRO_INCLUDEDIR_FILENAMES) -wx &
+	-wcd=549 -wcd=656 -wcd=657 -wcd=667 -i=. $(__DLLFLAG_p) -i=.\..\samples -dNOPCH &
+	$(CPPUNIT_CFLAGS) /fh=$(OBJS)\testprec_test_gui.pch $(__RTTIFLAG) &
+	$(__EXCEPTIONSFLAG) $(CPPFLAGS) $(CXXFLAGS)
 TEST_GUI_OBJECTS =  &
 	$(OBJS)\test_gui_dummy.obj &
 	$(OBJS)\test_gui_asserthelper.obj &
@@ -427,6 +447,8 @@ TEST_GUI_OBJECTS =  &
 	$(OBJS)\test_gui_radiobuttontest.obj &
 	$(OBJS)\test_gui_rearrangelisttest.obj &
 	$(OBJS)\test_gui_richtextctrltest.obj &
+	$(OBJS)\test_gui_searchctrltest.obj &
+	$(OBJS)\test_gui_simplebooktest.obj &
 	$(OBJS)\test_gui_slidertest.obj &
 	$(OBJS)\test_gui_spinctrldbltest.obj &
 	$(OBJS)\test_gui_spinctrltest.obj &
@@ -442,8 +464,10 @@ TEST_GUI_OBJECTS =  &
 	$(OBJS)\test_gui_windowtest.obj &
 	$(OBJS)\test_gui_dialogtest.obj &
 	$(OBJS)\test_gui_clone.obj &
+	$(OBJS)\test_gui_evtlooptest.obj &
 	$(OBJS)\test_gui_propagation.obj &
 	$(OBJS)\test_gui_keyboard.obj &
+	$(OBJS)\test_gui_exec.obj &
 	$(OBJS)\test_gui_fonttest.obj &
 	$(OBJS)\test_gui_image.obj &
 	$(OBJS)\test_gui_rawbmp.obj &
@@ -502,7 +526,7 @@ $(OBJS)\test_gui.exe :  $(TEST_GUI_OBJECTS) $(OBJS)\test_gui_sample.res
 	@%append $(OBJS)\test_gui.lbc option caseexact
 	@%append $(OBJS)\test_gui.lbc  $(__DEBUGINFO_1)  libpath $(LIBDIRNAME) $(CPPUNIT_LIBS) system nt ref 'main_' $(____CAIRO_LIBDIR_FILENAMES) $(LDFLAGS)
 	@for %i in ($(TEST_GUI_OBJECTS)) do @%append $(OBJS)\test_gui.lbc file %i
-	@for %i in ( $(__WXLIB_WEBVIEW_p) $(__WXLIB_RICHTEXT_p)  $(__WXLIB_MEDIA_p)  $(__WXLIB_XRC_p)  $(__WXLIB_XML_p)  $(__WXLIB_ADV_p)  $(__WXLIB_HTML_p)  $(__WXLIB_CORE_p)  $(__WXLIB_NET_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p)  wxzlib$(WXDEBUGFLAG).lib wxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG).lib wxexpat$(WXDEBUGFLAG).lib $(EXTRALIBS_FOR_BASE)  $(__CAIRO_LIB_p) kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib wininet.lib) do @%append $(OBJS)\test_gui.lbc library %i
+	@for %i in ( $(__WXLIB_WEBVIEW_p) $(__WXLIB_RICHTEXT_p)  $(__WXLIB_MEDIA_p)  $(__WXLIB_XRC_p)  $(__WXLIB_XML_p)  $(__WXLIB_ADV_p)  $(__WXLIB_HTML_p)  $(__WXLIB_CORE_p)  $(__WXLIB_NET_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p) $(LIB_GTK)  wxzlib$(WXDEBUGFLAG).lib wxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG).lib wxexpat$(WXDEBUGFLAG).lib $(EXTRALIBS_FOR_BASE)  $(__CAIRO_LIB_p) kernel32.lib user32.lib gdi32.lib comdlg32.lib winspool.lib winmm.lib shell32.lib comctl32.lib ole32.lib oleaut32.lib uuid.lib rpcrt4.lib advapi32.lib wsock32.lib wininet.lib) do @%append $(OBJS)\test_gui.lbc library %i
 	@%append $(OBJS)\test_gui.lbc option resource=$(OBJS)\test_gui_sample.res
 	@for %i in () do @%append $(OBJS)\test_gui.lbc option stack=%i
 	wlink @$(OBJS)\test_gui.lbc
@@ -514,7 +538,7 @@ data : .SYMBOLIC
 
 data-images : .SYMBOLIC 
 	if not exist image mkdir image
-	for %f in (horse_grey.bmp horse_grey_flipped.bmp horse_rle4.bmp horse_rle4_flipped.bmp horse_rle8.bmp horse_rle8_flipped.bmp) do if not exist image\%f copy .\image\%f image
+	for %f in (horse_grey.bmp horse_grey_flipped.bmp horse_rle4.bmp horse_rle4_flipped.bmp horse_rle8.bmp horse_rle8_flipped.bmp horse_bicubic_50x50.png horse_bicubic_100x100.png horse_bicubic_150x150.png horse_bicubic_300x300.png horse_bilinear_50x50.png horse_bilinear_100x100.png horse_bilinear_150x150.png horse_bilinear_300x300.png horse_box_average_50x50.png horse_box_average_100x100.png horse_box_average_150x150.png horse_box_average_300x300.png) do if not exist image\%f copy .\image\%f image
 
 fr : .SYMBOLIC 
 	if not exist $(OBJS)\intl\fr mkdir $(OBJS)\intl\fr
@@ -557,6 +581,9 @@ $(OBJS)\test_datetimetest.obj :  .AUTODEPEND .\datetime\datetimetest.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_CXXFLAGS) $<
 
 $(OBJS)\test_evthandler.obj :  .AUTODEPEND .\events\evthandler.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_CXXFLAGS) $<
+
+$(OBJS)\test_evtlooptest.obj :  .AUTODEPEND .\events\evtlooptest.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_CXXFLAGS) $<
 
 $(OBJS)\test_evtsource.obj :  .AUTODEPEND .\events\evtsource.cpp
@@ -773,7 +800,7 @@ $(OBJS)\test_xmltest.obj :  .AUTODEPEND .\xml\xmltest.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_CXXFLAGS) $<
 
 $(OBJS)\test_gui_sample.res :  .AUTODEPEND .\..\samples\sample.rc
-	wrc -q -ad -bt=nt -r -fo=$^@    -d__WXMSW__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) $(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p)  -i=$(SETUPHDIR) -i=.\..\include $(____CAIRO_INCLUDEDIR_FILENAMES) -i=. $(__DLLFLAG_p) -i=.\..\samples -dNOPCH $<
+	wrc -q -ad -bt=nt -r -fo=$^@    -d__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) $(__DEBUG_DEFINE_p) $(__NDEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) $(__UNICODE_DEFINE_p)  -i=$(SETUPHDIR) -i=.\..\include $(____CAIRO_INCLUDEDIR_FILENAMES) -i=. $(__DLLFLAG_p) -i=.\..\samples -dNOPCH $<
 
 $(OBJS)\test_gui_dummy.obj :  .AUTODEPEND .\dummy.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
@@ -916,6 +943,12 @@ $(OBJS)\test_gui_rearrangelisttest.obj :  .AUTODEPEND .\controls\rearrangelistte
 $(OBJS)\test_gui_richtextctrltest.obj :  .AUTODEPEND .\controls\richtextctrltest.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
 
+$(OBJS)\test_gui_searchctrltest.obj :  .AUTODEPEND .\controls\searchctrltest.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
+
+$(OBJS)\test_gui_simplebooktest.obj :  .AUTODEPEND .\controls\simplebooktest.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
+
 $(OBJS)\test_gui_slidertest.obj :  .AUTODEPEND .\controls\slidertest.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
 
@@ -961,10 +994,16 @@ $(OBJS)\test_gui_dialogtest.obj :  .AUTODEPEND .\controls\dialogtest.cpp
 $(OBJS)\test_gui_clone.obj :  .AUTODEPEND .\events\clone.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
 
+$(OBJS)\test_gui_evtlooptest.obj :  .AUTODEPEND .\events\evtlooptest.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
+
 $(OBJS)\test_gui_propagation.obj :  .AUTODEPEND .\events\propagation.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
 
 $(OBJS)\test_gui_keyboard.obj :  .AUTODEPEND .\events\keyboard.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
+
+$(OBJS)\test_gui_exec.obj :  .AUTODEPEND .\exec\exec.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(TEST_GUI_CXXFLAGS) $<
 
 $(OBJS)\test_gui_fonttest.obj :  .AUTODEPEND .\font\fonttest.cpp

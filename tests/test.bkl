@@ -40,6 +40,7 @@
             config/regconf.cpp
             datetime/datetimetest.cpp
             events/evthandler.cpp
+            events/evtlooptest.cpp
             events/evtsource.cpp
             events/stopwatch.cpp
             events/timertest.cpp
@@ -172,6 +173,8 @@
             controls/radiobuttontest.cpp
             controls/rearrangelisttest.cpp
             controls/richtextctrltest.cpp
+            controls/searchctrltest.cpp
+            controls/simplebooktest.cpp
             controls/slidertest.cpp
             controls/spinctrldbltest.cpp
             controls/spinctrltest.cpp
@@ -187,8 +190,17 @@
             controls/windowtest.cpp
             controls/dialogtest.cpp
             events/clone.cpp
+            <!--
+                Duplicate this file here to test GUI event loops too.
+             -->
+            events/evtlooptest.cpp
             events/propagation.cpp
             events/keyboard.cpp
+            <!--
+                And duplicate this one too as wxExecute behaves differently in
+                console and GUI applications.
+             -->
+            exec/exec.cpp
             font/fonttest.cpp
             image/image.cpp
             image/rawbmp.cpp
@@ -244,9 +256,26 @@
     <wx-data id="data-images">
         <srcdir>$(SRCDIR)/image</srcdir>
         <dstdir>image</dstdir>
-        <files>horse_grey.bmp  horse_grey_flipped.bmp
-               horse_rle4.bmp  horse_rle4_flipped.bmp
-               horse_rle8.bmp  horse_rle8_flipped.bmp</files>
+        <files>
+            horse_grey.bmp horse_grey_flipped.bmp
+            horse_rle4.bmp horse_rle4_flipped.bmp
+            horse_rle8.bmp horse_rle8_flipped.bmp
+
+            horse_bicubic_50x50.png
+            horse_bicubic_100x100.png
+            horse_bicubic_150x150.png
+            horse_bicubic_300x300.png
+
+            horse_bilinear_50x50.png
+            horse_bilinear_100x100.png
+            horse_bilinear_150x150.png
+            horse_bilinear_300x300.png
+
+            horse_box_average_50x50.png
+            horse_box_average_100x100.png
+            horse_box_average_150x150.png
+            horse_box_average_300x300.png
+        </files>
     </wx-data>
 
     <template id="catalog">

@@ -32,12 +32,13 @@ typedef pid_t GPid;
 */
 
 /* forwards */
-static void gtk_tree_entry_class_init(GtkTreeEntryClass* klass);
+static void gtk_tree_entry_class_init(void* g_class, void* class_data);
 static void gtk_tree_entry_init (GTypeInstance* instance, gpointer g_class);
 static void gtk_tree_entry_string_transform_func(const GValue *src_value,
                                                  GValue *dest_value);
 static void gtk_tree_entry_dispose(GObject* obj);
 
+static GObjectClass* parent_class;
 
 /* public */
 GtkTreeEntry*
@@ -58,7 +59,7 @@ gtk_tree_entry_get_type ()
             sizeof (GtkTreeEntryClass),
             NULL,           /* base_init */
             NULL,           /* base_finalize */
-            (GClassInitFunc) gtk_tree_entry_class_init,  /* class_init */
+            gtk_tree_entry_class_init,
             NULL,           /* class_finalize */
             NULL,           /* class_data */
             sizeof (GtkTreeEntry),
@@ -127,10 +128,11 @@ void   gtk_tree_entry_set_destroy_func  (GtkTreeEntry* entry,
 }
 
 /* private */
-static void gtk_tree_entry_class_init(GtkTreeEntryClass* klass)
+static void gtk_tree_entry_class_init(void* g_class, void* class_data)
 {
-    GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
+    GObjectClass* gobject_class = G_OBJECT_CLASS(g_class);
     gobject_class->dispose = gtk_tree_entry_dispose;
+    parent_class = G_OBJECT_CLASS(g_type_class_peek_parent(g_class));
 }
 
 static void gtk_tree_entry_init (GTypeInstance* instance, gpointer g_class)
@@ -149,14 +151,13 @@ static void gtk_tree_entry_string_transform_func(const GValue *src_value,
                                                  GValue *dest_value)
 {
     GtkTreeEntry *entry;
+    void* src_ptr = g_value_peek_pointer(src_value);
 
     /* Make sure src is a treeentry and dest can hold a string */
-    g_assert(GTK_IS_TREE_ENTRY(src_value->data[0].v_pointer));
+    g_assert(GTK_IS_TREE_ENTRY(src_ptr));
     g_assert(G_VALUE_HOLDS(dest_value, G_TYPE_STRING));
 
-    /* TODO: Use strdup here or just pass it? */
-    entry = GTK_TREE_ENTRY(src_value->data[0].v_pointer);
-
+    entry = GTK_TREE_ENTRY(src_ptr);
     g_value_set_string(dest_value, entry->label);
 }
 
@@ -187,4 +188,6 @@ static void gtk_tree_entry_dispose(GObject* obj)
 
     /* clear userdata */
     entry->userdata = NULL;
+
+    parent_class->dispose(obj);
 }

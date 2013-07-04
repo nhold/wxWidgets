@@ -4387,7 +4387,7 @@ void wxStyledTextCtrl::DoSetValue(const wxString& value, int flags)
     else
         SetText(value);
 
-    // We don't send wxEVT_COMMAND_TEXT_UPDATED anyhow, so ignore the
+    // We don't send wxEVT_TEXT anyhow, so ignore the
     // SetValue_SendEvent bit of the flags
 }
 
@@ -4509,7 +4509,7 @@ bool wxStyledTextCtrl::GetUseAntiAliasing() {
 }
 
 void wxStyledTextCtrl::AnnotationClearLine(int line) {
-    SendMsg(SCI_ANNOTATIONSETTEXT, line, NULL);
+    SendMsg(SCI_ANNOTATIONSETTEXT, line, (sptr_t)NULL);
 }
 
 
@@ -4695,9 +4695,11 @@ void wxStyledTextCtrl::OnContextMenu(wxContextMenuEvent& evt) {
 
 void wxStyledTextCtrl::OnMouseWheel(wxMouseEvent& evt)
 {
-    m_swx->DoMouseWheel(evt.GetWheelRotation(),
+    m_swx->DoMouseWheel(evt.GetWheelAxis(),
+                        evt.GetWheelRotation(),
                         evt.GetWheelDelta(),
                         evt.GetLinesPerAction(),
+                        evt.GetColumnsPerAction(),
                         evt.ControlDown(),
                         evt.IsPageScroll());
 }

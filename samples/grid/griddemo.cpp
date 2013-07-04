@@ -211,6 +211,11 @@ BEGIN_EVENT_TABLE( GridFrame, wxFrame )
     EVT_MENU( ID_SIZE_LABELS_ROW, GridFrame::AutoSizeLabelsRow )
     EVT_MENU( ID_SIZE_GRID, GridFrame::AutoSizeTable )
 
+    EVT_MENU( ID_HIDECOL, GridFrame::HideCol )
+    EVT_MENU( ID_SHOWCOL, GridFrame::ShowCol )
+    EVT_MENU( ID_HIDEROW, GridFrame::HideRow )
+    EVT_MENU( ID_SHOWROW, GridFrame::ShowRow )
+
     EVT_MENU( ID_SET_HIGHLIGHT_WIDTH, GridFrame::OnSetHighlightWidth)
     EVT_MENU( ID_SET_RO_HIGHLIGHT_WIDTH, GridFrame::OnSetROHighlightWidth)
 
@@ -221,6 +226,7 @@ BEGIN_EVENT_TABLE( GridFrame, wxFrame )
     EVT_GRID_CELL_LEFT_CLICK( GridFrame::OnCellLeftClick )
     EVT_GRID_ROW_SIZE( GridFrame::OnRowSize )
     EVT_GRID_COL_SIZE( GridFrame::OnColSize )
+    EVT_GRID_COL_AUTO_SIZE( GridFrame::OnColAutoSize )
     EVT_GRID_SELECT_CELL( GridFrame::OnSelectCell )
     EVT_GRID_RANGE_SELECT( GridFrame::OnRangeSelected )
     EVT_GRID_CELL_CHANGING( GridFrame::OnCellValueChanging )
@@ -293,7 +299,10 @@ GridFrame::GridFrame()
     viewMenu->AppendCheckItem(ID_AUTOSIZECOLS, "&Auto-size cols");
     viewMenu->AppendCheckItem(ID_CELLOVERFLOW, "&Overflow cells");
     viewMenu->AppendCheckItem(ID_RESIZECELL, "&Resize cell (7,1)");
-
+    viewMenu->Append(ID_HIDECOL, "&Hide column A");
+    viewMenu->Append(ID_SHOWCOL, "&Show column A");
+    viewMenu->Append(ID_HIDEROW, "&Hide row 2");
+    viewMenu->Append(ID_SHOWROW, "&Show row 2");
     wxMenu *rowLabelMenu = new wxMenu;
 
     viewMenu->Append( ID_ROWLABELALIGN, wxT("R&ow label alignment"),
@@ -440,6 +449,21 @@ GridFrame::GridFrame()
     grid->SetReadOnly( 0, 3 );
 
     grid->SetCellValue( 0, 4, wxT("Can veto edit this cell") );
+
+    grid->SetColSize(10, 150);
+    wxString longtext = wxT("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\n");
+    longtext += wxT("With tabs :\n");
+    longtext += wxT("Home,\t\thome\t\t\tagain\n");
+    longtext += wxT("Long word at start :\n");
+    longtext += wxT("ILikeToBeHereWhen I can\n");
+    longtext += wxT("Long word in the middle :\n");
+    longtext += wxT("When IComeHome,ColdAnd tired\n");
+    longtext += wxT("Long last word :\n");
+    longtext += wxT("It's GoodToWarmMyBonesBesideTheFire");
+    grid->SetCellValue( 0, 10, longtext );
+    grid->SetCellRenderer(0 , 10, new wxGridCellAutoWrapStringRenderer);
+    grid->SetCellEditor( 0,  10 , new wxGridCellAutoWrapStringEditor);
+    grid->SetCellValue( 0, 11, wxT("K1 cell editor blocker") );
 
     grid->SetCellValue( 0, 5, wxT("Press\nCtrl+arrow\nto skip over\ncells") );
 
@@ -992,6 +1016,7 @@ void GridFrame::AutoSizeLabelsRow(wxCommandEvent& WXUNUSED(event))
 void GridFrame::AutoSizeTable(wxCommandEvent& WXUNUSED(event))
 {
     grid->AutoSize();
+    Layout();
 }
 
 
@@ -1165,6 +1190,21 @@ void GridFrame::OnColSize( wxGridSizeEvent& ev )
     ev.Skip();
 }
 
+void GridFrame::OnColAutoSize( wxGridSizeEvent &event )
+{
+    // Fit even-numbered columns to their contents while using the default
+    // behaviour for the odd-numbered ones to be able to see the difference.
+    int col = event.GetRowOrCol();
+    if ( col % 2 )
+    {
+        wxLogMessage("Auto-sizing column %d to fit its contents", col);
+        grid->AutoSizeColumn(col);
+    }
+    else
+    {
+        event.Skip();
+    }
+}
 
 void GridFrame::OnSelectCell( wxGridEvent& ev )
 {
@@ -2307,4 +2347,24 @@ void GridFrame::OnRenderPaint( wxPaintEvent& event )
              m_gridBitmap.GetWidth(),
              m_gridBitmap.GetHeight(),
              &memDc, 0, 0 );
+}
+
+void GridFrame::HideCol( wxCommandEvent& WXUNUSED(event) )
+{
+    grid->HideCol(0);
+}
+
+void GridFrame::ShowCol( wxCommandEvent& WXUNUSED(event) )
+{
+    grid->ShowCol(0);
+}
+
+void GridFrame::HideRow( wxCommandEvent& WXUNUSED(event) )
+{
+    grid->HideRow(1);
+}
+
+void GridFrame::ShowRow( wxCommandEvent& WXUNUSED(event) )
+{
+    grid->ShowRow(1);
 }

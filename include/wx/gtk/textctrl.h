@@ -145,11 +145,6 @@ public:
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
-    // wxGTK-specific: called recursively by Enable,
-    // to give widgets an oppprtunity to correct their colours after they
-    // have been changed by Enable
-    virtual void OnEnabled(bool enable);
-
     // overridden wxWindow virtual methods
     virtual wxSize DoGetBestSize() const;
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
@@ -165,6 +160,10 @@ protected:
     virtual bool UseGTKStyleBase() const { return true; }
 
     virtual void DoSetValue(const wxString &value, int flags = 0);
+
+    // Override this to use either GtkEntry or GtkTextView IME depending on the
+    // kind of control we are.
+    virtual int GTKIMFilterKeypress(GdkEventKey* event) const;
 
     virtual wxPoint DoPositionToCoords(long pos) const;
 

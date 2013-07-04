@@ -75,7 +75,7 @@ public:
     virtual void ClearHistory();
     virtual void EnableHistory(bool enable = true);
     virtual void Stop();
-    virtual void Reload(wxWebViewReloadFlags flags = wxWEB_VIEW_RELOAD_DEFAULT);
+    virtual void Reload(wxWebViewReloadFlags flags = wxWEBVIEW_RELOAD_DEFAULT);
 
     virtual wxString GetPageSource() const;
     virtual wxString GetPageText() const;
@@ -108,7 +108,7 @@ public:
     virtual void Redo();
 
     //Find function
-    virtual long Find(const wxString& text, int flags = wxWEB_VIEW_FIND_DEFAULT);
+    virtual long Find(const wxString& text, int flags = wxWEBVIEW_FIND_DEFAULT);
 
     //Editing functions
     virtual void SetEditable(bool enable = true);
@@ -184,7 +184,7 @@ private:
     bool CanExecCommand(wxString command) const;
     void ExecCommand(wxString command);
     wxCOMPtr<IHTMLDocument2> GetDocument() const;
-    bool IsElementVisible(IHTMLElement* elm);
+    bool IsElementVisible(wxCOMPtr<IHTMLElement> elm);
     //Find helper functions.
     void FindInternal(const wxString& text, int flags, int internal_flag);
     long FindNext(int direction = 1);
@@ -193,6 +193,20 @@ private:
     bool EnableControlFeature(long flag, bool enable = true);
 
     wxDECLARE_DYNAMIC_CLASS(wxWebViewIE);
+};
+
+class WXDLLIMPEXP_WEBVIEW wxWebViewFactoryIE : public wxWebViewFactory
+{
+public:
+    virtual wxWebView* Create() { return new wxWebViewIE; }
+    virtual wxWebView* Create(wxWindow* parent,
+                              wxWindowID id,
+                              const wxString& url = wxWebViewDefaultURLStr,
+                              const wxPoint& pos = wxDefaultPosition,
+                              const wxSize& size = wxDefaultSize,
+                              long style = 0,
+                              const wxString& name = wxWebViewNameStr)
+    { return new wxWebViewIE(parent, id, url, pos, size, style, name); }
 };
 
 class VirtualProtocol : public wxIInternetProtocol
@@ -271,8 +285,9 @@ private:
 class DocHostUIHandler : public wxIDocHostUIHandler
 {
 public:
-    DocHostUIHandler() {};
+    DocHostUIHandler(wxWebView* browser) { m_browser = browser; }
     ~DocHostUIHandler() {};
+
     virtual HRESULT wxSTDCALL ShowContextMenu(DWORD dwID, POINT *ppt,
                                               IUnknown *pcmdtReserved,
                                               IDispatch *pdispReserved);
@@ -319,6 +334,9 @@ public:
                                                IDataObject **ppDORet);
     //IUnknown
     DECLARE_IUNKNOWN_METHODS;
+
+private:
+    wxWebView* m_browser;
 };
 
 class wxFindPointers

@@ -145,19 +145,26 @@ protected:
 
     virtual wxBookCtrlEvent* CreatePageChangingEvent() const
     {
-        return new wxBookCtrlEvent(wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING,
+        return new wxBookCtrlEvent(wxEVT_BOOKCTRL_PAGE_CHANGING,
                                    GetId());
     }
 
     virtual void MakeChangedEvent(wxBookCtrlEvent& event)
     {
-        event.SetEventType(wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGED);
+        event.SetEventType(wxEVT_BOOKCTRL_PAGE_CHANGED);
     }
 
     virtual wxWindow *DoRemovePage(size_t page)
     {
-        m_pageTexts.erase(m_pageTexts.begin() + page);
-        return wxBookCtrlBase::DoRemovePage(page);
+        wxWindow* const win = wxBookCtrlBase::DoRemovePage(page);
+        if ( win )
+        {
+            m_pageTexts.erase(m_pageTexts.begin() + page);
+
+            DoSetSelectionAfterRemoval(page);
+        }
+
+        return win;
     }
 
     virtual void DoSize()

@@ -29,8 +29,8 @@
 #include "wx/msw/private.h"
 #endif
 
-wxDEFINE_EVENT(wxEVT_COMMAND_RIBBONBUTTON_CLICKED, wxRibbonButtonBarEvent);
-wxDEFINE_EVENT(wxEVT_COMMAND_RIBBONBUTTON_DROPDOWN_CLICKED, wxRibbonButtonBarEvent);
+wxDEFINE_EVENT(wxEVT_RIBBONBUTTONBAR_CLICKED, wxRibbonButtonBarEvent);
+wxDEFINE_EVENT(wxEVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED, wxRibbonButtonBarEvent);
 
 IMPLEMENT_DYNAMIC_CLASS(wxRibbonButtonBarEvent, wxCommandEvent)
 IMPLEMENT_CLASS(wxRibbonButtonBar, wxRibbonControl)
@@ -945,7 +945,7 @@ bool wxRibbonButtonBar::TryCollapseLayout(wxRibbonButtonBarLayout* original,
         // If height isn't preserved (i.e. it is reduced), then the minimum
         // size for the button bar will decrease, preventing the original
         // layout from being used (in some cases).
-        // It may be a good idea to always preverse the height, but for now
+        // It may be a good idea to always preserve the height, but for now
         // it is only done when the first button is involved in a collapse.
         preserve_height = true;
     }
@@ -1139,9 +1139,9 @@ void wxRibbonButtonBar::OnMouseUp(wxMouseEvent& evt)
             do
             {
                 if(size.normal_region.Contains(cursor))
-                    event_type = wxEVT_COMMAND_RIBBONBUTTON_CLICKED;
+                    event_type = wxEVT_RIBBONBUTTONBAR_CLICKED;
                 else if(size.dropdown_region.Contains(cursor))
-                    event_type = wxEVT_COMMAND_RIBBONBUTTON_DROPDOWN_CLICKED;
+                    event_type = wxEVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED;
                 else
                     break;
                 wxRibbonButtonBarEvent notification(event_type, id);

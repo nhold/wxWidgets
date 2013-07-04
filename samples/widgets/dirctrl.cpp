@@ -113,6 +113,7 @@ protected:
     void OnCheckBox(wxCommandEvent& event);
     void OnRadioBox(wxCommandEvent& event);
     void OnSelChanged(wxTreeEvent& event);
+    void OnFileActivated(wxTreeEvent& event);
 
     // reset the control parameters
     void Reset();
@@ -135,6 +136,7 @@ protected:
     wxCheckBox *m_chkDirOnly,
                *m_chk3D,
                *m_chkFirst,
+               *m_chkFilters,
                *m_chkLabels,
                *m_chkMulti;
 
@@ -155,7 +157,8 @@ BEGIN_EVENT_TABLE(DirCtrlWidgetsPage, WidgetsPage)
     EVT_BUTTON(DirCtrlPage_SetPath, DirCtrlWidgetsPage::OnButtonSetPath)
     EVT_CHECKBOX(wxID_ANY, DirCtrlWidgetsPage::OnCheckBox)
     EVT_RADIOBOX(wxID_ANY, DirCtrlWidgetsPage::OnRadioBox)
-    EVT_DIRCTRL_CHANGED(DirCtrlPage_Ctrl, DirCtrlWidgetsPage::OnSelChanged)
+    EVT_DIRCTRL_SELECTIONCHANGED(DirCtrlPage_Ctrl, DirCtrlWidgetsPage::OnSelChanged)
+    EVT_DIRCTRL_FILEACTIVATED(DirCtrlPage_Ctrl, DirCtrlWidgetsPage::OnFileActivated)
 END_EVENT_TABLE()
 
 // ============================================================================
@@ -190,6 +193,7 @@ void DirCtrlWidgetsPage::CreateContent()
     m_chkDirOnly = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_DIR_ONLY"));
     m_chk3D      = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_3D_INTERNAL"));
     m_chkFirst   = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_SELECT_FIRST"));
+    m_chkFilters = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_SHOW_FILTERS"));
     m_chkLabels  = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_EDIT_LABELS"));
     m_chkMulti   = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_MULTIPLE"));
     sizerLeft->Add(sizerUseFlags, wxSizerFlags().Expand().Border());
@@ -252,6 +256,7 @@ void DirCtrlWidgetsPage::CreateDirCtrl()
         ( m_chkDirOnly->IsChecked() ? wxDIRCTRL_DIR_ONLY : 0 ) |
         ( m_chk3D->IsChecked() ? wxDIRCTRL_3D_INTERNAL : 0 ) |
         ( m_chkFirst->IsChecked() ? wxDIRCTRL_SELECT_FIRST : 0 ) |
+        ( m_chkFilters->IsChecked() ? wxDIRCTRL_SHOW_FILTERS : 0 ) |
         ( m_chkLabels->IsChecked() ? wxDIRCTRL_EDIT_LABELS : 0 ) |
         ( m_chkMulti->IsChecked() ? wxDIRCTRL_MULTIPLE : 0)
     );
@@ -368,6 +373,17 @@ void DirCtrlWidgetsPage::OnSelChanged(wxTreeEvent& event)
     if ( m_dirCtrl )
     {
         wxLogMessage("Selection changed to \"%s\"",
+                     m_dirCtrl->GetPath(event.GetItem()));
+    }
+
+    event.Skip();
+}
+
+void DirCtrlWidgetsPage::OnFileActivated(wxTreeEvent& event)
+{
+    if ( m_dirCtrl )
+    {
+        wxLogMessage("File activated \"%s\"",
                      m_dirCtrl->GetPath(event.GetItem()));
     }
 

@@ -167,7 +167,7 @@ public:
     wxWindow* GetCurrentPage() const;
 
     /**
-        Sets the selection for the given page, returning the previous selection.
+        Sets the selection to the given page, returning the previous selection.
 
         Notice that the call to this function generates the page changing
         events, use the ChangeSelection() function if you don't want these
@@ -184,7 +184,7 @@ public:
     void AdvanceSelection(bool forward = true);
 
     /**
-        Changes the selection for the given page, returning the previous selection.
+        Changes the selection to the given page, returning the previous selection.
 
         This function behaves as SetSelection() but does @em not generate the
         page changing events.
@@ -192,6 +192,17 @@ public:
         See @ref overview_events_prog for more information.
     */
     virtual int ChangeSelection(size_t page) = 0;
+
+    /**
+        Returns the index of the specified tab window or @c wxNOT_FOUND
+        if not found.
+
+        @param page One of the control pages.
+        @return The zero-based tab index or @c wxNOT_FOUND if not found.
+
+        @since 2.9.5
+    */
+    int FindPage(const wxWindow* page) const;
 
     //@}
 

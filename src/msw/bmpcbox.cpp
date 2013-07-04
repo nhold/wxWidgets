@@ -31,6 +31,7 @@
 #endif
 
 #include "wx/settings.h"
+#include "wx/vector.h"
 
 #include "wx/msw/dcclient.h"
 #include "wx/msw/private.h"
@@ -132,7 +133,31 @@ void wxBitmapComboBox::RecreateControl()
     wxPoint pos = GetPosition();
     wxSize size = GetSize();
     size.y = GetBestSize().y;
-    wxArrayString strings = GetStrings();
+    const wxArrayString strings = GetStrings();
+    const unsigned numItems = strings.size();
+    unsigned i;
+
+    // Save the client data pointers before clearing the control, if any.
+    const wxClientDataType clientDataType = GetClientDataType();
+    wxVector<wxClientData*> objectClientData;
+    wxVector<void*> voidClientData;
+    switch ( clientDataType )
+    {
+        case wxClientData_None:
+            break;
+
+        case wxClientData_Object:
+            objectClientData.reserve(numItems);
+            for ( i = 0; i < numItems; ++i )
+                objectClientData.push_back(GetClientObject(i));
+            break;
+
+        case wxClientData_Void:
+            voidClientData.reserve(numItems);
+            for ( i = 0; i < numItems; ++i )
+                voidClientData.push_back(GetClientData(i));
+            break;
+    }
 
     wxComboBox::DoClear();
 
@@ -144,9 +169,14 @@ void wxBitmapComboBox::RecreateControl()
         return;
 
     // initialize the controls contents
-    for ( unsigned int i = 0; i < strings.size(); i++ )
+    for ( i = 0; i < numItems; i++ )
     {
         wxComboBox::Append(strings[i]);
+
+        if ( !objectClientData.empty() )
+            SetClientObject(i, objectClientData[i]);
+        else if ( !voidClientData.empty() )
+            SetClientData(i, objectClientData[i]);
     }
 
     // and make sure it has the same attributes as before

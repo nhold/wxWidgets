@@ -675,12 +675,6 @@ COND_wxUSE_LIBTIFF_builtin
 COND_wxUSE_LIBPNG_builtin
 COND_wxUSE_LIBJPEG_builtin
 COND_wxUSE_EXPAT_builtin
-COND_WXUSE_ZLIB_BUILTIN
-COND_WXUSE_REGEX_BUILTIN
-COND_WXUSE_LIBTIFF_BUILTIN
-COND_WXUSE_LIBPNG_BUILTIN
-COND_WXUSE_LIBJPEG_BUILTIN
-COND_WXUSE_EXPAT_BUILTIN
 COND_WXUNIV_1
 COND_WXUNIV_0
 COND_WITH_PLUGIN_SDL_1
@@ -703,9 +697,6 @@ COND_USE_OPENGL_1
 COND_USE_GUI_1_wxUSE_LIBTIFF_builtin
 COND_USE_GUI_1_wxUSE_LIBPNG_builtin
 COND_USE_GUI_1_wxUSE_LIBJPEG_builtin
-COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN
-COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN
-COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN
 COND_USE_GUI_1_WXUNIV_1
 COND_USE_GUI_1_WXUNIV_0
 COND_USE_GUI_1_USE_OPENGL_1
@@ -795,7 +786,6 @@ COND_PLATFORM_MSDOS_1
 COND_PLATFORM_MSDOS_0
 COND_PLATFORM_MAC_1
 COND_PLATFORM_MAC_0
-COND_PLATFORM_MACOS_1
 COND_PLATFORM_MACOSX_1_USE_SOVERSION_1
 COND_PLATFORM_MACOSX_1_USE_OPENGL_1
 COND_PLATFORM_MACOSX_1_USE_GUI_1
@@ -862,26 +852,11 @@ COND_DEPS_TRACKING_1
 COND_DEPS_TRACKING_0
 COND_DEBUG_INFO_1
 COND_DEBUG_INFO_0
-COND_DEBUG_FLAG_1
 COND_DEBUG_FLAG_0
-COND_BUILD_release_UNICODE_1
-COND_BUILD_release_UNICODE_0
 COND_BUILD_release_DEBUG_INFO_default
 COND_BUILD_release
-COND_BUILD_debug_UNICODE_1
-COND_BUILD_debug_UNICODE_0
 COND_BUILD_debug_DEBUG_INFO_default
-COND_BUILD_debug_DEBUG_FLAG_default
 COND_BUILD_debug
-COND_BUILD_RELEASE_UNICODE_1
-COND_BUILD_RELEASE_UNICODE_0
-COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT
-COND_BUILD_RELEASE
-COND_BUILD_DEBUG_UNICODE_1
-COND_BUILD_DEBUG_UNICODE_0
-COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT
-COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT
-COND_BUILD_DEBUG
 BK_MAKE_PCH
 ICC_PCH_USE_SWITCH
 ICC_PCH_CREATE_SWITCH
@@ -1129,6 +1104,8 @@ enable_gpe
 with_libpng
 with_libjpeg
 with_libtiff
+with_libjbig
+with_liblzma
 with_libxpm
 with_libiconv
 with_libmspack
@@ -1215,6 +1192,7 @@ enable_fontmap
 enable_fs_archive
 enable_fs_inet
 enable_fs_zip
+enable_fsvolume
 enable_fswatcher
 enable_geometry
 enable_log
@@ -2148,6 +2126,7 @@ Optional Features:
   --enable-fs_archive     use virtual archive filesystems
   --enable-fs_inet        use virtual HTTP/FTP filesystems
   --enable-fs_zip         now replaced by fs_archive
+  --enable-fsvolume       use wxFSVolume class
   --enable-fswatcher      use wxFileSystemWatcher class
   --enable-geometry       use geometry class
   --enable-log            use logging system
@@ -2355,6 +2334,8 @@ Optional Packages:
   --with-libpng           use libpng (PNG image format)
   --with-libjpeg          use libjpeg (JPEG file format)
   --with-libtiff          use libtiff (TIFF file format)
+  --without-libjbig       don't use libjbig in libtiff even if available)
+  --without-liblzma       don't use liblzma in libtiff even if available)
   --with-libxpm           use libxpm (XPM file format)
   --with-libiconv         use libiconv (character conversion)
   --with-libmspack        use libmspack (CHM help files loading)
@@ -4932,6 +4913,94 @@ $as_echo "builtin version" >&6; }
           else
             as_fn_error $? "Invalid value for --with-libtiff: should be yes, no, sys, or builtin" "$LINENO" 5
           fi
+
+
+          withstring=without
+          defaultval=$wxUSE_ALL_FEATURES
+          if test -z "$defaultval"; then
+              if test x"$withstring" = xwithout; then
+                  defaultval=yes
+              else
+                  defaultval=no
+              fi
+          fi
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --${withstring:-with}-libjbig" >&5
+$as_echo_n "checking for --${withstring:-with}-libjbig... " >&6; }
+
+# Check whether --with-libjbig was given.
+if test "${with_libjbig+set}" = set; then :
+  withval=$with_libjbig;
+                        if test "$withval" = yes; then
+                          wx_cv_use_libjbig='wxUSE_LIBJBIG=yes'
+                        else
+                          wx_cv_use_libjbig='wxUSE_LIBJBIG=no'
+                        fi
+
+else
+
+                        wx_cv_use_libjbig='wxUSE_LIBJBIG=${'DEFAULT_wxUSE_LIBJBIG":-$defaultval}"
+
+fi
+
+
+          eval "$wx_cv_use_libjbig"
+
+          if test x"$withstring" = xwithout; then
+            if test $wxUSE_LIBJBIG = yes; then
+              result=no
+            else
+              result=yes
+            fi
+          else
+            result=$wxUSE_LIBJBIG
+          fi
+
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+
+
+          withstring=without
+          defaultval=$wxUSE_ALL_FEATURES
+          if test -z "$defaultval"; then
+              if test x"$withstring" = xwithout; then
+                  defaultval=yes
+              else
+                  defaultval=no
+              fi
+          fi
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --${withstring:-with}-liblzma" >&5
+$as_echo_n "checking for --${withstring:-with}-liblzma... " >&6; }
+
+# Check whether --with-liblzma was given.
+if test "${with_liblzma+set}" = set; then :
+  withval=$with_liblzma;
+                        if test "$withval" = yes; then
+                          wx_cv_use_liblzma='wxUSE_LIBLZMA=yes'
+                        else
+                          wx_cv_use_liblzma='wxUSE_LIBLZMA=no'
+                        fi
+
+else
+
+                        wx_cv_use_liblzma='wxUSE_LIBLZMA=${'DEFAULT_wxUSE_LIBLZMA":-$defaultval}"
+
+fi
+
+
+          eval "$wx_cv_use_liblzma"
+
+          if test x"$withstring" = xwithout; then
+            if test $wxUSE_LIBLZMA = yes; then
+              result=no
+            else
+              result=yes
+            fi
+          else
+            result=$wxUSE_LIBLZMA
+          fi
+
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
 
 
           { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --with-libxpm" >&5
@@ -8612,6 +8681,50 @@ fi
             fi
           else
             result=$wxUSE_FS_ZIP
+          fi
+
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+
+
+          enablestring=
+          defaultval=$wxUSE_ALL_FEATURES
+          if test -z "$defaultval"; then
+              if test x"$enablestring" = xdisable; then
+                  defaultval=yes
+              else
+                  defaultval=no
+              fi
+          fi
+
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --${enablestring:-enable}-fsvolume" >&5
+$as_echo_n "checking for --${enablestring:-enable}-fsvolume... " >&6; }
+          # Check whether --enable-fsvolume was given.
+if test "${enable_fsvolume+set}" = set; then :
+  enableval=$enable_fsvolume;
+                          if test "$enableval" = yes; then
+                            wx_cv_use_fsvolume='wxUSE_FSVOLUME=yes'
+                          else
+                            wx_cv_use_fsvolume='wxUSE_FSVOLUME=no'
+                          fi
+
+else
+
+                          wx_cv_use_fsvolume='wxUSE_FSVOLUME=${'DEFAULT_wxUSE_FSVOLUME":-$defaultval}"
+
+fi
+
+
+          eval "$wx_cv_use_fsvolume"
+
+          if test x"$enablestring" = xdisable; then
+            if test $wxUSE_FSVOLUME = no; then
+              result=yes
+            else
+              result=no
+            fi
+          else
+            result=$wxUSE_FSVOLUME
           fi
 
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
@@ -22854,6 +22967,97 @@ $as_echo "$as_me: WARNING: system tiff library not found, will use built-in inst
                                                                                     ac_configure_args="$ac_configure_args --disable-jpeg"
         fi
 
+        if test "$wxUSE_LIBLZMA" = "yes"; then
+                                    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lzma_code in -llzma" >&5
+$as_echo_n "checking for lzma_code in -llzma... " >&6; }
+if ${ac_cv_lib_lzma_lzma_code+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-llzma  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char lzma_code ();
+int
+main ()
+{
+return lzma_code ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_lzma_lzma_code=yes
+else
+  ac_cv_lib_lzma_lzma_code=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_lzma_lzma_code" >&5
+$as_echo "$ac_cv_lib_lzma_lzma_code" >&6; }
+if test "x$ac_cv_lib_lzma_lzma_code" = xyes; then :
+  LIBS="$LIBS -llzma"
+fi
+
+        else
+                                    ac_configure_args="$ac_configure_args --disable-lzma"
+        fi
+
+                if test "$wxUSE_LIBJBIG" = "yes"; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for jbg_dec_init in -ljbig" >&5
+$as_echo_n "checking for jbg_dec_init in -ljbig... " >&6; }
+if ${ac_cv_lib_jbig_jbg_dec_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ljbig  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char jbg_dec_init ();
+int
+main ()
+{
+return jbg_dec_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_jbig_jbg_dec_init=yes
+else
+  ac_cv_lib_jbig_jbg_dec_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jbig_jbg_dec_init" >&5
+$as_echo "$ac_cv_lib_jbig_jbg_dec_init" >&6; }
+if test "x$ac_cv_lib_jbig_jbg_dec_init" = xyes; then :
+  LIBS="$LIBS -ljbig"
+fi
+
+        else
+            ac_configure_args="$ac_configure_args --disable-jbig"
+        fi
+
+
 
 subdirs="$subdirs src/tiff"
 
@@ -30433,48 +30637,107 @@ if ${wx_cv_func_backtrace+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
-            ac_ext=cpp
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing backtrace" >&5
+$as_echo_n "checking for library containing backtrace... " >&6; }
+if ${ac_cv_search_backtrace+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char backtrace ();
+int
+main ()
+{
+return backtrace ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' execinfo; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_backtrace=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_backtrace+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_backtrace+:} false; then :
+
+else
+  ac_cv_search_backtrace=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_backtrace" >&5
+$as_echo "$ac_cv_search_backtrace" >&6; }
+ac_res=$ac_cv_search_backtrace
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+                    ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+                    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <execinfo.h>
 int
 main ()
 {
 
-                    void *trace[1];
-                    char **messages;
-
-                    backtrace(trace, 1);
-                    messages = backtrace_symbols(trace, 1);
+                            void *trace[1];
+                            char **messages;
+                            backtrace(trace, 1);
+                            messages = backtrace_symbols(trace, 1);
 
   ;
   return 0;
 }
 _ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
+if ac_fn_cxx_try_link "$LINENO"; then :
   wx_cv_func_backtrace=yes
 else
   wx_cv_func_backtrace=no
 
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-            ac_ext=c
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+                    ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+else
+  wx_cv_func_backtrace=no
+
+fi
+
+
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $wx_cv_func_backtrace" >&5
 $as_echo "$wx_cv_func_backtrace" >&6; }
-
 
     if test "$wx_cv_func_backtrace" = "no"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: backtrace() is not available, wxStackWalker will not be available" >&5
@@ -34632,6 +34895,11 @@ $as_echo "$as_me: WARNING: wxZipFSHandler requires wxArchiveFSHandler... disable
   fi
 fi
 
+if test "$wxUSE_FSVOLUME" = "yes"; then
+  $as_echo "#define wxUSE_FSVOLUME 1" >>confdefs.h
+
+fi
+
 if test "$wxUSE_ON_FATAL_EXCEPTION" = "yes"; then
   if test "$USE_UNIX" != 1; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Catching fatal exceptions not currently supported on this system, wxApp::OnFatalException will not be called" >&5
@@ -35112,6 +35380,19 @@ $as_echo "$wx_cv_struct_tm_has_gmtoff" >&6; }
 
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS typetest"
 fi
+
+
+for ac_func in setpriority
+do :
+  ac_fn_c_check_func "$LINENO" "setpriority" "ac_cv_func_setpriority"
+if test "x$ac_cv_func_setpriority" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETPRIORITY 1
+_ACEOF
+
+fi
+done
+
 
 
 if test "$wxUSE_SOCKETS" = "yes"; then
@@ -37462,7 +37743,7 @@ if test "$wxUSE_GUI" = "yes"; then
 
 
         SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS artprov controls dialogs drawing \
-                     erase event exec font image minimal render \
+                     erase event exec font image minimal preferences render \
                      shaped svg taborder vscroll widgets wrapsizer"
 
     if test "$wxUSE_MONOLITHIC" != "yes"; then
@@ -39947,74 +40228,14 @@ EOF
 
 
 
-    COND_BUILD_DEBUG="#"
-    if test "x$BUILD" = "xdebug" ; then
-        COND_BUILD_DEBUG=""
-    fi
-
-    COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT="#"
-    if test "x$BUILD" = "xdebug" -a "x$DEBUG_FLAG" = "xdefault" ; then
-        COND_BUILD_DEBUG_DEBUG_FLAG_DEFAULT=""
-    fi
-
-    COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT="#"
-    if test "x$BUILD" = "xdebug" -a "x$DEBUG_INFO" = "xdefault" ; then
-        COND_BUILD_DEBUG_DEBUG_INFO_DEFAULT=""
-    fi
-
-    COND_BUILD_DEBUG_UNICODE_0="#"
-    if test "x$BUILD" = "xdebug" -a "x$UNICODE" = "x0" ; then
-        COND_BUILD_DEBUG_UNICODE_0=""
-    fi
-
-    COND_BUILD_DEBUG_UNICODE_1="#"
-    if test "x$BUILD" = "xdebug" -a "x$UNICODE" = "x1" ; then
-        COND_BUILD_DEBUG_UNICODE_1=""
-    fi
-
-    COND_BUILD_RELEASE="#"
-    if test "x$BUILD" = "xrelease" ; then
-        COND_BUILD_RELEASE=""
-    fi
-
-    COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT="#"
-    if test "x$BUILD" = "xrelease" -a "x$DEBUG_INFO" = "xdefault" ; then
-        COND_BUILD_RELEASE_DEBUG_INFO_DEFAULT=""
-    fi
-
-    COND_BUILD_RELEASE_UNICODE_0="#"
-    if test "x$BUILD" = "xrelease" -a "x$UNICODE" = "x0" ; then
-        COND_BUILD_RELEASE_UNICODE_0=""
-    fi
-
-    COND_BUILD_RELEASE_UNICODE_1="#"
-    if test "x$BUILD" = "xrelease" -a "x$UNICODE" = "x1" ; then
-        COND_BUILD_RELEASE_UNICODE_1=""
-    fi
-
     COND_BUILD_debug="#"
     if test "x$BUILD" = "xdebug" ; then
         COND_BUILD_debug=""
     fi
 
-    COND_BUILD_debug_DEBUG_FLAG_default="#"
-    if test "x$BUILD" = "xdebug" -a "x$DEBUG_FLAG" = "xdefault" ; then
-        COND_BUILD_debug_DEBUG_FLAG_default=""
-    fi
-
     COND_BUILD_debug_DEBUG_INFO_default="#"
     if test "x$BUILD" = "xdebug" -a "x$DEBUG_INFO" = "xdefault" ; then
         COND_BUILD_debug_DEBUG_INFO_default=""
-    fi
-
-    COND_BUILD_debug_UNICODE_0="#"
-    if test "x$BUILD" = "xdebug" -a "x$UNICODE" = "x0" ; then
-        COND_BUILD_debug_UNICODE_0=""
-    fi
-
-    COND_BUILD_debug_UNICODE_1="#"
-    if test "x$BUILD" = "xdebug" -a "x$UNICODE" = "x1" ; then
-        COND_BUILD_debug_UNICODE_1=""
     fi
 
     COND_BUILD_release="#"
@@ -40027,24 +40248,9 @@ EOF
         COND_BUILD_release_DEBUG_INFO_default=""
     fi
 
-    COND_BUILD_release_UNICODE_0="#"
-    if test "x$BUILD" = "xrelease" -a "x$UNICODE" = "x0" ; then
-        COND_BUILD_release_UNICODE_0=""
-    fi
-
-    COND_BUILD_release_UNICODE_1="#"
-    if test "x$BUILD" = "xrelease" -a "x$UNICODE" = "x1" ; then
-        COND_BUILD_release_UNICODE_1=""
-    fi
-
     COND_DEBUG_FLAG_0="#"
     if test "x$DEBUG_FLAG" = "x0" ; then
         COND_DEBUG_FLAG_0=""
-    fi
-
-    COND_DEBUG_FLAG_1="#"
-    if test "x$DEBUG_FLAG" = "x1" ; then
-        COND_DEBUG_FLAG_1=""
     fi
 
     COND_DEBUG_INFO_0="#"
@@ -40375,11 +40581,6 @@ EOF
     COND_PLATFORM_MACOSX_1_USE_SOVERSION_1="#"
     if test "x$PLATFORM_MACOSX" = "x1" -a "x$USE_SOVERSION" = "x1" ; then
         COND_PLATFORM_MACOSX_1_USE_SOVERSION_1=""
-    fi
-
-    COND_PLATFORM_MACOS_1="#"
-    if test "x$PLATFORM_MACOS" = "x1" ; then
-        COND_PLATFORM_MACOS_1=""
     fi
 
     COND_PLATFORM_MAC_0="#"
@@ -40827,21 +41028,6 @@ EOF
         COND_USE_GUI_1_WXUNIV_1=""
     fi
 
-    COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN="#"
-    if test "x$USE_GUI" = "x1" -a "x$wxUSE_LIBJPEG" = "xbuiltin" ; then
-        COND_USE_GUI_1_WXUSE_LIBJPEG_BUILTIN=""
-    fi
-
-    COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN="#"
-    if test "x$USE_GUI" = "x1" -a "x$wxUSE_LIBPNG" = "xbuiltin" ; then
-        COND_USE_GUI_1_WXUSE_LIBPNG_BUILTIN=""
-    fi
-
-    COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN="#"
-    if test "x$USE_GUI" = "x1" -a "x$wxUSE_LIBTIFF" = "xbuiltin" ; then
-        COND_USE_GUI_1_WXUSE_LIBTIFF_BUILTIN=""
-    fi
-
     COND_USE_GUI_1_wxUSE_LIBJPEG_builtin="#"
     if test "x$USE_GUI" = "x1" -a "x$wxUSE_LIBJPEG" = "xbuiltin" ; then
         COND_USE_GUI_1_wxUSE_LIBJPEG_builtin=""
@@ -40950,36 +41136,6 @@ EOF
     COND_WXUNIV_1="#"
     if test "x$WXUNIV" = "x1" ; then
         COND_WXUNIV_1=""
-    fi
-
-    COND_WXUSE_EXPAT_BUILTIN="#"
-    if test "x$wxUSE_EXPAT" = "xbuiltin" ; then
-        COND_WXUSE_EXPAT_BUILTIN=""
-    fi
-
-    COND_WXUSE_LIBJPEG_BUILTIN="#"
-    if test "x$wxUSE_LIBJPEG" = "xbuiltin" ; then
-        COND_WXUSE_LIBJPEG_BUILTIN=""
-    fi
-
-    COND_WXUSE_LIBPNG_BUILTIN="#"
-    if test "x$wxUSE_LIBPNG" = "xbuiltin" ; then
-        COND_WXUSE_LIBPNG_BUILTIN=""
-    fi
-
-    COND_WXUSE_LIBTIFF_BUILTIN="#"
-    if test "x$wxUSE_LIBTIFF" = "xbuiltin" ; then
-        COND_WXUSE_LIBTIFF_BUILTIN=""
-    fi
-
-    COND_WXUSE_REGEX_BUILTIN="#"
-    if test "x$wxUSE_REGEX" = "xbuiltin" ; then
-        COND_WXUSE_REGEX_BUILTIN=""
-    fi
-
-    COND_WXUSE_ZLIB_BUILTIN="#"
-    if test "x$wxUSE_ZLIB" = "xbuiltin" ; then
-        COND_WXUSE_ZLIB_BUILTIN=""
     fi
 
     COND_wxUSE_EXPAT_builtin="#"

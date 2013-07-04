@@ -19,13 +19,11 @@
 #include "wx/evtloop.h"
 
 #include "wx/scopedptr.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/gtk2-compat.h"
-
-// this is defined in src/gtk/toplevel.cpp
-extern int wxOpenModalDialogsCount;
+#include "wx/gtk/private/dialogcount.h"
 
 wxDEFINE_TIED_SCOPED_PTR_TYPE(wxGUIEventLoop)
 
@@ -95,11 +93,6 @@ bool wxDialog::IsModal() const
     return m_modalShowing;
 }
 
-void wxDialog::SetModal( bool WXUNUSED(flag) )
-{
-    wxFAIL_MSG( wxT("wxDialog:SetModal obsolete now") );
-}
-
 // Workaround for Ubuntu overlay scrollbar, which adds our GtkWindow to a
 // private window group in a GtkScrollbar realize handler. This breaks the grab
 // done by gtk_window_set_modal(), and allows menus and toolbars in the parent
@@ -140,7 +133,7 @@ realize_hook(GSignalInvocationHint*, unsigned, const GValue* param_values, void*
 
 int wxDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     wxASSERT_MSG( !IsModal(), "ShowModal() can't be called twice" );
 
@@ -177,7 +170,7 @@ int wxDialog::ShowModal()
 
     m_modalShowing = true;
 
-    wxOpenModalDialogsCount++;
+    wxOpenModalDialogLocker modalLock;
 
     // NOTE: gtk_window_set_modal internally calls gtk_grab_add() !
     gtk_window_set_modal(GTK_WINDOW(m_widget), TRUE);
@@ -194,8 +187,6 @@ int wxDialog::ShowModal()
 #endif
 
     gtk_window_set_modal(GTK_WINDOW(m_widget), FALSE);
-
-    wxOpenModalDialogsCount--;
 
     return GetReturnCode();
 }

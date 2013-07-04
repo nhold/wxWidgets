@@ -87,6 +87,12 @@ WXWidget wxWidgetImpl::FindFocus()
     return control;
 }
 
+// no compositing to take into account under carbon
+wxWidgetImpl* wxWidgetImpl::FindBestFromWXWidget(WXWidget control)
+{
+    return FindFromWXWidget(control);
+}
+
 // ---------------------------------------------------------------------------
 // Carbon Events
 // ---------------------------------------------------------------------------
@@ -669,7 +675,7 @@ WXDLLEXPORT pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef ha
                 unsigned char charCode ;
 
                 GetEventParameter( event, kEventParamTextInputSendKeyboardEvent, typeEventRef, NULL, sizeof(rawEvent), NULL, &rawEvent ) ;
-                GetEventParameter( rawEvent, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &charCode );
+                GetEventParameter( rawEvent, kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
                 GetEventParameter( rawEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode );
                 GetEventParameter( rawEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
 

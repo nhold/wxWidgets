@@ -29,7 +29,7 @@
 #endif
 
 #include "wx/evtloop.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 //-----------------------------------------------------------------------------
 // wxDialog
@@ -129,7 +129,7 @@ void wxDialog::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 
     s_closing.Append(this);
 
-    wxCommandEvent cancelEvent(wxEVT_COMMAND_BUTTON_CLICKED, wxID_CANCEL);
+    wxCommandEvent cancelEvent(wxEVT_BUTTON, wxID_CANCEL);
     cancelEvent.SetEventObject(this);
     GetEventHandler()->ProcessEvent(cancelEvent);
     s_closing.DeleteObject(this);
@@ -166,7 +166,7 @@ bool wxDialog::IsModal() const
 
 int wxDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     if ( IsModal() )
     {

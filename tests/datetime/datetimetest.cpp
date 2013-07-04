@@ -222,6 +222,7 @@ private:
         CPPUNIT_TEST( TestTimeWDays );
         CPPUNIT_TEST( TestTimeDST );
         CPPUNIT_TEST( TestTimeFormat );
+        CPPUNIT_TEST( TestTimeParse );
         CPPUNIT_TEST( TestTimeSpanFormat );
         CPPUNIT_TEST( TestTimeTicks );
         CPPUNIT_TEST( TestParceRFC822 );
@@ -240,6 +241,7 @@ private:
     void TestTimeWDays();
     void TestTimeDST();
     void TestTimeFormat();
+    void TestTimeParse();
     void TestTimeSpanFormat();
     void TestTimeTicks();
     void TestParceRFC822();
@@ -537,6 +539,11 @@ for n in range(20):
         { {  2, wxDateTime::Jan, 2004, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 1, 1,   2 },
         { {  5, wxDateTime::Jan, 2010, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 2, 2,   5 },
         { {  3, wxDateTime::Jan, 2011, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 2, 2,   3 },
+        { { 31, wxDateTime::Dec, 2009, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 }, 53, 5, 5, 365 },
+        { { 31, wxDateTime::Dec, 2012, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 6, 6, 366 },
+        { { 29, wxDateTime::Dec, 2013, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 }, 52, 5, 5, 363 },
+        { { 30, wxDateTime::Dec, 2013, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 6, 5, 364 },
+        { { 31, wxDateTime::Dec, 2013, 0, 0, 0, 0.0, wxDateTime::Inv_WeekDay, 0 },  1, 6, 5, 365 },
     };
 
     for ( size_t n = 0; n < WXSIZEOF(weekNumberTestDates); n++ )
@@ -856,6 +863,24 @@ void DateTimeTestCase::TestTimeFormat()
     CPPUNIT_ASSERT( !dt.ParseFormat(wxT("foo"), spec) );
     CPPUNIT_ASSERT( !dt.ParseFormat(s, spec) );
     dt.ParseFormat(s.c_str(), spec);
+}
+
+// Test parsing time in free format.
+void DateTimeTestCase::TestTimeParse()
+{
+    wxDateTime dt;
+
+    // Parsing standard formats should work.
+    CPPUNIT_ASSERT( dt.ParseTime("12:34:56") );
+    CPPUNIT_ASSERT_EQUAL( "12:34:56", dt.FormatISOTime() );
+
+    // Parsing just hours should work too.
+    dt.ResetTime();
+    CPPUNIT_ASSERT( dt.ParseTime("17") );
+    CPPUNIT_ASSERT_EQUAL( "17:00:00", dt.FormatISOTime() );
+
+    // Parsing gibberish shouldn't work.
+    CPPUNIT_ASSERT( !dt.ParseTime("bloordyblop") );
 }
 
 void DateTimeTestCase::TestTimeSpanFormat()

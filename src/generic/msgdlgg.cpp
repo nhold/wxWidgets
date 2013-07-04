@@ -39,7 +39,7 @@
 #include "wx/msgdlg.h"
 #include "wx/artprov.h"
 #include "wx/textwrapper.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #if wxUSE_STATLINE
     #include "wx/statline.h"
@@ -166,8 +166,6 @@ void wxGenericMessageDialog::DoCreateMsgdialog()
 {
     wxDialog::Create(m_parent, wxID_ANY, m_caption, m_pos, wxDefaultSize, wxDEFAULT_DIALOG_STYLE);
 
-    bool is_pda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
-
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *icon_text = new wxBoxSizer( wxHORIZONTAL );
@@ -182,7 +180,7 @@ void wxGenericMessageDialog::DoCreateMsgdialog()
                                     wxID_ANY,
                                     wxArtProvider::GetMessageBoxIcon(m_dialogStyle)
                                    );
-        if (is_pda)
+        if ( wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA )
             topsizer->Add( icon, 0, wxTOP|wxLEFT|wxRIGHT | wxALIGN_LEFT, 10 );
         else
             icon_text->Add(icon, wxSizerFlags().Top().Border(wxRIGHT, 20));
@@ -269,7 +267,7 @@ void wxGenericMessageDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 int wxGenericMessageDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     if ( !m_created )
     {

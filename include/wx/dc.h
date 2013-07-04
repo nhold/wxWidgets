@@ -521,6 +521,8 @@ public:
 
     // this needs to overidden if the axis is inverted
     virtual void SetAxisOrientation(bool xLeftRight, bool yBottomUp);
+    
+    virtual double GetContentScaleFactor() const { return m_contentScaleFactor; }
 
 #ifdef __WXMSW__
     // Native Windows functions using the underlying HDC don't honour GDI+
@@ -604,15 +606,15 @@ public:
         { return wxNullBitmap; }
 
 
-    virtual void DoDrawLines(int n, wxPoint points[],
+    virtual void DoDrawLines(int n, const wxPoint points[],
                              wxCoord xoffset, wxCoord yoffset ) = 0;
     virtual void DrawLines(const wxPointList *list,
                            wxCoord xoffset, wxCoord yoffset );
 
-    virtual void DoDrawPolygon(int n, wxPoint points[],
+    virtual void DoDrawPolygon(int n, const wxPoint points[],
                            wxCoord xoffset, wxCoord yoffset,
                            wxPolygonFillMode fillStyle = wxODDEVEN_RULE) = 0;
-    virtual void DoDrawPolyPolygon(int n, int count[], wxPoint points[],
+    virtual void DoDrawPolyPolygon(int n, const int count[], const wxPoint points[],
                                wxCoord xoffset, wxCoord yoffset,
                                wxPolygonFillMode fillStyle);
     void DrawPolygon(const wxPointList *list,
@@ -624,7 +626,7 @@ public:
     void DrawSpline(wxCoord x1, wxCoord y1,
                             wxCoord x2, wxCoord y2,
                             wxCoord x3, wxCoord y3);
-    void DrawSpline(int n, wxPoint points[]);
+    void DrawSpline(int n, const wxPoint points[]);
     void DrawSpline(const wxPointList *points) { DoDrawSpline(points); }
 
     virtual void DoDrawSpline(const wxPointList *points);
@@ -747,6 +749,8 @@ protected:
     double m_scaleX, m_scaleY;  // calculated from logical scale and user scale
 
     int m_signX, m_signY;  // Used by SetAxisOrientation() to invert the axes
+    
+    double m_contentScaleFactor; // used by high resolution displays (retina)
 
     // what is a mm on a screen you don't know the size of?
     double       m_mm_to_pix_x,
@@ -829,6 +833,9 @@ public:
 
     virtual int GetResolution() const
         { return m_pimpl->GetResolution(); }
+
+    double GetContentScaleFactor() const
+        { return m_pimpl->GetContentScaleFactor(); }
 
     // Right-To-Left (RTL) modes
 
@@ -1139,7 +1146,7 @@ public:
     void DrawPoint(const wxPoint& pt)
         { m_pimpl->DoDrawPoint(pt.x, pt.y); }
 
-    void DrawLines(int n, wxPoint points[],
+    void DrawLines(int n, const wxPoint points[],
                    wxCoord xoffset = 0, wxCoord yoffset = 0)
         { m_pimpl->DoDrawLines(n, points, xoffset, yoffset); }
     void DrawLines(const wxPointList *list,
@@ -1150,7 +1157,7 @@ public:
                                  wxCoord xoffset = 0, wxCoord yoffset = 0) );
 #endif  // WXWIN_COMPATIBILITY_2_8
 
-    void DrawPolygon(int n, wxPoint points[],
+    void DrawPolygon(int n, const wxPoint points[],
                      wxCoord xoffset = 0, wxCoord yoffset = 0,
                      wxPolygonFillMode fillStyle = wxODDEVEN_RULE)
         { m_pimpl->DoDrawPolygon(n, points, xoffset, yoffset, fillStyle); }
@@ -1158,7 +1165,7 @@ public:
                      wxCoord xoffset = 0, wxCoord yoffset = 0,
                      wxPolygonFillMode fillStyle = wxODDEVEN_RULE)
         { m_pimpl->DrawPolygon( list, xoffset, yoffset, fillStyle ); }
-    void DrawPolyPolygon(int n, int count[], wxPoint points[],
+    void DrawPolyPolygon(int n, const int count[], const wxPoint points[],
                          wxCoord xoffset = 0, wxCoord yoffset = 0,
                          wxPolygonFillMode fillStyle = wxODDEVEN_RULE)
         { m_pimpl->DoDrawPolyPolygon(n, count, points, xoffset, yoffset, fillStyle); }
@@ -1281,7 +1288,7 @@ public:
                     wxCoord x2, wxCoord y2,
                     wxCoord x3, wxCoord y3)
         { m_pimpl->DrawSpline(x1,y1,x2,y2,x3,y3); }
-    void DrawSpline(int n, wxPoint points[])
+    void DrawSpline(int n, const wxPoint points[])
         { m_pimpl->DrawSpline(n,points); }
     void DrawSpline(const wxPointList *points)
         { m_pimpl->DrawSpline(points); }

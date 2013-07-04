@@ -136,6 +136,40 @@ public:
     wxString GetValue() const;
 
     /**
+        Associate a validator with the text control used by the dialog.
+
+        These methods can be used to limit the user entry to only some
+        characters, e.g.
+        @code
+            wxTextEntryDialog dlg(this, ...);
+            dlg.SetTextValidator(wxFILTER_ALPHA);
+            if ( dlg.ShowModal() == wxID_OK )
+            {
+                // We can be certain that this string contains letters only.
+                wxString value = dlg.GetValue();
+            }
+        @endcode
+
+        The first overload uses the provided @a validator which can be of a
+        custom class derived from wxTextValidator while the second one creates
+        a wxTextValidator with the specified @a style.
+     */
+    //@{
+    void SetTextValidator(const wxTextValidator& validator);
+    void SetTextValidator(wxTextValidatorStyle style = wxFILTER_NONE);
+    //@}
+
+    /**
+        This function sets the maximum number of characters the user can enter
+        into this dialog.
+
+        @see wxTextEntry::SetMaxLength()
+
+        @since 2.9.5
+    */
+    void SetMaxLength(unsigned long len);
+
+    /**
         Sets the default text value.
     */
     void SetValue(const wxString& value);
@@ -143,6 +177,9 @@ public:
     /**
         Shows the dialog, returning wxID_OK if the user pressed OK, and wxID_CANCEL
         otherwise.
+
+        Call GetValue() to retrieve the values of the string entered by the
+        user after showing the dialog.
     */
     int ShowModal();
 };

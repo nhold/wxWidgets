@@ -355,8 +355,7 @@ bool wxHtmlHelpWindow::Create(wxWindow* parent, wxWindowID id,
     wxSizer *navigSizer = NULL;
 
 #ifdef __WXMSW__
-    wxBorder htmlWindowBorder = GetDefaultBorder();
-    htmlWindowBorder = wxBORDER_THEME;
+    wxBorder htmlWindowBorder = wxBORDER_THEME;
 #else
     wxBorder htmlWindowBorder = wxBORDER_SUNKEN;
 #endif
@@ -368,6 +367,7 @@ bool wxHtmlHelpWindow::Create(wxWindow* parent, wxWindowID id,
         long splitterStyle = wxSP_3D;
         // Drawing moving sash can cause problems on wxMac
 #ifdef __WXMAC__
+        splitterStyle = 0; // 3D style looks poor on Mac
         splitterStyle |= wxSP_LIVE_UPDATE;
 #endif
         m_Splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, splitterStyle);

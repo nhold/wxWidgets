@@ -99,7 +99,9 @@
 #endif
 
 #ifdef __WINDOWS__
-#include "wx/msw/private.h"
+    #include "wx/msw/private.h"
+    #include <shlobj.h>         // for CLSID_ShellLink
+    #include "wx/msw/missing.h"
 #endif
 
 #if defined(__WXMAC__)
@@ -606,11 +608,10 @@ void wxFileName::AssignDir(const wxString& dir, wxPathFormat format)
 
 void wxFileName::Clear()
 {
-    m_dirs.Clear();
-
-    m_volume =
-    m_name =
-    m_ext = wxEmptyString;
+    m_dirs.clear();
+    m_volume.clear();
+    m_name.clear();
+    m_ext.clear();
 
     // we don't have any absolute path for now
     m_relative = true;
@@ -1702,13 +1703,6 @@ bool wxFileName::ReplaceHomeDir(wxPathFormat format)
 // quotation marks."
 
 #if defined(__WIN32__) && !defined(__WXWINCE__) && wxUSE_OLE
-// The following lines are necessary under WinCE
-// #include "wx/msw/private.h"
-// #include <ole2.h>
-#include <shlobj.h>
-#if defined(__WXWINCE__)
-#include <shlguid.h>
-#endif
 
 bool wxFileName::GetShortcutTarget(const wxString& shortcutPath,
                                    wxString& targetFilename,
@@ -1917,7 +1911,7 @@ wxString wxFileName::GetForbiddenChars(wxPathFormat format)
         case wxPATH_MAC:
             // On a Mac even names with * and ? are allowed (Tested with OS
             // 9.2.1 and OS X 10.2.5)
-            strForbiddenChars = wxEmptyString;
+            strForbiddenChars.clear();
             break;
 
         case wxPATH_DOS:
@@ -2039,10 +2033,12 @@ wxFileName::IsMSWUniqueVolumeNamePath(const wxString& path, wxPathFormat format)
     return true;
 }
 
-void wxFileName::AppendDir( const wxString& dir )
+bool wxFileName::AppendDir( const wxString& dir )
 {
-    if ( IsValidDirComponent(dir) )
-        m_dirs.Add( dir );
+    if (!IsValidDirComponent(dir))
+        return false;
+    m_dirs.Add(dir);
+    return true;
 }
 
 void wxFileName::PrependDir( const wxString& dir )
@@ -2050,10 +2046,12 @@ void wxFileName::PrependDir( const wxString& dir )
     InsertDir(0, dir);
 }
 
-void wxFileName::InsertDir(size_t before, const wxString& dir)
+bool wxFileName::InsertDir(size_t before, const wxString& dir)
 {
-    if ( IsValidDirComponent(dir) )
-        m_dirs.Insert(dir, before);
+    if (!IsValidDirComponent(dir))
+        return false;
+    m_dirs.Insert(dir, before);
+    return true;
 }
 
 void wxFileName::RemoveDir(size_t pos)
@@ -2295,7 +2293,7 @@ wxString wxFileName::GetLongPath() const
                   GetVolumeSeparator(wxPATH_DOS) +
                   GetPathSeparator(wxPATH_DOS);
     else
-        pathOut = wxEmptyString;
+        pathOut.clear();
 
     wxArrayString dirs = GetDirs();
     dirs.Add(GetFullName());

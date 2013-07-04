@@ -21,9 +21,6 @@
 #include "wx/apptrait.h"
 #include "wx/process.h"
 #include "wx/sysopt.h"
-#ifdef __UNIX__
-#include "wx/unix/execute.h"
-#endif
 
 #include "wx/gtk/private/timer.h"
 #include "wx/evtloop.h"
@@ -185,39 +182,6 @@ const gchar *wx_pango_version_check (int major, int minor, int micro)
     return "too old headers";
 #endif
 }
-
-// ----------------------------------------------------------------------------
-// subprocess routines
-// ----------------------------------------------------------------------------
-
-#ifdef __UNIX__
-
-extern "C" {
-static gboolean EndProcessDetector(GIOChannel* source, GIOCondition, void* data)
-{
-    wxEndProcessData * const
-        proc_data = static_cast<wxEndProcessData *>(data);
-
-    // child exited, end waiting
-    close(g_io_channel_unix_get_fd(source));
-
-    wxHandleProcessTermination(proc_data);
-
-    // don't call us again!
-    return false;
-}
-}
-
-int wxGUIAppTraits::AddProcessCallback(wxEndProcessData *proc_data, int fd)
-{
-    GIOChannel* channel = g_io_channel_unix_new(fd);
-    GIOCondition cond = GIOCondition(G_IO_IN | G_IO_HUP | G_IO_ERR);
-    unsigned id = g_io_add_watch(channel, cond, EndProcessDetector, proc_data);
-    g_io_channel_unref(channel);
-    return int(id);
-}
-
-#endif // __UNIX__
 
 // ----------------------------------------------------------------------------
 // wxPlatformInfo-related
@@ -401,6 +365,8 @@ wxString wxGUIAppTraits::GetDesktopEnvironment() const
 
 #endif // __UNIX__ || __OS2__
 
+#ifdef __UNIX__
+
 // see the hack below in wxCmdLineParser::GetUsageString().
 // TODO: replace this hack with a g_option_group_get_entries()
 //       call as soon as such function exists;
@@ -427,6 +393,7 @@ struct _GOptionGroup
   GOptionErrorFunc error_func;
 };
 
+static
 wxString wxGetNameFromGtkOptionEntry(const GOptionEntry *opt)
 {
     wxString ret;
@@ -445,8 +412,6 @@ wxString wxGetNameFromGtkOptionEntry(const GOptionEntry *opt)
 
     return wxT("  ") + ret;
 }
-
-#ifdef __UNIX__
 
 wxString
 wxGUIAppTraits::GetStandardCmdLineOptions(wxArrayString& names,

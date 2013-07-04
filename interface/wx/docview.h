@@ -414,6 +414,19 @@ public:
      */
     wxDocTemplate* FindTemplate(const wxClassInfo* classinfo);
 
+
+    /**
+        Search for the document corresponding to the given file.
+
+        @param path
+            Document file path.
+        @return
+            Pointer to a wxDocument, or @NULL if none found.
+
+        @since 2.9.5
+     */
+    wxDocument* FindDocumentByPath(const wxString& path) const;
+
     /**
         Closes the specified document.
 
@@ -545,13 +558,29 @@ public:
     virtual wxDocTemplate* FindTemplateForPath(const wxString& path);
 
     /**
+        Returns the view to apply a user command to.
+
+        This method tries to find the view that the user wants to interact
+        with. It returns the same view as GetCurrentDocument() if there is any
+        currently active view but falls back to the first view of the first
+        document if there is no active view.
+
+        @since 2.9.5
+     */
+    wxView* GetAnyUsableView() const;
+
+    /**
         Returns the document associated with the currently active view (if
         any).
     */
     wxDocument* GetCurrentDocument() const;
 
     /**
-        Returns the currently active view
+        Returns the currently active view.
+
+        This method can return @NULL if no view is currently active.
+
+        @see GetAnyUsableView()
     */
     virtual wxView* GetCurrentView() const;
 
@@ -1239,6 +1268,29 @@ public:
         @since 2.9.0
      */
     bool AlreadySaved() const;
+
+    /**
+        Activate the first view of the document if any.
+
+        This function simply calls the Raise() method of the frame of the first
+        view. You may need to override the Raise() method to get the desired
+        effect if you are not using a standard wxFrame for your view. For
+        instance, if your document is inside its own notebook tab you could
+        implement Raise() like this:
+
+        @code
+        void MyNotebookPage::Raise()
+        {
+            wxNotebook* notebook = wxStaticCast(GetParent(), wxNotebook);
+            notebook->SetSelection(notebook->FindPage(this));
+        }
+        @endcode
+
+        @see GetFirstView()
+
+        @since 2.9.5
+     */
+    void Activate() const;
 
     /**
         Closes the document, by calling OnSaveModified() and then (if this

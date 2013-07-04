@@ -1430,7 +1430,7 @@ WXDWORD wxWindowMSW::MSWGetStyle(long flags, WXDWORD *exstyle) const
     // it doesn't seem useful to use WS_CLIPSIBLINGS here as we officially
     // don't support overlapping windows and it only makes sense for them and,
     // presumably, gives the system some extra work (to manage more clipping
-    // regions), so avoid it alltogether
+    // regions), so avoid it altogether
 
 
     if ( flags & wxVSCROLL )
@@ -3433,26 +3433,31 @@ wxWindowMSW::MSWHandleMessage(WXLRESULT *result,
 #if !defined(__WXWINCE__)
         case WM_CONTEXTMENU:
             {
+                // Ignore the events that are propagated from a child window by
+                // DefWindowProc(): as wxContextMenuEvent is already propagated
+                // upwards the window hierarchy by us, not doing this would
+                // result in duplicate events being sent.
+                WXHWND hWnd = (WXHWND)wParam;
+                if ( hWnd != m_hWnd )
+                {
+                    wxWindowMSW *win = FindItemByHWND(hWnd);
+                    if ( win && IsDescendant(win) )
+                    {
+                        // We had already generated wxContextMenuEvent when we
+                        // got WM_CONTEXTMENU for that window.
+                        processed = true;
+                        break;
+                    }
+                }
+
                 // we don't convert from screen to client coordinates as
                 // the event may be handled by a parent window
                 wxPoint pt(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 
                 wxContextMenuEvent evtCtx(wxEVT_CONTEXT_MENU, GetId(), pt);
+                evtCtx.SetEventObject(this);
 
-                // we could have got an event from our child, reflect it back
-                // to it if this is the case
-                wxWindowMSW *win = NULL;
-                WXHWND hWnd = (WXHWND)wParam;
-                if ( hWnd != m_hWnd )
-                {
-                    win = FindItemByHWND(hWnd);
-                }
-
-                if ( !win )
-                    win = this;
-
-                evtCtx.SetEventObject(win);
-                processed = win->HandleWindowEvent(evtCtx);
+                processed = HandleWindowEvent(evtCtx);
             }
             break;
 #endif
@@ -4959,7 +4964,11 @@ wxWindowMSW::MSWGetBgBrushForChild(WXHDC hDC, wxWindowMSW *child)
 
         ::MapWindowPoints(NULL, GetHwnd(), (POINT *)&rc, 1);
 
-        if ( !::SetBrushOrgEx((HDC)hDC, -rc.left, -rc.top, NULL) )
+        int x = rc.left,
+            y = rc.top;
+        MSWAdjustBrushOrg(&x, &y);
+
+        if ( !::SetBrushOrgEx((HDC)hDC, -x, -y, NULL) )
         {
             wxLogLastError(wxT("SetBrushOrgEx(bg brush)"));
         }
@@ -5099,11 +5108,9 @@ bool wxWindowMSW::HandleExitSizeMove()
     return HandleWindowEvent(event);
 }
 
-bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
+bool wxWindowMSW::BeginRepositioningChildren()
 {
 #if wxUSE_DEFERRED_SIZING
-    // when we resize this window, its children are probably going to be
-    // repositioned as well, prepare to use DeferWindowPos() for them
     int numChildren = 0;
     for ( HWND child = ::GetWindow(GetHwndOf(this), GW_CHILD);
           child;
@@ -5112,23 +5119,60 @@ bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
         numChildren ++;
     }
 
-    // Protect against valid m_hDWP being overwritten
-    bool useDefer = false;
+    // Nothing is gained by deferring the repositioning of a single child.
+    if ( numChildren < 2 )
+        return false;
 
-    if ( numChildren > 1 )
+    // Protect against valid m_hDWP being overwritten
+    if ( m_hDWP )
+        return false;
+
+    m_hDWP = (WXHANDLE)::BeginDeferWindowPos(numChildren);
+    if ( !m_hDWP )
     {
-        if (!m_hDWP)
-        {
-            m_hDWP = (WXHANDLE)::BeginDeferWindowPos(numChildren);
-            if ( !m_hDWP )
-            {
-                wxLogLastError(wxT("BeginDeferWindowPos"));
-            }
-            if (m_hDWP)
-                useDefer = true;
-        }
+        wxLogLastError(wxT("BeginDeferWindowPos"));
+        return false;
+    }
+
+    // Return true to indicate that EndDeferWindowPos() should be called.
+    return true;
+#endif // wxUSE_DEFERRED_SIZING
+}
+
+void wxWindowMSW::EndRepositioningChildren()
+{
+#if wxUSE_DEFERRED_SIZING
+    wxASSERT_MSG( m_hDWP, wxS("Shouldn't be called") );
+
+    // reset m_hDWP to NULL so that child windows don't try to use our
+    // m_hDWP after we call EndDeferWindowPos() on it (this shouldn't
+    // happen anyhow normally but who knows what weird flow of control we
+    // may have depending on what the users EVT_SIZE handler does...)
+    HDWP hDWP = (HDWP)m_hDWP;
+    m_hDWP = NULL;
+
+    // do put all child controls in place at once
+    if ( !::EndDeferWindowPos(hDWP) )
+    {
+        wxLogLastError(wxT("EndDeferWindowPos"));
+    }
+
+    // Reset our children's pending pos/size values.
+    for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
+          node;
+          node = node->GetNext() )
+    {
+        wxWindowMSW * const child = node->GetData();
+        child->MSWEndDeferWindowPos();
     }
 #endif // wxUSE_DEFERRED_SIZING
+}
+
+bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
+{
+    // when we resize this window, its children are probably going to be
+    // repositioned as well, prepare to use DeferWindowPos() for them
+    ChildrenRepositioningGuard repositionGuard(this);
 
     // update this window size
     bool processed = false;
@@ -5160,34 +5204,6 @@ bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
 
             processed = HandleWindowEvent(event);
     }
-
-#if wxUSE_DEFERRED_SIZING
-    // and finally change the positions of all child windows at once
-    if ( useDefer && m_hDWP )
-    {
-        // reset m_hDWP to NULL so that child windows don't try to use our
-        // m_hDWP after we call EndDeferWindowPos() on it (this shouldn't
-        // happen anyhow normally but who knows what weird flow of control we
-        // may have depending on what the users EVT_SIZE handler does...)
-        HDWP hDWP = (HDWP)m_hDWP;
-        m_hDWP = NULL;
-
-        // do put all child controls in place at once
-        if ( !::EndDeferWindowPos(hDWP) )
-        {
-            wxLogLastError(wxT("EndDeferWindowPos"));
-        }
-
-        // Reset our children's pending pos/size values.
-        for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
-              node;
-              node = node->GetNext() )
-        {
-            wxWindowMSW * const child = node->GetData();
-            child->MSWEndDeferWindowPos();
-        }
-    }
-#endif // wxUSE_DEFERRED_SIZING
 
     return processed;
 }
@@ -5287,10 +5303,10 @@ bool wxWindowMSW::HandleCommand(WXWORD id_, WXWORD cmd, WXHWND control)
     // the messages sent from the in-place edit control used by the treectrl
     // for label editing have id == 0, but they should _not_ be treated as menu
     // messages (they are EN_XXX ones, in fact) so don't translate anything
-    // coming from a control to wxEVT_COMMAND_MENU_SELECTED
+    // coming from a control to wxEVT_MENU
     if ( !control )
     {
-        wxCommandEvent event(wxEVT_COMMAND_MENU_SELECTED, id);
+        wxCommandEvent event(wxEVT_MENU, id);
         event.SetEventObject(this);
         event.SetInt(id);
 
@@ -5451,7 +5467,7 @@ bool wxWindowMSW::HandleMouseEvent(WXUINT msg, int x, int y, WXUINT flags)
     };
 
 #ifdef wxHAS_XBUTTON
-    // the same messages are used for both auxillary mouse buttons so we need
+    // the same messages are used for both auxiliary mouse buttons so we need
     // to adjust the index manually
     switch ( msg )
     {
@@ -5590,7 +5606,20 @@ wxWindowMSW::HandleMouseWheel(wxMouseWheelAxis axis,
         }
     }
 
+    static int s_columnsPerRotation = -1;
+    if ( s_columnsPerRotation == -1 )
+    {
+        if ( !::SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0,
+                                     &s_columnsPerRotation, 0))
+        {
+            // this setting is not supported on Windows 2000/XP, so use the value of 1
+            // http://msdn.microsoft.com/en-us/library/ms997498.aspx
+            s_columnsPerRotation = 1;
+        }
+    }
+
     event.m_linesPerAction = s_linesPerRotation;
+    event.m_columnsPerAction = s_columnsPerRotation;
     return HandleWindowEvent(event);
 
 #else // !wxUSE_MOUSEWHEEL
@@ -5855,9 +5884,9 @@ int wxWindowMSW::HandleMenuChar(int WXUNUSED_IN_WINCE(chAccel),
 
 bool wxWindowMSW::HandleClipboardEvent(WXUINT nMsg)
 {
-    const wxEventType type = nMsg == WM_CUT       ? wxEVT_COMMAND_TEXT_CUT
-                           : nMsg == WM_COPY      ? wxEVT_COMMAND_TEXT_COPY
-                           : /* nMsg == WM_PASTE */ wxEVT_COMMAND_TEXT_PASTE;
+    const wxEventType type = nMsg == WM_CUT       ? wxEVT_TEXT_CUT
+                           : nMsg == WM_COPY      ? wxEVT_TEXT_COPY
+                           : /* nMsg == WM_PASTE */ wxEVT_TEXT_PASTE;
     wxClipboardTextEvent evt(type, GetId());
 
     evt.SetEventObject(this);
@@ -6305,6 +6334,9 @@ int VKToWX(WXWORD vk, WXLPARAM lParam, wchar_t *uc)
 
         case VK_DELETE:
             wxk = ChooseNormalOrExtended(lParam, WXK_NUMPAD_DELETE, WXK_DELETE);
+
+            if ( uc )
+                *uc = WXK_DELETE;
             break;
 
         case VK_RETURN:
@@ -6599,7 +6631,7 @@ wxKeyboardHook(int nCode, WORD wParam, DWORD lParam)
     DWORD hiWord = HIWORD(lParam);
     if ( nCode != HC_NOREMOVE && ((hiWord & KF_UP) == 0) )
     {
-        wchar_t uc;
+        wchar_t uc = 0;
         int id = wxMSWKeyboard::VKToWX(wParam, lParam, &uc);
 
         // Don't intercept keyboard entry (notably Escape) if a modal window
@@ -7299,8 +7331,6 @@ bool wxWindowMSW::UnregisterHotKey(int hotkeyId)
     return true;
 }
 
-#if wxUSE_ACCEL
-
 bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
 {
     int win_modifiers = LOWORD(lParam);
@@ -7314,8 +7344,6 @@ bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
 
     return HandleWindowEvent(event);
 }
-
-#endif // wxUSE_ACCEL
 
 #endif // wxUSE_HOTKEY
 

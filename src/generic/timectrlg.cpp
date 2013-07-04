@@ -270,7 +270,7 @@ private:
 
     void OnTextClick(wxMouseEvent& event)
     {
-        Field field wxDUMMY_INITIALIZE(Field_Max);
+        Field field = Field_Max; // Initialize just to suppress warnings.
         long pos;
         switch ( m_text->HitTest(event.GetPosition(), &pos) )
         {
@@ -457,8 +457,8 @@ private:
             // The first digit simply replaces the existing field contents,
             // but the second one should be combined with the previous one,
             // otherwise entering 2-digit numbers would be impossible.
-            int currentValue wxDUMMY_INITIALIZE(0),
-                maxValue wxDUMMY_INITIALIZE(0);
+            int currentValue = 0,
+                maxValue  = 0;
 
             switch ( m_currentField )
             {
@@ -480,6 +480,7 @@ private:
                 case Field_AMPM:
                 case Field_Max:
                     wxFAIL_MSG( "Invalid field" );
+                    return;
             }
 
             // Check if the new value is acceptable. If not, we just handle

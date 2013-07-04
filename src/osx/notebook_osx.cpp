@@ -247,64 +247,7 @@ bool wxNotebook::InsertPage(size_t nPage,
 
 int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
 {
-    int resultV = wxNOT_FOUND;
-#ifdef __WXOSX_CARBON__
-    const int countPages = GetPageCount();
-
-    // we have to convert from Client to Window relative coordinates
-    wxPoint adjustedPt = pt + GetClientAreaOrigin();
-    // and now to HIView native ones
-    adjustedPt.x -= MacGetLeftBorderSize() ;
-    adjustedPt.y -= MacGetTopBorderSize() ;
-
-    HIPoint hipoint= { adjustedPt.x , adjustedPt.y } ;
-    HIViewPartCode outPart = 0 ;
-    OSStatus err = HIViewGetPartHit( GetPeer()->GetControlRef(), &hipoint, &outPart );
-
-    int max = GetPeer()->GetMaximum() ;
-    if ( outPart == 0 && max > 0 )
-    {
-        // this is a hack, as unfortunately a hit on an already selected tab returns 0,
-        // so we have to go some extra miles to make sure we select something different
-        // and try again ..
-        int val = GetPeer()->GetValue() ;
-        int maxval = max ;
-        if ( max == 1 )
-        {
-            GetPeer()->SetMaximum( 2 ) ;
-            maxval = 2 ;
-        }
-
-        if ( val == 1 )
-            GetPeer()->SetValue( maxval ) ;
-        else
-             GetPeer()->SetValue( 1 ) ;
-
-        err = HIViewGetPartHit( GetPeer()->GetControlRef(), &hipoint, &outPart );
-
-        GetPeer()->SetValue( val ) ;
-        if ( max == 1 )
-            GetPeer()->SetMaximum( 1 ) ;
-    }
-
-    if ( outPart >= 1 && outPart <= countPages )
-        resultV = outPart - 1 ;
-
-    if (flags != NULL)
-    {
-        *flags = 0;
-
-        // we cannot differentiate better
-        if (resultV >= 0)
-            *flags |= wxBK_HITTEST_ONLABEL;
-        else
-            *flags |= wxBK_HITTEST_NOWHERE;
-    }
-#else
-    wxUnusedVar(pt);
-    wxUnusedVar(flags);
-#endif
-    return resultV;
+    return GetPeer()->TabHitTest(pt,flags);
 }
 
 // Added by Mark Newsam
@@ -515,7 +458,7 @@ bool wxNotebook::OSXHandleClicked( double WXUNUSED(timestampsec) )
     if ( newSel != m_selection )
     {
         wxBookCtrlEvent changing(
-            wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, m_windowId,
+            wxEVT_NOTEBOOK_PAGE_CHANGING, m_windowId,
             newSel , m_selection );
         changing.SetEventObject( this );
         HandleWindowEvent( changing );
@@ -523,7 +466,7 @@ bool wxNotebook::OSXHandleClicked( double WXUNUSED(timestampsec) )
         if ( changing.IsAllowed() )
         {
             wxBookCtrlEvent event(
-                wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, m_windowId,
+                wxEVT_NOTEBOOK_PAGE_CHANGED, m_windowId,
                 newSel, m_selection );
             event.SetEventObject( this );
             HandleWindowEvent( event );

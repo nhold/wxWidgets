@@ -72,6 +72,10 @@ public:
         InvalidateBestSize();
     }
 
+    virtual wxWindow* GetMainWindowOfCompositeControl()
+    {
+        return m_search;
+    }
 
     // provide access to the base class protected methods to wxSearchCtrl which
     // needs to forward to them
@@ -182,6 +186,11 @@ public:
     // is really no reason for it to be able to get focus from keyboard.
     virtual bool AcceptsFocusFromKeyboard() const { return false; }
 
+    virtual wxWindow* GetMainWindowOfCompositeControl()
+    {
+        return m_search;
+    }
+
 protected:
     wxSize DoGetBestSize() const
     {
@@ -193,7 +202,7 @@ protected:
         wxCommandEvent event(m_eventType, m_search->GetId());
         event.SetEventObject(m_search);
 
-        if ( m_eventType == wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN )
+        if ( m_eventType == wxEVT_SEARCHCTRL_SEARCH_BTN )
         {
             // it's convenient to have the string to search for directly in the
             // event instead of having to retrieve it from the control in the
@@ -206,7 +215,7 @@ protected:
         m_search->SetFocus();
 
 #if wxUSE_MENUS
-        if ( m_eventType == wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN )
+        if ( m_eventType == wxEVT_SEARCHCTRL_SEARCH_BTN )
         {
             // this happens automatically, just like on Mac OS X
             m_search->PopupSearchMenu();
@@ -320,10 +329,10 @@ bool wxSearchCtrl::Create(wxWindow *parent, wxWindowID id,
     m_text = new wxSearchTextCtrl(this, value, style);
 
     m_searchButton = new wxSearchButton(this,
-                                        wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN,
+                                        wxEVT_SEARCHCTRL_SEARCH_BTN,
                                         m_searchBitmap);
     m_cancelButton = new wxSearchButton(this,
-                                        wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN,
+                                        wxEVT_SEARCHCTRL_CANCEL_BTN,
                                         m_cancelBitmap);
 
     SetBackgroundColour( m_text->GetBackgroundColour() );

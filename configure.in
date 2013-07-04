@@ -585,6 +585,8 @@ dnl ---------------------------------------------------------------------------
 WX_ARG_SYS_WITH(libpng,    [  --with-libpng           use libpng (PNG image format)], wxUSE_LIBPNG)
 WX_ARG_SYS_WITH(libjpeg,   [  --with-libjpeg          use libjpeg (JPEG file format)], wxUSE_LIBJPEG)
 WX_ARG_SYS_WITH(libtiff,   [  --with-libtiff          use libtiff (TIFF file format)], wxUSE_LIBTIFF)
+WX_ARG_WITHOUT(libjbig,    [  --without-libjbig       don't use libjbig in libtiff even if available)], wxUSE_LIBJBIG)
+WX_ARG_WITHOUT(liblzma,    [  --without-liblzma       don't use liblzma in libtiff even if available)], wxUSE_LIBLZMA)
 WX_ARG_SYS_WITH(libxpm,    [  --with-libxpm           use libxpm (XPM file format)], wxUSE_LIBXPM)
 WX_ARG_WITH(libiconv,      [  --with-libiconv         use libiconv (character conversion)], wxUSE_LIBICONV)
 WX_ARG_WITH(libmspack,     [  --with-libmspack        use libmspack (CHM help files loading)], wxUSE_LIBMSPACK)
@@ -773,6 +775,7 @@ WX_ARG_FEATURE(fontmap,       [  --enable-fontmap        use font encodings conv
 WX_ARG_FEATURE(fs_archive,    [  --enable-fs_archive     use virtual archive filesystems], wxUSE_FS_ARCHIVE)
 WX_ARG_FEATURE(fs_inet,       [  --enable-fs_inet        use virtual HTTP/FTP filesystems], wxUSE_FS_INET)
 WX_ARG_FEATURE(fs_zip,        [  --enable-fs_zip         now replaced by fs_archive], wxUSE_FS_ZIP)
+WX_ARG_FEATURE(fsvolume,      [  --enable-fsvolume       use wxFSVolume class], wxUSE_FSVOLUME)
 WX_ARG_FEATURE(fswatcher,     [  --enable-fswatcher      use wxFileSystemWatcher class], wxUSE_FSWATCHER)
 WX_ARG_FEATURE(geometry,      [  --enable-geometry       use geometry class], wxUSE_GEOMETRY)
 WX_ARG_FEATURE(log,           [  --enable-log            use logging system], wxUSE_LOG)
@@ -2699,6 +2702,24 @@ if test "$wxUSE_LIBTIFF" != "no" ; then
             dnl we need to hack around this
             ac_configure_args="$ac_configure_args --disable-jpeg"
         fi
+
+        if test "$wxUSE_LIBLZMA" = "yes"; then
+            dnl If libtiff configure detects lzma library, it enables support for
+            dnl LZMA compression and using it requires linking with liblzma.
+            AC_CHECK_LIB(lzma, lzma_code, [LIBS="$LIBS -llzma"])
+        else
+            dnl Prevent libtiff configure from looking for liblzma if it's
+            dnl explicitly disabled.
+            ac_configure_args="$ac_configure_args --disable-lzma"
+        fi
+
+        dnl Similarly for jbig
+        if test "$wxUSE_LIBJBIG" = "yes"; then
+            AC_CHECK_LIB(jbig, jbg_dec_init, [LIBS="$LIBS -ljbig"])
+        else
+            ac_configure_args="$ac_configure_args --disable-jbig"
+        fi
+
         AC_CONFIG_SUBDIRS([src/tiff])
     fi
 fi
@@ -4366,22 +4387,25 @@ dnl backtrace() and backtrace_symbols() for wxStackWalker
 if test "$wxUSE_STACKWALKER" = "yes" -a "$wxUSE_UNIX" = "yes"; then
     AC_CACHE_CHECK([for backtrace() in <execinfo.h>], wx_cv_func_backtrace,
         [
-            AC_LANG_PUSH(C++)
-            AC_TRY_COMPILE([#include <execinfo.h>],
+            AC_SEARCH_LIBS(backtrace, execinfo,
                 [
-                    void *trace[1];
-                    char **messages;
-
-                    backtrace(trace, 1);
-                    messages = backtrace_symbols(trace, 1);
+                    AC_LANG_PUSH(C++)
+                    AC_TRY_LINK([#include <execinfo.h>],
+                        [
+                            void *trace[1];
+                            char **messages;
+                            backtrace(trace, 1);
+                            messages = backtrace_symbols(trace, 1);
+                        ],
+                        wx_cv_func_backtrace=yes,
+                        wx_cv_func_backtrace=no
+                    )
+                    AC_LANG_POP()
                 ],
-                wx_cv_func_backtrace=yes,
                 wx_cv_func_backtrace=no
             )
-            AC_LANG_POP()
         ]
     )
-
 
     if test "$wx_cv_func_backtrace" = "no"; then
         AC_MSG_WARN([backtrace() is not available, wxStackWalker will not be available])
@@ -5835,6 +5859,10 @@ if test "$wxUSE_FS_ZIP" = "yes"; then
   fi
 fi
 
+if test "$wxUSE_FSVOLUME" = "yes"; then
+  AC_DEFINE(wxUSE_FSVOLUME)
+fi
+
 if test "$wxUSE_ON_FATAL_EXCEPTION" = "yes"; then
   if test "$USE_UNIX" != 1; then
     AC_MSG_WARN([Catching fatal exceptions not currently supported on this system, wxApp::OnFatalException will not be called])
@@ -6143,6 +6171,12 @@ if test "$wxUSE_DATETIME" = "yes"; then
 
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS typetest"
 fi
+
+dnl ------------------------------------------------------------------------
+dnl wxProcess
+dnl ------------------------------------------------------------------------
+
+AC_CHECK_FUNCS(setpriority)
 
 dnl ------------------------------------------------------------------------
 dnl wxSocket
@@ -7787,7 +7821,7 @@ if test "$wxUSE_GUI" = "yes"; then
 
     dnl TODO some samples are never built so far: mfc (requires VC++)
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS artprov controls dialogs drawing \
-                     erase event exec font image minimal render \
+                     erase event exec font image minimal preferences render \
                      shaped svg taborder vscroll widgets wrapsizer"
 
     if test "$wxUSE_MONOLITHIC" != "yes"; then

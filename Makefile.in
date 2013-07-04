@@ -836,6 +836,7 @@ ALL_BASE_SOURCES =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/unix/fswatcher_inotify.cpp \
@@ -2240,6 +2241,7 @@ COND_TOOLKIT_OSX_CARBON_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp
 @COND_TOOLKIT_OSX_CARBON@BASE_OSX_SRC = $(COND_TOOLKIT_OSX_CARBON_BASE_OSX_SRC)
 COND_TOOLKIT_OSX_COCOA_BASE_OSX_SRC =  \
@@ -2263,6 +2265,7 @@ COND_TOOLKIT_OSX_COCOA_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp
 @COND_TOOLKIT_OSX_COCOA@BASE_OSX_SRC = $(COND_TOOLKIT_OSX_COCOA_BASE_OSX_SRC)
 COND_TOOLKIT_OSX_IPHONE_BASE_OSX_SRC =  \
@@ -2286,6 +2289,7 @@ COND_TOOLKIT_OSX_IPHONE_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp
 @COND_TOOLKIT_OSX_IPHONE@BASE_OSX_SRC = $(COND_TOOLKIT_OSX_IPHONE_BASE_OSX_SRC)
 COND_TOOLKIT_COCOA_BASE_OSX_SRC =  \
@@ -2303,6 +2307,7 @@ COND_TOOLKIT_COCOA_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/osx/core/cfstring.cpp \
@@ -2326,6 +2331,7 @@ COND_TOOLKIT_GTK_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/osx/core/cfstring.cpp \
@@ -2349,6 +2355,7 @@ COND_TOOLKIT_X11_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/osx/core/cfstring.cpp \
@@ -2372,6 +2379,7 @@ COND_TOOLKIT_MOTIF_BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/osx/core/cfstring.cpp \
@@ -2395,6 +2403,7 @@ COND_TOOLKIT__BASE_OSX_SRC =  \
 	src/unix/timerunx.cpp \
 	src/unix/threadpsx.cpp \
 	src/unix/utilsunx.cpp \
+	src/unix/wakeuppipe.cpp \
 	src/unix/fswatcher_kqueue.cpp \
 	src/unix/mimetype.cpp \
 	src/osx/core/cfstring.cpp \
@@ -3217,7 +3226,6 @@ COND_TOOLKIT_MSW_GUI_HDR =  \
 	wx/msw/pencil.cur \
 	wx/msw/pntleft.cur \
 	wx/msw/pntright.cur \
-	wx/msw/rightarr.cur \
 	wx/msw/roller.cur \
 	wx/msw/cdrom.ico \
 	wx/msw/child.ico \
@@ -3735,7 +3743,6 @@ COND_TOOLKIT_WINCE_GUI_HDR =  \
 	wx/msw/pencil.cur \
 	wx/msw/pntleft.cur \
 	wx/msw/pntright.cur \
-	wx/msw/rightarr.cur \
 	wx/msw/roller.cur \
 	wx/msw/cdrom.ico \
 	wx/msw/child.ico \
@@ -4113,6 +4120,7 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/listbox.h \
 	wx/mdi.h \
 	wx/menu.h \
+	wx/modalhook.h \
 	wx/mousemanager.h \
 	wx/msgdlg.h \
 	wx/nativewin.h \
@@ -4500,6 +4508,7 @@ COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS =  \
 	monodll_timerunx.o \
 	monodll_threadpsx.o \
 	monodll_utilsunx.o \
+	monodll_wakeuppipe.o \
 	monodll_fswatcher_kqueue.o
 @COND_PLATFORM_MACOSX_1@__BASE_PLATFORM_SRC_OBJECTS = $(COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS)
 @COND_PLATFORM_MSDOS_1@__BASE_PLATFORM_SRC_OBJECTS = \
@@ -4534,6 +4543,7 @@ COND_PLATFORM_UNIX_1___BASE_PLATFORM_SRC_OBJECTS =  \
 	monodll_timerunx.o \
 	monodll_threadpsx.o \
 	monodll_utilsunx.o \
+	monodll_wakeuppipe.o \
 	monodll_fswatcher_kqueue.o \
 	monodll_unix_mimetype.o \
 	monodll_fswatcher_inotify.o
@@ -4809,6 +4819,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS =  \
 	monodll_markupparser.o \
 	monodll_matrix.o \
 	monodll_menucmn.o \
+	monodll_modalhook.o \
 	monodll_mousemanager.o \
 	monodll_nbkbase.o \
 	monodll_overlaycmn.o \
@@ -4818,6 +4829,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS =  \
 	monodll_persist.o \
 	monodll_pickerbase.o \
 	monodll_popupcmn.o \
+	monodll_preferencescmn.o \
 	monodll_prntbase.o \
 	monodll_quantize.o \
 	monodll_radiobtncmn.o \
@@ -4870,6 +4882,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS =  \
 	monodll_msgdlgg.o \
 	monodll_numdlgg.o \
 	monodll_progdlgg.o \
+	monodll_preferencesg.o \
 	monodll_printps.o \
 	monodll_renderg.o \
 	monodll_richmsgdlgg.o \
@@ -5028,6 +5041,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS =  \
 	monodll_markupparser.o \
 	monodll_matrix.o \
 	monodll_menucmn.o \
+	monodll_modalhook.o \
 	monodll_mousemanager.o \
 	monodll_nbkbase.o \
 	monodll_overlaycmn.o \
@@ -5037,6 +5051,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS =  \
 	monodll_persist.o \
 	monodll_pickerbase.o \
 	monodll_popupcmn.o \
+	monodll_preferencescmn.o \
 	monodll_prntbase.o \
 	monodll_quantize.o \
 	monodll_radiobtncmn.o \
@@ -5089,6 +5104,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS =  \
 	monodll_msgdlgg.o \
 	monodll_numdlgg.o \
 	monodll_progdlgg.o \
+	monodll_preferencesg.o \
 	monodll_printps.o \
 	monodll_renderg.o \
 	monodll_richmsgdlgg.o \
@@ -5863,6 +5879,7 @@ COND_TOOLKIT_OSX_COCOA___GUI_SRC_OBJECTS =  \
 	monodll_cocoa_nonownedwnd.o \
 	monodll_osx_cocoa_notebook.o \
 	monodll_osx_cocoa_radiobut.o \
+	monodll_preferences.o \
 	monodll_cocoa_printdlg.o \
 	monodll_osx_cocoa_scrolbar.o \
 	monodll_osx_cocoa_slider.o \
@@ -6739,6 +6756,7 @@ COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_1 =  \
 	monolib_timerunx.o \
 	monolib_threadpsx.o \
 	monolib_utilsunx.o \
+	monolib_wakeuppipe.o \
 	monolib_fswatcher_kqueue.o
 @COND_PLATFORM_MACOSX_1@__BASE_PLATFORM_SRC_OBJECTS_1 = $(COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_1)
 @COND_PLATFORM_MSDOS_1@__BASE_PLATFORM_SRC_OBJECTS_1 \
@@ -6773,6 +6791,7 @@ COND_PLATFORM_UNIX_1___BASE_PLATFORM_SRC_OBJECTS_1 =  \
 	monolib_timerunx.o \
 	monolib_threadpsx.o \
 	monolib_utilsunx.o \
+	monolib_wakeuppipe.o \
 	monolib_fswatcher_kqueue.o \
 	monolib_unix_mimetype.o \
 	monolib_fswatcher_inotify.o
@@ -7048,6 +7067,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_1 =  \
 	monolib_markupparser.o \
 	monolib_matrix.o \
 	monolib_menucmn.o \
+	monolib_modalhook.o \
 	monolib_mousemanager.o \
 	monolib_nbkbase.o \
 	monolib_overlaycmn.o \
@@ -7057,6 +7077,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_1 =  \
 	monolib_persist.o \
 	monolib_pickerbase.o \
 	monolib_popupcmn.o \
+	monolib_preferencescmn.o \
 	monolib_prntbase.o \
 	monolib_quantize.o \
 	monolib_radiobtncmn.o \
@@ -7109,6 +7130,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_1 =  \
 	monolib_msgdlgg.o \
 	monolib_numdlgg.o \
 	monolib_progdlgg.o \
+	monolib_preferencesg.o \
 	monolib_printps.o \
 	monolib_renderg.o \
 	monolib_richmsgdlgg.o \
@@ -7267,6 +7289,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_1 =  \
 	monolib_markupparser.o \
 	monolib_matrix.o \
 	monolib_menucmn.o \
+	monolib_modalhook.o \
 	monolib_mousemanager.o \
 	monolib_nbkbase.o \
 	monolib_overlaycmn.o \
@@ -7276,6 +7299,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_1 =  \
 	monolib_persist.o \
 	monolib_pickerbase.o \
 	monolib_popupcmn.o \
+	monolib_preferencescmn.o \
 	monolib_prntbase.o \
 	monolib_quantize.o \
 	monolib_radiobtncmn.o \
@@ -7328,6 +7352,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_1 =  \
 	monolib_msgdlgg.o \
 	monolib_numdlgg.o \
 	monolib_progdlgg.o \
+	monolib_preferencesg.o \
 	monolib_printps.o \
 	monolib_renderg.o \
 	monolib_richmsgdlgg.o \
@@ -8102,6 +8127,7 @@ COND_TOOLKIT_OSX_COCOA___GUI_SRC_OBJECTS_1 =  \
 	monolib_cocoa_nonownedwnd.o \
 	monolib_osx_cocoa_notebook.o \
 	monolib_osx_cocoa_radiobut.o \
+	monolib_preferences.o \
 	monolib_cocoa_printdlg.o \
 	monolib_osx_cocoa_scrolbar.o \
 	monolib_osx_cocoa_slider.o \
@@ -9031,6 +9057,7 @@ COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_2 =  \
 	basedll_timerunx.o \
 	basedll_threadpsx.o \
 	basedll_utilsunx.o \
+	basedll_wakeuppipe.o \
 	basedll_fswatcher_kqueue.o
 @COND_PLATFORM_MACOSX_1@__BASE_PLATFORM_SRC_OBJECTS_2 = $(COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_2)
 @COND_PLATFORM_MSDOS_1@__BASE_PLATFORM_SRC_OBJECTS_2 \
@@ -9065,6 +9092,7 @@ COND_PLATFORM_UNIX_1___BASE_PLATFORM_SRC_OBJECTS_2 =  \
 	basedll_timerunx.o \
 	basedll_threadpsx.o \
 	basedll_utilsunx.o \
+	basedll_wakeuppipe.o \
 	basedll_fswatcher_kqueue.o \
 	basedll_unix_mimetype.o \
 	basedll_fswatcher_inotify.o
@@ -9131,6 +9159,7 @@ COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_3 =  \
 	baselib_timerunx.o \
 	baselib_threadpsx.o \
 	baselib_utilsunx.o \
+	baselib_wakeuppipe.o \
 	baselib_fswatcher_kqueue.o
 @COND_PLATFORM_MACOSX_1@__BASE_PLATFORM_SRC_OBJECTS_3 = $(COND_PLATFORM_MACOSX_1___BASE_PLATFORM_SRC_OBJECTS_3)
 @COND_PLATFORM_MSDOS_1@__BASE_PLATFORM_SRC_OBJECTS_3 \
@@ -9165,6 +9194,7 @@ COND_PLATFORM_UNIX_1___BASE_PLATFORM_SRC_OBJECTS_3 =  \
 	baselib_timerunx.o \
 	baselib_threadpsx.o \
 	baselib_utilsunx.o \
+	baselib_wakeuppipe.o \
 	baselib_fswatcher_kqueue.o \
 	baselib_unix_mimetype.o \
 	baselib_fswatcher_inotify.o
@@ -9459,6 +9489,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_2 =  \
 	coredll_markupparser.o \
 	coredll_matrix.o \
 	coredll_menucmn.o \
+	coredll_modalhook.o \
 	coredll_mousemanager.o \
 	coredll_nbkbase.o \
 	coredll_overlaycmn.o \
@@ -9468,6 +9499,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_2 =  \
 	coredll_persist.o \
 	coredll_pickerbase.o \
 	coredll_popupcmn.o \
+	coredll_preferencescmn.o \
 	coredll_prntbase.o \
 	coredll_quantize.o \
 	coredll_radiobtncmn.o \
@@ -9520,6 +9552,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_2 =  \
 	coredll_msgdlgg.o \
 	coredll_numdlgg.o \
 	coredll_progdlgg.o \
+	coredll_preferencesg.o \
 	coredll_printps.o \
 	coredll_renderg.o \
 	coredll_richmsgdlgg.o \
@@ -9678,6 +9711,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_2 =  \
 	coredll_markupparser.o \
 	coredll_matrix.o \
 	coredll_menucmn.o \
+	coredll_modalhook.o \
 	coredll_mousemanager.o \
 	coredll_nbkbase.o \
 	coredll_overlaycmn.o \
@@ -9687,6 +9721,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_2 =  \
 	coredll_persist.o \
 	coredll_pickerbase.o \
 	coredll_popupcmn.o \
+	coredll_preferencescmn.o \
 	coredll_prntbase.o \
 	coredll_quantize.o \
 	coredll_radiobtncmn.o \
@@ -9739,6 +9774,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_2 =  \
 	coredll_msgdlgg.o \
 	coredll_numdlgg.o \
 	coredll_progdlgg.o \
+	coredll_preferencesg.o \
 	coredll_printps.o \
 	coredll_renderg.o \
 	coredll_richmsgdlgg.o \
@@ -10513,6 +10549,7 @@ COND_TOOLKIT_OSX_COCOA___GUI_SRC_OBJECTS_2 =  \
 	coredll_cocoa_nonownedwnd.o \
 	coredll_osx_cocoa_notebook.o \
 	coredll_osx_cocoa_radiobut.o \
+	coredll_preferences.o \
 	coredll_cocoa_printdlg.o \
 	coredll_osx_cocoa_scrolbar.o \
 	coredll_osx_cocoa_slider.o \
@@ -11130,6 +11167,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_3 =  \
 	corelib_markupparser.o \
 	corelib_matrix.o \
 	corelib_menucmn.o \
+	corelib_modalhook.o \
 	corelib_mousemanager.o \
 	corelib_nbkbase.o \
 	corelib_overlaycmn.o \
@@ -11139,6 +11177,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_3 =  \
 	corelib_persist.o \
 	corelib_pickerbase.o \
 	corelib_popupcmn.o \
+	corelib_preferencescmn.o \
 	corelib_prntbase.o \
 	corelib_quantize.o \
 	corelib_radiobtncmn.o \
@@ -11191,6 +11230,7 @@ COND_USE_GUI_1_WXUNIV_0___CORE_SRC_OBJECTS_3 =  \
 	corelib_msgdlgg.o \
 	corelib_numdlgg.o \
 	corelib_progdlgg.o \
+	corelib_preferencesg.o \
 	corelib_printps.o \
 	corelib_renderg.o \
 	corelib_richmsgdlgg.o \
@@ -11349,6 +11389,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_3 =  \
 	corelib_markupparser.o \
 	corelib_matrix.o \
 	corelib_menucmn.o \
+	corelib_modalhook.o \
 	corelib_mousemanager.o \
 	corelib_nbkbase.o \
 	corelib_overlaycmn.o \
@@ -11358,6 +11399,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_3 =  \
 	corelib_persist.o \
 	corelib_pickerbase.o \
 	corelib_popupcmn.o \
+	corelib_preferencescmn.o \
 	corelib_prntbase.o \
 	corelib_quantize.o \
 	corelib_radiobtncmn.o \
@@ -11410,6 +11452,7 @@ COND_USE_GUI_1_WXUNIV_1___CORE_SRC_OBJECTS_3 =  \
 	corelib_msgdlgg.o \
 	corelib_numdlgg.o \
 	corelib_progdlgg.o \
+	corelib_preferencesg.o \
 	corelib_printps.o \
 	corelib_renderg.o \
 	corelib_richmsgdlgg.o \
@@ -12184,6 +12227,7 @@ COND_TOOLKIT_OSX_COCOA___GUI_SRC_OBJECTS_3 =  \
 	corelib_cocoa_nonownedwnd.o \
 	corelib_osx_cocoa_notebook.o \
 	corelib_osx_cocoa_radiobut.o \
+	corelib_preferences.o \
 	corelib_cocoa_printdlg.o \
 	corelib_osx_cocoa_scrolbar.o \
 	corelib_osx_cocoa_slider.o \
@@ -17716,6 +17760,9 @@ monodll_osx_cocoa_notebook.o: $(srcdir)/src/osx/cocoa/notebook.mm $(MONODLL_ODEP
 monodll_osx_cocoa_radiobut.o: $(srcdir)/src/osx/cocoa/radiobut.mm $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/radiobut.mm
 
+monodll_preferences.o: $(srcdir)/src/osx/cocoa/preferences.mm $(MONODLL_ODEP)
+	$(CXXC) -c -o $@ $(MONODLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/preferences.mm
+
 monodll_cocoa_printdlg.o: $(srcdir)/src/osx/cocoa/printdlg.mm $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/printdlg.mm
 
@@ -18900,6 +18947,12 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_PLATFORM_MACOSX_1@monodll_utilsunx.o: $(srcdir)/src/unix/utilsunx.cpp $(MONODLL_ODEP)
 @COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/unix/utilsunx.cpp
+
+@COND_PLATFORM_UNIX_1@monodll_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(MONODLL_ODEP)
+@COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
+
+@COND_PLATFORM_MACOSX_1@monodll_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(MONODLL_ODEP)
+@COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
 
 @COND_PLATFORM_UNIX_1@monodll_fswatcher_kqueue.o: $(srcdir)/src/unix/fswatcher_kqueue.cpp $(MONODLL_ODEP)
 @COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/unix/fswatcher_kqueue.cpp
@@ -21925,6 +21978,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@monodll_menucmn.o: $(srcdir)/src/common/menucmn.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/menucmn.cpp
 
+@COND_USE_GUI_1@monodll_modalhook.o: $(srcdir)/src/common/modalhook.cpp $(MONODLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/modalhook.cpp
+
 @COND_USE_GUI_1@monodll_mousemanager.o: $(srcdir)/src/common/mousemanager.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/mousemanager.cpp
 
@@ -21951,6 +22007,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_USE_GUI_1@monodll_popupcmn.o: $(srcdir)/src/common/popupcmn.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/popupcmn.cpp
+
+@COND_USE_GUI_1@monodll_preferencescmn.o: $(srcdir)/src/common/preferencescmn.cpp $(MONODLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/preferencescmn.cpp
 
 @COND_USE_GUI_1@monodll_prntbase.o: $(srcdir)/src/common/prntbase.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/common/prntbase.cpp
@@ -22107,6 +22166,9 @@ monodll_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONODLL_ODEP)
 
 @COND_USE_GUI_1@monodll_progdlgg.o: $(srcdir)/src/generic/progdlgg.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/progdlgg.cpp
+
+@COND_USE_GUI_1@monodll_preferencesg.o: $(srcdir)/src/generic/preferencesg.cpp $(MONODLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/preferencesg.cpp
 
 @COND_USE_GUI_1@monodll_printps.o: $(srcdir)/src/generic/printps.cpp $(MONODLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/generic/printps.cpp
@@ -23563,6 +23625,9 @@ monolib_osx_cocoa_notebook.o: $(srcdir)/src/osx/cocoa/notebook.mm $(MONOLIB_ODEP
 monolib_osx_cocoa_radiobut.o: $(srcdir)/src/osx/cocoa/radiobut.mm $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/radiobut.mm
 
+monolib_preferences.o: $(srcdir)/src/osx/cocoa/preferences.mm $(MONOLIB_ODEP)
+	$(CXXC) -c -o $@ $(MONOLIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/preferences.mm
+
 monolib_cocoa_printdlg.o: $(srcdir)/src/osx/cocoa/printdlg.mm $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/printdlg.mm
 
@@ -24747,6 +24812,12 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_PLATFORM_MACOSX_1@monolib_utilsunx.o: $(srcdir)/src/unix/utilsunx.cpp $(MONOLIB_ODEP)
 @COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/unix/utilsunx.cpp
+
+@COND_PLATFORM_UNIX_1@monolib_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(MONOLIB_ODEP)
+@COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
+
+@COND_PLATFORM_MACOSX_1@monolib_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(MONOLIB_ODEP)
+@COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
 
 @COND_PLATFORM_UNIX_1@monolib_fswatcher_kqueue.o: $(srcdir)/src/unix/fswatcher_kqueue.cpp $(MONOLIB_ODEP)
 @COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/unix/fswatcher_kqueue.cpp
@@ -27772,6 +27843,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@monolib_menucmn.o: $(srcdir)/src/common/menucmn.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/menucmn.cpp
 
+@COND_USE_GUI_1@monolib_modalhook.o: $(srcdir)/src/common/modalhook.cpp $(MONOLIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/modalhook.cpp
+
 @COND_USE_GUI_1@monolib_mousemanager.o: $(srcdir)/src/common/mousemanager.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/mousemanager.cpp
 
@@ -27798,6 +27872,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_USE_GUI_1@monolib_popupcmn.o: $(srcdir)/src/common/popupcmn.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/popupcmn.cpp
+
+@COND_USE_GUI_1@monolib_preferencescmn.o: $(srcdir)/src/common/preferencescmn.cpp $(MONOLIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/preferencescmn.cpp
 
 @COND_USE_GUI_1@monolib_prntbase.o: $(srcdir)/src/common/prntbase.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/common/prntbase.cpp
@@ -27954,6 +28031,9 @@ monolib_sound_sdl.o: $(srcdir)/src/unix/sound_sdl.cpp $(MONOLIB_ODEP)
 
 @COND_USE_GUI_1@monolib_progdlgg.o: $(srcdir)/src/generic/progdlgg.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/progdlgg.cpp
+
+@COND_USE_GUI_1@monolib_preferencesg.o: $(srcdir)/src/generic/preferencesg.cpp $(MONOLIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/preferencesg.cpp
 
 @COND_USE_GUI_1@monolib_printps.o: $(srcdir)/src/generic/printps.cpp $(MONOLIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/generic/printps.cpp
@@ -29011,6 +29091,12 @@ basedll_cocoa_utils.o: $(srcdir)/src/osx/cocoa/utils.mm $(BASEDLL_ODEP)
 @COND_PLATFORM_MACOSX_1@basedll_utilsunx.o: $(srcdir)/src/unix/utilsunx.cpp $(BASEDLL_ODEP)
 @COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/unix/utilsunx.cpp
 
+@COND_PLATFORM_UNIX_1@basedll_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(BASEDLL_ODEP)
+@COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
+
+@COND_PLATFORM_MACOSX_1@basedll_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(BASEDLL_ODEP)
+@COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
+
 @COND_PLATFORM_UNIX_1@basedll_fswatcher_kqueue.o: $(srcdir)/src/unix/fswatcher_kqueue.cpp $(BASEDLL_ODEP)
 @COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(BASEDLL_CXXFLAGS) $(srcdir)/src/unix/fswatcher_kqueue.cpp
 
@@ -29517,6 +29603,12 @@ baselib_cocoa_utils.o: $(srcdir)/src/osx/cocoa/utils.mm $(BASELIB_ODEP)
 
 @COND_PLATFORM_MACOSX_1@baselib_utilsunx.o: $(srcdir)/src/unix/utilsunx.cpp $(BASELIB_ODEP)
 @COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/unix/utilsunx.cpp
+
+@COND_PLATFORM_UNIX_1@baselib_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(BASELIB_ODEP)
+@COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
+
+@COND_PLATFORM_MACOSX_1@baselib_wakeuppipe.o: $(srcdir)/src/unix/wakeuppipe.cpp $(BASELIB_ODEP)
+@COND_PLATFORM_MACOSX_1@	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/unix/wakeuppipe.cpp
 
 @COND_PLATFORM_UNIX_1@baselib_fswatcher_kqueue.o: $(srcdir)/src/unix/fswatcher_kqueue.cpp $(BASELIB_ODEP)
 @COND_PLATFORM_UNIX_1@	$(CXXC) -c -o $@ $(BASELIB_CXXFLAGS) $(srcdir)/src/unix/fswatcher_kqueue.cpp
@@ -30129,6 +30221,9 @@ coredll_osx_cocoa_notebook.o: $(srcdir)/src/osx/cocoa/notebook.mm $(COREDLL_ODEP
 
 coredll_osx_cocoa_radiobut.o: $(srcdir)/src/osx/cocoa/radiobut.mm $(COREDLL_ODEP)
 	$(CXXC) -c -o $@ $(COREDLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/radiobut.mm
+
+coredll_preferences.o: $(srcdir)/src/osx/cocoa/preferences.mm $(COREDLL_ODEP)
+	$(CXXC) -c -o $@ $(COREDLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/preferences.mm
 
 coredll_cocoa_printdlg.o: $(srcdir)/src/osx/cocoa/printdlg.mm $(COREDLL_ODEP)
 	$(CXXC) -c -o $@ $(COREDLL_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/printdlg.mm
@@ -33775,6 +33870,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@coredll_menucmn.o: $(srcdir)/src/common/menucmn.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/menucmn.cpp
 
+@COND_USE_GUI_1@coredll_modalhook.o: $(srcdir)/src/common/modalhook.cpp $(COREDLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/modalhook.cpp
+
 @COND_USE_GUI_1@coredll_mousemanager.o: $(srcdir)/src/common/mousemanager.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/mousemanager.cpp
 
@@ -33801,6 +33899,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 
 @COND_USE_GUI_1@coredll_popupcmn.o: $(srcdir)/src/common/popupcmn.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/popupcmn.cpp
+
+@COND_USE_GUI_1@coredll_preferencescmn.o: $(srcdir)/src/common/preferencescmn.cpp $(COREDLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/preferencescmn.cpp
 
 @COND_USE_GUI_1@coredll_prntbase.o: $(srcdir)/src/common/prntbase.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/common/prntbase.cpp
@@ -33957,6 +34058,9 @@ coredll_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(COREDLL_ODEP)
 
 @COND_USE_GUI_1@coredll_progdlgg.o: $(srcdir)/src/generic/progdlgg.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/progdlgg.cpp
+
+@COND_USE_GUI_1@coredll_preferencesg.o: $(srcdir)/src/generic/preferencesg.cpp $(COREDLL_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/preferencesg.cpp
 
 @COND_USE_GUI_1@coredll_printps.o: $(srcdir)/src/generic/printps.cpp $(COREDLL_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(COREDLL_CXXFLAGS) $(srcdir)/src/generic/printps.cpp
@@ -34497,6 +34601,9 @@ corelib_osx_cocoa_notebook.o: $(srcdir)/src/osx/cocoa/notebook.mm $(CORELIB_ODEP
 
 corelib_osx_cocoa_radiobut.o: $(srcdir)/src/osx/cocoa/radiobut.mm $(CORELIB_ODEP)
 	$(CXXC) -c -o $@ $(CORELIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/radiobut.mm
+
+corelib_preferences.o: $(srcdir)/src/osx/cocoa/preferences.mm $(CORELIB_ODEP)
+	$(CXXC) -c -o $@ $(CORELIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/preferences.mm
 
 corelib_cocoa_printdlg.o: $(srcdir)/src/osx/cocoa/printdlg.mm $(CORELIB_ODEP)
 	$(CXXC) -c -o $@ $(CORELIB_OBJCXXFLAGS) $(srcdir)/src/osx/cocoa/printdlg.mm
@@ -38143,6 +38250,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@corelib_menucmn.o: $(srcdir)/src/common/menucmn.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/menucmn.cpp
 
+@COND_USE_GUI_1@corelib_modalhook.o: $(srcdir)/src/common/modalhook.cpp $(CORELIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/modalhook.cpp
+
 @COND_USE_GUI_1@corelib_mousemanager.o: $(srcdir)/src/common/mousemanager.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/mousemanager.cpp
 
@@ -38169,6 +38279,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 
 @COND_USE_GUI_1@corelib_popupcmn.o: $(srcdir)/src/common/popupcmn.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/popupcmn.cpp
+
+@COND_USE_GUI_1@corelib_preferencescmn.o: $(srcdir)/src/common/preferencescmn.cpp $(CORELIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/preferencescmn.cpp
 
 @COND_USE_GUI_1@corelib_prntbase.o: $(srcdir)/src/common/prntbase.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/common/prntbase.cpp
@@ -38325,6 +38438,9 @@ corelib_win32.o: $(srcdir)/src/univ/themes/win32.cpp $(CORELIB_ODEP)
 
 @COND_USE_GUI_1@corelib_progdlgg.o: $(srcdir)/src/generic/progdlgg.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/progdlgg.cpp
+
+@COND_USE_GUI_1@corelib_preferencesg.o: $(srcdir)/src/generic/preferencesg.cpp $(CORELIB_ODEP)
+@COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/preferencesg.cpp
 
 @COND_USE_GUI_1@corelib_printps.o: $(srcdir)/src/generic/printps.cpp $(CORELIB_ODEP)
 @COND_USE_GUI_1@	$(CXXC) -c -o $@ $(CORELIB_CXXFLAGS) $(srcdir)/src/generic/printps.cpp

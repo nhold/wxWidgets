@@ -39,8 +39,10 @@ OSStatus WXDLLIMPEXP_CORE wxMacDrawCGImage(
                                CGContextRef    inContext,
                                const CGRect *  inBounds,
                                CGImageRef      inImage) ;
-WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromCGImage( CGImageRef image );
-CGImageRef WXDLLIMPEXP_CORE wxOSXCreateCGImageFromNSImage( WX_NSImage nsimage );
+WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromCGImage( CGImageRef image, double scale = 1.0 );
+CGImageRef WXDLLIMPEXP_CORE wxOSXCreateCGImageFromNSImage( WX_NSImage nsimage, double *scale = NULL );
+CGContextRef WXDLLIMPEXP_CORE wxOSXCreateBitmapContextFromNSImage( WX_NSImage nsimage);
+
 wxBitmap WXDLLIMPEXP_CORE wxOSXCreateSystemBitmap(const wxString& id, const wxString &client, const wxSize& size);
 WXWindow WXDLLIMPEXP_CORE wxOSXGetMainWindow();
 
@@ -138,6 +140,8 @@ public :
 
     virtual void        SetupKeyEvent(wxKeyEvent &wxevent, NSEvent * nsEvent, NSString* charString = NULL);
     virtual void        SetupMouseEvent(wxMouseEvent &wxevent, NSEvent * nsEvent);
+    void                SetupCoordinates(wxCoord &x, wxCoord &y, NSEvent *nsEvent);
+    virtual bool        SetupCursor(NSEvent* event);
 
 
 #if !wxOSX_USE_NATIVE_FLIPPED
@@ -145,6 +149,8 @@ public :
     virtual bool        IsFlipped() const { return m_isFlipped; }
 #endif
 
+    virtual double      GetContentScaleFactor() const;
+    
     // cocoa thunk connected calls
 
     virtual unsigned int        draggingEntered(void* sender, WXWidget slf, void* _cmd);
@@ -256,6 +262,8 @@ public :
     
     CGWindowLevel   GetWindowLevel() const { return m_macWindowLevel; }
     void            RestoreWindowLevel();
+    
+    static WX_NSResponder GetNextFirstResponder() ;
 protected :
     CGWindowLevel   m_macWindowLevel;
     WXWindow        m_macWindow;
@@ -282,6 +290,11 @@ public:
 };
 
 #ifdef __OBJC__
+    typedef void (*wxOSX_TextEventHandlerPtr)(NSView* self, SEL _cmd, NSString *event);
+    typedef void (*wxOSX_EventHandlerPtr)(NSView* self, SEL _cmd, NSEvent *event);
+    typedef BOOL (*wxOSX_PerformKeyEventHandlerPtr)(NSView* self, SEL _cmd, NSEvent *event);
+    typedef BOOL (*wxOSX_FocusHandlerPtr)(NSView* self, SEL _cmd);
+
 
     WXDLLIMPEXP_CORE NSScreen* wxOSXGetMenuScreen();
     WXDLLIMPEXP_CORE NSRect wxToNSRect( NSView* parent, const wxRect& r );
@@ -291,6 +304,8 @@ public:
 
     NSRect WXDLLIMPEXP_CORE wxOSXGetFrameForControl( wxWindowMac* window , const wxPoint& pos , const wxSize &size ,
         bool adjustForOrigin = true );
+
+    WXDLLIMPEXP_CORE NSView* wxOSXGetViewFromResponder( NSResponder* responder );
 
     // used for many wxControls
 
@@ -338,6 +353,18 @@ public:
     - (void)textDidChange:(NSNotification *)aNotification;
 
     @end
+
+    @interface wxNSComboBox : NSComboBox
+    {
+        wxNSTextFieldEditor* fieldEditor;
+    }
+
+    - (wxNSTextFieldEditor*) fieldEditor;
+    - (void) setFieldEditor:(wxNSTextFieldEditor*) fieldEditor;
+
+    @end
+
+
 
     @interface wxNSMenu : NSMenu
     {

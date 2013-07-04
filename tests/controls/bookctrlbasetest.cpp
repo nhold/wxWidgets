@@ -17,8 +17,6 @@
 #include "wx/artprov.h"
 #include "wx/imaglist.h"
 #include "wx/bookctrl.h"
-#include "wx/toolbook.h"
-#include "wx/toolbar.h"
 #include "bookctrlbasetest.h"
 #include "testableframe.h"
 
@@ -35,11 +33,7 @@ void BookCtrlBaseTestCase::AddPanels()
 
     base->AssignImageList(m_list);
 
-    //We need to realize the toolbar if we ware running the wxToolbook tests
-    wxToolbook *book = wxDynamicCast(base, wxToolbook);
-
-    if(book)
-        book->GetToolBar()->Realize();
+    Realize();
 
     m_panel1 = new wxPanel(base);
     m_panel2 = new wxPanel(base);
@@ -96,28 +90,30 @@ void BookCtrlBaseTestCase::PageManagement()
 
     base->InsertPage(0, new wxPanel(base), "New Panel", true, 0);
 
-    //We need to realize the toolbar if we ware running the wxToolbook tests
-    wxToolbook *book = wxDynamicCast(base, wxToolbook);
-
-    if(book)
-        book->GetToolBar()->Realize();
+    Realize();
 
     CPPUNIT_ASSERT_EQUAL(0, base->GetSelection());
     CPPUNIT_ASSERT_EQUAL(4, base->GetPageCount());
 
+    // Change the selection to verify that deleting a page before the currently
+    // selected one correctly updates the selection.
+    base->SetSelection(2);
+    CPPUNIT_ASSERT_EQUAL(2, base->GetSelection());
+
     base->DeletePage(1);
 
     CPPUNIT_ASSERT_EQUAL(3, base->GetPageCount());
+    CPPUNIT_ASSERT_EQUAL(1, base->GetSelection());
 
     base->RemovePage(0);
 
     CPPUNIT_ASSERT_EQUAL(2, base->GetPageCount());
+    CPPUNIT_ASSERT_EQUAL(0, base->GetSelection());
 
     base->DeleteAllPages();
 
     CPPUNIT_ASSERT_EQUAL(0, base->GetPageCount());
-
-    AddPanels();
+    CPPUNIT_ASSERT_EQUAL(-1, base->GetSelection());
 }
 
 void BookCtrlBaseTestCase::ChangeEvents()

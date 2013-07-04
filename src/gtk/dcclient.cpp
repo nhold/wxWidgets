@@ -697,7 +697,7 @@ void wxWindowDCImpl::DoDrawPoint( wxCoord x, wxCoord y )
     CalcBoundingBox (x, y);
 }
 
-void wxWindowDCImpl::DoDrawLines( int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset )
+void wxWindowDCImpl::DoDrawLines( int n, const wxPoint points[], wxCoord xoffset, wxCoord yoffset )
 {
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
 
@@ -711,29 +711,32 @@ void wxWindowDCImpl::DoDrawLines( int n, wxPoint points[], wxCoord xoffset, wxCo
         xoffset != 0 || yoffset != 0 || XLOG2DEV(10) != 10 || YLOG2DEV(10) != 10;
 
     // GdkPoint and wxPoint have the same memory layout, so we can cast one to the other
-    GdkPoint* gpts = reinterpret_cast<GdkPoint*>(points);
+    const GdkPoint* gpts = reinterpret_cast<const GdkPoint*>(points);
+    GdkPoint* gpts_alloc = NULL;
 
     if (doScale)
-        gpts = new GdkPoint[n];
+    {
+        gpts_alloc = new GdkPoint[n];
+        gpts = gpts_alloc;
+    }
 
     for (int i = 0; i < n; i++)
     {
         if (doScale)
         {
-            gpts[i].x = XLOG2DEV(points[i].x + xoffset);
-            gpts[i].y = YLOG2DEV(points[i].y + yoffset);
+            gpts_alloc[i].x = XLOG2DEV(points[i].x + xoffset);
+            gpts_alloc[i].y = YLOG2DEV(points[i].y + yoffset);
         }
         CalcBoundingBox(points[i].x + xoffset, points[i].y + yoffset);
     }
 
     if (m_gdkwindow)
-        gdk_draw_lines( m_gdkwindow, m_penGC, gpts, n);
+        gdk_draw_lines( m_gdkwindow, m_penGC, (GdkPoint*) gpts, n);
 
-    if (doScale)
-        delete[] gpts;
+    delete[] gpts_alloc;
 }
 
-void wxWindowDCImpl::DoDrawPolygon( int n, wxPoint points[],
+void wxWindowDCImpl::DoDrawPolygon( int n, const wxPoint points[],
                                     wxCoord xoffset, wxCoord yoffset,
                                     wxPolygonFillMode WXUNUSED(fillStyle) )
 {
@@ -746,18 +749,22 @@ void wxWindowDCImpl::DoDrawPolygon( int n, wxPoint points[],
         xoffset != 0 || yoffset != 0 || XLOG2DEV(10) != 10 || YLOG2DEV(10) != 10;
 
     // GdkPoint and wxPoint have the same memory layout, so we can cast one to the other
-    GdkPoint* gdkpoints = reinterpret_cast<GdkPoint*>(points);
+    const GdkPoint* gdkpoints = reinterpret_cast<const GdkPoint*>(points);
+    GdkPoint* gdkpoints_alloc = NULL;
 
     if (doScale)
-        gdkpoints = new GdkPoint[n];
+    {
+        gdkpoints_alloc = new GdkPoint[n];
+        gdkpoints = gdkpoints_alloc;
+    }
 
     int i;
     for (i = 0 ; i < n ; i++)
     {
         if (doScale)
         {
-            gdkpoints[i].x = XLOG2DEV(points[i].x + xoffset);
-            gdkpoints[i].y = YLOG2DEV(points[i].y + yoffset);
+            gdkpoints_alloc[i].x = XLOG2DEV(points[i].x + xoffset);
+            gdkpoints_alloc[i].y = YLOG2DEV(points[i].y + yoffset);
         }
         CalcBoundingBox(points[i].x + xoffset, points[i].y + yoffset);
     }
@@ -770,7 +777,7 @@ void wxWindowDCImpl::DoDrawPolygon( int n, wxPoint points[],
             bool originChanged;
             DrawingSetup(gc, originChanged);
 
-            gdk_draw_polygon(m_gdkwindow, gc, true, gdkpoints, n);
+            gdk_draw_polygon(m_gdkwindow, gc, true, (GdkPoint*) gdkpoints, n);
 
             if (originChanged)
                 gdk_gc_set_ts_origin(gc, 0, 0);
@@ -788,13 +795,12 @@ void wxWindowDCImpl::DoDrawPolygon( int n, wxPoint points[],
                                gdkpoints[(i+1)%n].y);
             }
 */
-            gdk_draw_polygon( m_gdkwindow, m_penGC, FALSE, gdkpoints, n );
+            gdk_draw_polygon( m_gdkwindow, m_penGC, FALSE, (GdkPoint*) gdkpoints, n );
 
         }
     }
 
-    if (doScale)
-        delete[] gdkpoints;
+    delete[] gdkpoints_alloc;
 }
 
 void wxWindowDCImpl::DoDrawRectangle( wxCoord x, wxCoord y, wxCoord width, wxCoord height )
@@ -990,7 +996,7 @@ void wxWindowDCImpl::DoDrawIcon( const wxIcon &icon, wxCoord x, wxCoord y )
     DoDrawBitmap( (const wxBitmap&)icon, x, y, true );
 }
 
-// scale a pixbuf, return new pixbuf, unref old one
+// scale a pixbuf
 static GdkPixbuf*
 Scale(GdkPixbuf* pixbuf, int dst_w, int dst_h, double sx, double sy)
 {
@@ -998,20 +1004,21 @@ Scale(GdkPixbuf* pixbuf, int dst_w, int dst_h, double sx, double sy)
         GDK_COLORSPACE_RGB, gdk_pixbuf_get_has_alpha(pixbuf), 8, dst_w, dst_h);
     gdk_pixbuf_scale(pixbuf, pixbuf_scaled,
         0, 0, dst_w, dst_h, 0, 0, sx, sy, GDK_INTERP_NEAREST);
-    g_object_unref(pixbuf);
     return pixbuf_scaled;
 }
 
-// scale part of a pixmap using pixbuf scaling, return pixbuf
+// scale part of a pixmap using pixbuf scaling
 static GdkPixbuf*
 Scale(GdkPixmap* pixmap, int x, int y, int w, int h, int dst_w, int dst_h, double sx, double sy)
 {
     GdkPixbuf* pixbuf = gdk_pixbuf_get_from_drawable(
         NULL, pixmap, NULL, x, y, 0, 0, w, h);
-    return Scale(pixbuf, dst_w, dst_h, sx, sy);
+    GdkPixbuf* pixbuf2 = Scale(pixbuf, dst_w, dst_h, sx, sy);
+    g_object_unref(pixbuf);
+    return pixbuf2;
 }
 
-// scale part of a mask pixmap, return new mask, unref old one
+// scale part of a mask pixmap
 static GdkPixmap*
 ScaleMask(GdkPixmap* mask, int x, int y, int w, int h, int dst_w, int dst_h, double sx, double sy)
 {
@@ -1035,12 +1042,10 @@ ScaleMask(GdkPixmap* mask, int x, int y, int w, int h, int dst_w, int dst_h, dou
     g_object_unref(pixbuf);
     GdkPixmap* pixmap = gdk_bitmap_create_from_data(mask, data, dst_w, dst_h);
     delete[] data;
-    g_object_unref(mask);
     return pixmap;
 }
 
 // Make a new mask from part of a mask and a clip region.
-// Return new mask, unref old one.
 static GdkPixmap*
 ClipMask(GdkPixmap* mask, GdkRegion* clipRegion, int x, int y, int dst_x, int dst_y, int w, int h)
 {
@@ -1055,7 +1060,6 @@ ClipMask(GdkPixmap* mask, GdkRegion* clipRegion, int x, int y, int dst_x, int ds
     // draw old mask onto new one, with clip
     gdk_draw_drawable(pixmap, gc, mask, x, y, 0, 0, w, h);
     g_object_unref(gc);
-    g_object_unref(mask);
     return pixmap;
 }
 
@@ -1126,18 +1130,25 @@ void wxWindowDCImpl::DoDrawBitmap( const wxBitmap &bitmap,
     {
         wxMask* m = bitmap.GetMask();
         if (m)
-            mask = m->GetBitmap();
+            mask = *m;
     }
+
+    GdkPixmap* mask_new = NULL;
     if (mask)
     {
-        g_object_ref(mask);
         if (isScaled)
+        {
             mask = ScaleMask(mask, 0, 0, w, h, ww, hh, m_scaleX, m_scaleY);
+            mask_new = mask;
+        }
         if (overlap == wxPartRegion)
         {
             // need a new mask that also masks the clipped area,
             // because gc can't have both a mask and a clip region
             mask = ClipMask(mask, clipRegion, 0, 0, xx, yy, ww, hh);
+            if (mask_new)
+                g_object_unref(mask_new);
+            mask_new = mask;
         }
         gdk_gc_set_clip_mask(use_gc, mask);
         gdk_gc_set_clip_origin(use_gc, xx, yy);
@@ -1145,24 +1156,22 @@ void wxWindowDCImpl::DoDrawBitmap( const wxBitmap &bitmap,
 
     // determine whether to use pixmap or pixbuf
     GdkPixmap* pixmap = NULL;
+    GdkPixmap* pixmap_new = NULL;
     GdkPixbuf* pixbuf = NULL;
+    GdkPixbuf* pixbuf_new = NULL;
     if (bitmap.HasPixmap())
         pixmap = bitmap.GetPixmap();
     if (pixmap && gdk_drawable_get_depth(pixmap) == 1)
     {
-        // convert mono pixmap to color using text fg/bg colors
-        pixmap = MonoToColor(pixmap, 0, 0, w, h);
+        if (gdk_drawable_get_depth(m_gdkwindow) != 1)
+        {
+            // convert mono pixmap to color using text fg/bg colors
+            pixmap = MonoToColor(pixmap, 0, 0, w, h);
+            pixmap_new = pixmap;
+        }
     }
     else if (hasAlpha || pixmap == NULL)
-    {
-        pixmap = NULL;
         pixbuf = bitmap.GetPixbuf();
-        g_object_ref(pixbuf);
-    }
-    else
-    {
-        g_object_ref(pixmap);
-    }
 
     if (isScaled)
     {
@@ -1170,25 +1179,34 @@ void wxWindowDCImpl::DoDrawBitmap( const wxBitmap &bitmap,
             pixbuf = Scale(pixbuf, ww, hh, m_scaleX, m_scaleY);
         else
             pixbuf = Scale(pixmap, 0, 0, w, h, ww, hh, m_scaleX, m_scaleY);
+
+        pixbuf_new = pixbuf;
     }
 
     if (pixbuf)
     {
         gdk_draw_pixbuf(m_gdkwindow, use_gc, pixbuf,
             0, 0, xx, yy, ww, hh, GDK_RGB_DITHER_NORMAL, 0, 0);
-        g_object_unref(pixbuf);
     }
     else
     {
         gdk_draw_drawable(m_gdkwindow, use_gc, pixmap, 0, 0, xx, yy, ww, hh);
     }
 
-    if (pixmap)
-        g_object_unref(pixmap);
+    if (pixbuf_new)
+        g_object_unref(pixbuf_new);
+    if (pixmap_new)
+        g_object_unref(pixmap_new);
     if (mask)
     {
-        g_object_unref(mask);
         gdk_gc_set_clip_region(use_gc, clipRegion);
+
+        // Notice that we can only release the mask now, we can't do it before
+        // the calls to gdk_draw_xxx() above as they crash with X error with
+        // GTK+ up to 2.20.1 (i.e. it works with 2.20 but is known to not work
+        // with 2.16.1 and below).
+        if (mask_new)
+            g_object_unref(mask_new);
     }
 }
 
@@ -1218,7 +1236,7 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
         {
             wxMask* m = bitmap.GetMask();
             if (m)
-                mask = m->GetBitmap();
+                mask = *m;
         }
     }
     else
@@ -1298,7 +1316,6 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
 
     if (mask)
     {
-        g_object_ref(mask);
         int srcMask_x = src_x;
         int srcMask_y = src_y;
         if (xsrcMask != -1 || ysrcMask != -1)
@@ -1306,10 +1323,12 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
             srcMask_x = source->LogicalToDeviceX(xsrcMask);
             srcMask_y = source->LogicalToDeviceY(ysrcMask);
         }
+        GdkPixmap* mask_new = NULL;
         if (isScaled)
         {
             mask = ScaleMask(mask, srcMask_x, srcMask_y,
                 src_w, src_h, dst_w, dst_h, scale_x, scale_y);
+            mask_new = mask;
             srcMask_x = 0;
             srcMask_y = 0;
         }
@@ -1319,15 +1338,21 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
             // because gc can't have both a mask and a clip region
             mask = ClipMask(mask, clipRegion,
                 srcMask_x, srcMask_y, dst_x, dst_y, dst_w, dst_h);
+            if (mask_new)
+                g_object_unref(mask_new);
+            mask_new = mask;
             srcMask_x = 0;
             srcMask_y = 0;
         }
         gdk_gc_set_clip_mask(use_gc, mask);
         gdk_gc_set_clip_origin(use_gc, dst_x - srcMask_x, dst_y - srcMask_y);
+        if (mask_new)
+            g_object_unref(mask_new);
     }
 
     GdkPixmap* pixmap = NULL;
-    if (gdk_drawable_get_depth(srcDrawable) == 1)
+    if (gdk_drawable_get_depth(srcDrawable) == 1 &&
+        (gdk_drawable_get_depth(m_gdkwindow) != 1 || isScaled))
     {
         // Convert mono pixmap to color using text fg/bg colors.
         // Scaling/drawing is simpler if this is done first.
@@ -1363,10 +1388,8 @@ bool wxWindowDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
     if (pixmap)
         g_object_unref(pixmap);
     if (mask)
-    {
-        g_object_unref(mask);
         gdk_gc_set_clip_region(use_gc, clipRegion);
-    }
+
     return true;
 }
 
@@ -1781,7 +1804,7 @@ void wxWindowDCImpl::SetBrush( const wxBrush &brush )
     if ((m_brush.GetStyle() == wxBRUSHSTYLE_STIPPLE_MASK_OPAQUE) && (m_brush.GetStipple()->GetMask()))
     {
         gdk_gc_set_fill( m_textGC, GDK_OPAQUE_STIPPLED);
-        gdk_gc_set_stipple( m_textGC, m_brush.GetStipple()->GetMask()->GetBitmap() );
+        gdk_gc_set_stipple( m_textGC, *m_brush.GetStipple()->GetMask() );
     }
 
     if (m_brush.IsHatch())

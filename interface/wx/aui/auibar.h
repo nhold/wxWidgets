@@ -57,6 +57,14 @@ enum wxAuiToolBarStyle
     */
     wxAUI_TB_HORIZONTAL    = 1 << 7,
 
+
+    /**
+      Draw a plain background (based on parent) instead of the default gradient background.
+
+      @since 2.9.5
+    */
+    wxAUI_TB_PLAIN_BACKGROUND = 1 << 8,
+
     /**
        Shows the text alongside the icons, not vertically stacked.
     */
@@ -406,6 +414,11 @@ public:
                          wxWindow* wnd,
                          const wxRect& rect) = 0;
 
+    virtual void DrawPlainBackground(
+                                  wxDC& dc,
+                                  wxWindow* wnd,
+                                  const wxRect& rect) = 0;
+
     virtual void DrawLabel(
                          wxDC& dc,
                          wxWindow* wnd,
@@ -493,6 +506,10 @@ public:
                 wxWindow* wnd,
                 const wxRect& rect);
 
+    virtual void DrawPlainBackground(wxDC& dc,
+                                  wxWindow* wnd,
+                                  const wxRect& rect);
+
     virtual void DrawLabel(
                 wxDC& dc,
                 wxWindow* wnd,
@@ -573,6 +590,9 @@ public:
     @style{wxAUI_TB_HORIZONTAL}
         analogous to wxAUI_TB_VERTICAL, but forces the toolbar
         to be horizontal
+    @style{wxAUI_TB_PLAIN_BACKGROUND}
+        Draw a plain background (based on parent) instead of the
+        default gradient background.
     @style{wxAUI_TB_HORZ_TEXT}
         Equivalent to wxAUI_TB_HORZ_LAYOUT | wxAUI_TB_TEXT
     @style{wxAUI_TB_DEFAULT_STYLE}
@@ -581,15 +601,15 @@ public:
 
     @beginEventEmissionTable{wxAuiToolBarEvent}
     @event{EVT_AUITOOLBAR_TOOL_DROPDOWN(id, func)}
-        Process a wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN event
+        Process a wxEVT_AUITOOLBAR_TOOL_DROPDOWN event
     @event{EVT_AUITOOLBAR_OVERFLOW_CLICK(id, func)}
-        Process a wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK event
+        Process a wxEVT_AUITOOLBAR_OVERFLOW_CLICK event
     @event{EVT_AUITOOLBAR_RIGHT_CLICK(id, func)}
-        Process a wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK event
+        Process a wxEVT_AUITOOLBAR_RIGHT_CLICK event
     @event{EVT_AUITOOLBAR_MIDDLE_CLICK(id, func)}
-        Process a wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK event
+        Process a wxEVT_AUITOOLBAR_MIDDLE_CLICK event
     @event{EVT_AUITOOLBAR_BEGIN_DRAG(id, func)}
-        Process a wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG event
+        Process a wxEVT_AUITOOLBAR_BEGIN_DRAG event
     @endEventTable
 
     @library{wxaui}

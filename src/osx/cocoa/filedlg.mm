@@ -38,7 +38,7 @@
 
 #include "wx/osx/private.h"
 #include "wx/sysopt.h"
-#include "wx/testing.h"
+#include "wx/modalhook.h"
 
 #include <mach-o/dyld.h>
 
@@ -196,6 +196,7 @@ wxFileDialog::wxFileDialog(
     m_filterIndex = -1;
     m_sheetDelegate = [[ModalDialogDelegate alloc] init];
     [(ModalDialogDelegate*)m_sheetDelegate setImplementation: this];
+    m_delegate = nil;
 }
 
 wxFileDialog::~wxFileDialog()
@@ -397,7 +398,7 @@ wxWindow* wxFileDialog::CreateFilterPanel(wxWindow *extracontrol)
             if ( m_firstFileTypeFilter >= 0 )
                 m_filterChoice->SetSelection(m_firstFileTypeFilter);
         }
-        m_filterChoice->Connect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(wxFileDialog::OnFilterSelected), NULL, this);
+        m_filterChoice->Connect(wxEVT_CHOICE, wxCommandEventHandler(wxFileDialog::OnFilterSelected), NULL, this);
     }
         
     if(extracontrol)
@@ -448,6 +449,11 @@ bool wxFileDialog::CheckFile( const wxString& filename )
 void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
 {
     NSSavePanel* panel = (NSSavePanel*) nativeWindow;
+    // for sandboxed app we cannot access the outer structures
+    // this leads to problems with extra controls, so as a temporary
+    // workaround for crashes we don't support those yet
+    if ( [panel contentView] == nil )
+        return;
     
     wxNonOwnedWindow::Create( GetParent(), nativeWindow );
     wxWindow* extracontrol = NULL;
@@ -458,7 +464,6 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
     }
 
     NSView* accView = nil;
-    m_delegate = nil;
 
     if ( m_useFileTypeFilter )
     {
@@ -496,7 +501,7 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
 
 int wxFileDialog::ShowModal()
 {
-    WX_TESTING_SHOW_MODAL_HOOK();
+    WX_HOOK_MODAL_DIALOG();
 
     wxCFEventLoopPauseIdleEvents pause;
 
@@ -693,7 +698,9 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
     if (GetModality() == wxDIALOG_MODALITY_WINDOW_MODAL)
         SendWindowModalDialogEvent ( wxEVT_WINDOW_MODAL_DIALOG_CLOSED  );
     
-    UnsubclassWin();
+    // workaround for sandboxed app, see above
+    if ( m_isNativeWindowWrapper )
+        UnsubclassWin();
     [(NSSavePanel*) panel setAccessoryView:nil];
 }
 

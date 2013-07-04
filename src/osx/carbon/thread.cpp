@@ -475,7 +475,7 @@ public:
     {
         m_tid = kInvalidID;
         m_state = STATE_NEW;
-        m_prio = WXTHREAD_DEFAULT_PRIORITY;
+        m_prio = wxPRIORITY_DEFAULT;
         m_notifyQueueId = kInvalidID;
         m_exitcode = 0;
         m_cancelled = false ;
@@ -656,6 +656,9 @@ bool wxThreadInternal::Create( wxThread *thread, unsigned int stackSize )
     wxASSERT_MSG( m_state == STATE_NEW && !m_tid,
                     wxT("Create()ing thread twice?") );
 
+    if ( thread->IsDetached() )
+        Detach();
+
     OSStatus err = noErr;
     m_thread = thread;
 
@@ -683,7 +686,7 @@ bool wxThreadInternal::Create( wxThread *thread, unsigned int stackSize )
         return false;
     }
 
-    if ( m_prio != WXTHREAD_DEFAULT_PRIORITY )
+    if ( m_prio != wxPRIORITY_DEFAULT )
         SetPriority( m_prio );
 
     return true;
@@ -868,13 +871,9 @@ wxThreadError wxThread::Create( unsigned int stackSize )
 {
     wxCriticalSectionLocker lock(m_critsect);
 
-    if ( m_isDetached )
-        m_internal->Detach() ;
-
     if ( !m_internal->Create(this, stackSize) )
     {
         m_internal->SetState( STATE_EXITED );
-
         return wxTHREAD_NO_RESOURCE;
     }
 
@@ -884,6 +883,17 @@ wxThreadError wxThread::Create( unsigned int stackSize )
 wxThreadError wxThread::Run()
 {
     wxCriticalSectionLocker lock(m_critsect);
+
+    // Create the thread if it wasn't created yet with an explicit
+    // Create() call:
+    if ( m_internal->GetId() == kInvalidID )
+    {
+        if ( !m_internal->Create(this, stackSize) )
+        {
+            m_internal->SetState( STATE_EXITED );
+            return wxTHREAD_NO_RESOURCE;
+        }
+    }
 
     wxCHECK_MSG( m_internal->GetId(), wxTHREAD_MISC_ERROR,
                  wxT("must call wxThread::Create() first") );
@@ -1110,8 +1120,7 @@ bool wxThread::TestDestroy()
 
 void wxThread::SetPriority(unsigned int prio)
 {
-    wxCHECK_RET( ((int)WXTHREAD_MIN_PRIORITY <= (int)prio) &&
-                 ((int)prio <= (int)WXTHREAD_MAX_PRIORITY),
+    wxCHECK_RET( wxPRIORITY_MIN <= prio && prio <= wxPRIORITY_MAX,
                  wxT("invalid thread priority") );
 
     wxCriticalSectionLocker lock(m_critsect);

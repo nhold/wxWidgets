@@ -111,6 +111,7 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 @interface wxMaximumLengthFormatter : NSFormatter
 {
     int maxLength;
+    wxTextEntry* field;
 }
 
 @end
@@ -148,10 +149,15 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     int len = [*partialStringPtr length];
     if ( maxLength > 0 && len > maxLength )
     {
-        // TODO wxEVT_COMMAND_TEXT_MAXLEN
+        field->SendMaxLenEvent();
         return NO;
     }
     return YES;
+}
+
+- (void) setTextEntry:(wxTextEntry*) tf
+{
+    field = tf;
 }
 
 @end
@@ -182,7 +188,11 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
     {
-        impl->DoNotifyFocusEvent( false, NULL );
+        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
+        NSView* otherView = wxOSXGetViewFromResponder(responder);
+        
+        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
+        impl->DoNotifyFocusEvent( false, otherWindow );
     }
 }
 
@@ -206,7 +216,7 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
                     wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
                     if ( def && def->IsEnabled() )
                     {
-                        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, def->GetId() );
+                        wxCommandEvent event(wxEVT_BUTTON, def->GetId() );
                         event.SetEventObject(def);
                         def->Command(event);
                         handled = YES;
@@ -336,7 +346,11 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
     {
-        impl->DoNotifyFocusEvent( false, NULL );
+        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
+        NSView* otherView = wxOSXGetViewFromResponder(responder);
+        
+        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
+        impl->DoNotifyFocusEvent( false, otherWindow );
     }
 }
 
@@ -506,7 +520,11 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
             timpl->SetInternalSelection(range.location, range.location + range.length);
         }
 
-        impl->DoNotifyFocusEvent( false, NULL );
+        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
+        NSView* otherView = wxOSXGetViewFromResponder(responder);
+        
+        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
+        impl->DoNotifyFocusEvent( false, otherWindow );
     }
 }
 @end
@@ -793,6 +811,7 @@ void wxNSTextFieldControl::SetMaxLength(unsigned long len)
 {
     wxMaximumLengthFormatter* formatter = [[[wxMaximumLengthFormatter alloc] init] autorelease];
     [formatter setMaxLength:len];
+    [formatter setTextEntry:GetTextEntry()];
     [m_textField setFormatter:formatter];
 }
 
@@ -912,7 +931,7 @@ void wxNSTextFieldControl::controlAction(WXWidget WXUNUSED(slf),
     wxWindow* wxpeer = (wxWindow*) GetWXPeer();
     if ( wxpeer && (wxpeer->GetWindowStyle() & wxTE_PROCESS_ENTER) )
     {
-        wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, wxpeer->GetId());
+        wxCommandEvent event(wxEVT_TEXT_ENTER, wxpeer->GetId());
         event.SetEventObject( wxpeer );
         event.SetString( GetTextEntry()->GetValue() );
         wxpeer->HandleWindowEvent( event );

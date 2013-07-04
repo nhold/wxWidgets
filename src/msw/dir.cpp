@@ -64,20 +64,74 @@ inline void FreeFindData(FIND_DATA fd)
     }
 }
 
-inline FIND_DATA FindFirst(const wxString& spec,
-                           FIND_STRUCT *finddata)
-{
-    return ::FindFirstFile(spec.t_str(), finddata);
-}
-
-inline bool FindNext(FIND_DATA fd, FIND_STRUCT *finddata)
-{
-    return ::FindNextFile(fd, finddata) != 0;
-}
-
-const wxChar *GetNameFromFindData(FIND_STRUCT *finddata)
+const wxChar *GetNameFromFindData(const FIND_STRUCT *finddata)
 {
     return finddata->cFileName;
+}
+
+// Helper function checking that the contents of the given FIND_STRUCT really
+// match our filter. We need to do it ourselves as native Windows functions
+// apply the filter to both the long and the short names of the file, so
+// something like "*.bar" matches "foo.bar.baz" too and not only "foo.bar", so
+// we have to double check that we have a real match.
+inline bool
+CheckFoundMatch(const FIND_STRUCT* finddata, const wxString& filter)
+{
+    // If there is no filter, the found file must be the one we really are
+    // looking for.
+    if ( filter.empty() )
+        return true;
+
+    // Otherwise do check the match validity. Notice that we must do it
+    // case-insensitively because the case of the file names is not supposed to
+    // matter under Windows.
+    wxString fn(GetNameFromFindData(finddata));
+
+    // However if the filter contains only special characters (which is a
+    // common case), we can skip the case conversion.
+    if ( filter.find_first_not_of(wxS("*?.")) == wxString::npos )
+        return fn.Matches(filter);
+
+    return fn.MakeUpper().Matches(filter.Upper());
+}
+
+inline bool
+FindNext(FIND_DATA fd, const wxString& filter, FIND_STRUCT *finddata)
+{
+    for ( ;; )
+    {
+        if ( !::FindNextFile(fd, finddata) )
+            return false;
+
+        // If we did find something, check that it really matches.
+        if ( CheckFoundMatch(finddata, filter) )
+            return true;
+    }
+}
+
+inline FIND_DATA
+FindFirst(const wxString& spec,
+          const wxString& filter,
+          FIND_STRUCT *finddata)
+{
+    FIND_DATA fd = ::FindFirstFile(spec.t_str(), finddata);
+
+    // As in FindNext() above, we need to check that the file name we found
+    // really matches our filter and look for the next match if it doesn't.
+    if ( IsFindDataOk(fd) && !CheckFoundMatch(finddata, filter) )
+    {
+        if ( !FindNext(fd, filter, finddata) )
+        {
+            // As we return the invalid handle from here to indicate that we
+            // didn't find anything, close the one we initially received
+            // ourselves.
+            FreeFindData(fd);
+
+            return INVALID_HANDLE_VALUE;
+        }
+    }
+
+    return fd;
 }
 
 inline FIND_ATTR GetAttrFromFindData(FIND_STRUCT *finddata)
@@ -196,7 +250,7 @@ bool wxDirData::Read(wxString *filename)
         else
             filespec += m_filespec;
 
-        m_finddata = FindFirst(filespec, PTR_TO_FINDDATA);
+        m_finddata = FindFirst(filespec, m_filespec, PTR_TO_FINDDATA);
 
         first = true;
     }
@@ -228,7 +282,7 @@ bool wxDirData::Read(wxString *filename)
         }
         else
         {
-            if ( !FindNext(m_finddata, PTR_TO_FINDDATA) )
+            if ( !FindNext(m_finddata, m_filespec, PTR_TO_FINDDATA) )
             {
 #ifdef __WIN32__
                 DWORD err = ::GetLastError();
@@ -400,7 +454,7 @@ wxGetDirectoryTimes(const wxString& dirname,
 #endif
 
     FIND_STRUCT fs;
-    FIND_DATA fd = FindFirst(dirname, &fs);
+    FIND_DATA fd = FindFirst(dirname, wxEmptyString, &fs);
     if ( !IsFindDataOk(fd) )
     {
         return false;

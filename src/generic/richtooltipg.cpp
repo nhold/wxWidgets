@@ -232,14 +232,14 @@ public:
         }
     }
 
-    void SetPosition(wxRect* rect)
+    void SetPosition(const wxRect* rect)
     {
         wxPoint pos;
 
         if ( !rect || rect->IsEmpty() )
             pos = GetTipPoint();
         else
-            pos = wxPoint( rect->x + rect->width / 2, rect->y + rect->height / 2 );
+            pos = GetParent()->ClientToScreen( wxPoint( rect->x + rect->width / 2, rect->y + rect->height / 2 ) );
 
         // We want our anchor point to coincide with this position so offset
         // the position of the top left corner passed to Move() accordingly.
@@ -673,7 +673,7 @@ void wxRichToolTipGenericImpl::SetTitleFont(const wxFont& font)
     m_titleFont = font;
 }
 
-void wxRichToolTipGenericImpl::ShowFor(wxWindow* win, wxRect* rect)
+void wxRichToolTipGenericImpl::ShowFor(wxWindow* win, const wxRect* rect)
 {
     // Set the focus to the window the tooltip refers to to make it look active.
     win->SetFocus();

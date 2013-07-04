@@ -23,7 +23,8 @@ BCCDIR = $(MAKEDIR)\..
 
 MAKEARGS = -DCC="$(CC)" -DCXX="$(CXX)" -DCFLAGS="$(CFLAGS)" \
 	-DCXXFLAGS="$(CXXFLAGS)" -DCPPFLAGS="$(CPPFLAGS)" -DLDFLAGS="$(LDFLAGS)" \
-	-DCPP="$(CPP)" -DSHARED="$(SHARED)" -DWXUNIV="$(WXUNIV)" \
+	-DCPP="$(CPP)" -DSHARED="$(SHARED)" -DTOOLKIT="$(TOOLKIT)" \
+	-DTOOLKIT_VERSION="$(TOOLKIT_VERSION)" -DWXUNIV="$(WXUNIV)" \
 	-DUNICODE="$(UNICODE)" -DMSLU="$(MSLU)" -DBUILD="$(BUILD)" \
 	-DDEBUG_INFO="$(DEBUG_INFO)" -DDEBUG_FLAG="$(DEBUG_FLAG)" \
 	-DMONOLITHIC="$(MONOLITHIC)" -DUSE_GUI="$(USE_GUI)" \
@@ -45,7 +46,7 @@ MAKEARGS = -DCC="$(CC)" -DCXX="$(CXX)" -DCFLAGS="$(CFLAGS)" \
 
 ### Targets: ###
 
-all: access animate artprov aui calendar caret clipboard collpane combo config console controls dataview dialogs dialup display dll dnd docview dragimag drawing erase event except exec font grid help htlbox html image internat ipc joytest keyboard layout listctrl mdi mediaplayer menu minimal nativdlg notebook oleauto opengl ownerdrw popup power printing propgrid regtest render ribbon richtext sashtest scroll shaped sockets sound splash splitter statbar stc svg taborder taskbar text thread toolbar treectrl typetest uiaction validate vscroll webview widgets wizard wrapsizer xrc
+all: access animate artprov aui calendar caret clipboard collpane combo config console controls dataview dialogs dialup display dll dnd docview dragimag drawing erase event except exec font grid help htlbox html image internat ipc joytest keyboard layout listctrl mdi mediaplayer menu minimal nativdlg notebook oleauto opengl ownerdrw popup power preferences printing propgrid regtest render ribbon richtext sashtest scroll shaped sockets sound splash splitter statbar stc svg taborder taskbar text thread toolbar treectrl typetest uiaction validate vscroll webview widgets wizard wrapsizer xrc
 
 clean: 
 	-if exist .\*.obj del .\*.obj
@@ -243,6 +244,10 @@ clean:
 	@echo $(MAKE) -f makefile.bcc $(MAKEARGS) clean >>power.bat
 	call power.bat
 	@del power.bat
+	@echo cd preferences >preferences.bat
+	@echo $(MAKE) -f makefile.bcc $(MAKEARGS) clean >>preferences.bat
+	call preferences.bat
+	@del preferences.bat
 	@echo cd printing >printing.bat
 	@echo $(MAKE) -f makefile.bcc $(MAKEARGS) clean >>printing.bat
 	call printing.bat
@@ -659,6 +664,12 @@ power:
 	@echo $(MAKE) -f makefile.bcc $(MAKEARGS) all >>power.bat
 	call power.bat
 	@del power.bat
+
+preferences: 
+	@echo cd preferences >preferences.bat
+	@echo $(MAKE) -f makefile.bcc $(MAKEARGS) all >>preferences.bat
+	call preferences.bat
+	@del preferences.bat
 
 printing: 
 	@echo cd printing >printing.bat

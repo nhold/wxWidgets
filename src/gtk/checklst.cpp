@@ -31,7 +31,7 @@ static void gtk_checklist_toggled(GtkCellRendererToggle * WXUNUSED(renderer),
     wxCHECK_RET( listbox->m_treeview != NULL, wxT("invalid listbox") );
 
     GtkTreePath* path = gtk_tree_path_new_from_string(stringpath);
-    wxCommandEvent new_event( wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
+    wxCommandEvent new_event( wxEVT_CHECKLISTBOX,
                               listbox->GetId() );
     new_event.SetEventObject( listbox );
     new_event.SetInt( gtk_tree_path_get_indices(path)[0] );
@@ -46,7 +46,7 @@ static void gtk_checklist_toggled(GtkCellRendererToggle * WXUNUSED(renderer),
 // wxCheckListBox
 //-----------------------------------------------------------------------------
 
-wxCheckListBox::wxCheckListBox() : wxListBox()
+wxCheckListBox::wxCheckListBox() : wxCheckListBoxBase()
 {
     m_hasCheckBoxes = true;
 }

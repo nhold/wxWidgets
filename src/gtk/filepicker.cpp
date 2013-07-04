@@ -86,7 +86,7 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
         // we need to know when the dialog has been dismissed clicking OK...
         // NOTE: the "clicked" signal is not available for a GtkFileChooserButton
         //       thus we are forced to use wxFileDialog's event
-        m_dialog->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+        m_dialog->Connect(wxEVT_BUTTON,
                 wxCommandEventHandler(wxFileButton::OnDialogOK),
                 NULL, this);
 
@@ -103,6 +103,18 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
 
 wxFileButton::~wxFileButton()
 {
+    if ( m_dialog )
+    {
+        // We need to delete the C++ dialog object here but we shouldn't delete
+        // its widget which is used by our GtkFileChooserButton and will be
+        // deleted by it when it is itself destroyed in our base class dtor. So
+        // take the widget ownership away from the dialog to avoid GTK+ errors
+        // that would happen if GtkFileChooserButton tried to access the
+        // already destroyed dialog widget.
+        g_object_unref(m_dialog->m_widget);
+        m_dialog->m_widget = NULL;
+        delete m_dialog;
+    }
 }
 
 void wxFileButton::OnDialogOK(wxCommandEvent& ev)
@@ -115,7 +127,7 @@ void wxFileButton::OnDialogOK(wxCommandEvent& ev)
         UpdatePathFromDialog(m_dialog);
 
         // ...and fire an event
-        wxFileDirPickerEvent event(wxEVT_COMMAND_FILEPICKER_CHANGED, this, GetId(), m_path);
+        wxFileDirPickerEvent event(wxEVT_FILEPICKER_CHANGED, this, GetId(), m_path);
         HandleWindowEvent(event);
     }
 }
@@ -183,7 +195,7 @@ static void gtk_dirbutton_currentfolderchanged_callback(GtkFileChooserButton *wi
         chdir(filename);
 
     // ...and fire an event
-    wxFileDirPickerEvent event(wxEVT_COMMAND_DIRPICKER_CHANGED, p, p->GetId(), p->GetPath());
+    wxFileDirPickerEvent event(wxEVT_DIRPICKER_CHANGED, p, p->GetId(), p->GetPath());
     p->HandleWindowEvent(event);
 }
 }
@@ -258,6 +270,7 @@ bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
 
 wxDirButton::~wxDirButton()
 {
+    delete m_dialog;
 }
 
 void wxDirButton::GTKUpdatePath(const char *gtkpath)

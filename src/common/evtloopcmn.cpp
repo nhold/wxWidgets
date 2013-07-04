@@ -2,10 +2,10 @@
 // Name:        src/common/evtloopcmn.cpp
 // Purpose:     common wxEventLoop-related stuff
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     2006-01-12
 // RCS-ID:      $Id$
-// Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2006, 2013 Vadim Zeitlin <vadim@wxwindows.org>
+//              (c) 2013 Rob Bresalier
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +22,10 @@
     #include "wx/app.h"
 #endif //WX_PRECOMP
 
+#include "wx/scopeguard.h"
+#include "wx/apptrait.h"
+#include "wx/private/eventloopsourcesmanager.h"
+
 // ----------------------------------------------------------------------------
 // wxEventLoopBase
 // ----------------------------------------------------------------------------
@@ -30,6 +34,9 @@ wxEventLoopBase *wxEventLoopBase::ms_activeLoop = NULL;
 
 wxEventLoopBase::wxEventLoopBase()
 {
+    m_isInsideRun = false;
+    m_shouldExit = false;
+
     m_isInsideYield = false;
     m_eventsToProcessInsideYield = wxEVT_CATEGORY_ALL;
 }
@@ -48,6 +55,35 @@ void wxEventLoopBase::SetActive(wxEventLoopBase* loop)
 
     if (wxTheApp)
         wxTheApp->OnEventLoopEnter(loop);
+}
+
+int wxEventLoopBase::Run()
+{
+    // event loops are not recursive, you need to create another loop!
+    wxCHECK_MSG( !IsInsideRun(), -1, wxT("can't reenter a message loop") );
+
+    // ProcessIdle() and ProcessEvents() below may throw so the code here should
+    // be exception-safe, hence we must use local objects for all actions we
+    // should undo
+    wxEventLoopActivator activate(this);
+
+    // We might be called again, after a previous call to ScheduleExit(), so
+    // reset this flag.
+    m_shouldExit = false;
+
+    // Set this variable to true for the duration of this method.
+    m_isInsideRun = true;
+    wxON_BLOCK_EXIT_SET(m_isInsideRun, false);
+
+    // Finally really run the loop.
+    return DoRun();
+}
+
+void wxEventLoopBase::Exit(int rc)
+{
+    wxCHECK_RET( IsRunning(), wxS("Use ScheduleExit() on not running loop") );
+
+    ScheduleExit(rc);
 }
 
 void wxEventLoopBase::OnExit()
@@ -81,6 +117,23 @@ bool wxEventLoopBase::Yield(bool onlyIfNeeded)
     return YieldFor(wxEVT_CATEGORY_ALL);
 }
 
+#if wxUSE_EVENTLOOP_SOURCE
+
+wxEventLoopSource*
+wxEventLoopBase::AddSourceForFD(int fd,
+                                wxEventLoopSourceHandler *handler,
+                                int flags)
+{
+    // Delegate to the event loop sources manager defined by it.
+    wxEventLoopSourcesManagerBase* const
+        manager = wxApp::GetValidTraits().GetEventLoopSourcesManager();
+    wxCHECK_MSG( manager, NULL, wxS("Must have wxEventLoopSourcesManager") );
+
+    return manager->AddSourceForFD(fd, handler, flags);
+}
+
+#endif // wxUSE_EVENTLOOP_SOURCE
+
 // wxEventLoopManual is unused in the other ports
 #if defined(__WINDOWS__) || defined(__WXDFB__) || ( ( defined(__UNIX__) && !defined(__WXOSX__) ) && wxUSE_BASE)
 
@@ -91,7 +144,6 @@ bool wxEventLoopBase::Yield(bool onlyIfNeeded)
 wxEventLoopManual::wxEventLoopManual()
 {
     m_exitcode = 0;
-    m_shouldExit = false;
 }
 
 bool wxEventLoopManual::ProcessEvents()
@@ -117,16 +169,8 @@ bool wxEventLoopManual::ProcessEvents()
     return Dispatch();
 }
 
-int wxEventLoopManual::Run()
+int wxEventLoopManual::DoRun()
 {
-    // event loops are not recursive, you need to create another loop!
-    wxCHECK_MSG( !IsRunning(), -1, wxT("can't reenter a message loop") );
-
-    // ProcessIdle() and ProcessEvents() below may throw so the code here should
-    // be exception-safe, hence we must use local objects for all actions we
-    // should undo
-    wxEventLoopActivator activate(this);
-
     // we must ensure that OnExit() is called even if an exception is thrown
     // from inside ProcessEvents() but we must call it from Exit() in normal
     // situations because it is supposed to be called synchronously,
@@ -220,9 +264,9 @@ int wxEventLoopManual::Run()
     return m_exitcode;
 }
 
-void wxEventLoopManual::Exit(int rc)
+void wxEventLoopManual::ScheduleExit(int rc)
 {
-    wxCHECK_RET( IsRunning(), wxT("can't call Exit() if not running") );
+    wxCHECK_RET( IsInsideRun(), wxT("can't call ScheduleExit() if not running") );
 
     m_exitcode = rc;
     m_shouldExit = true;

@@ -164,26 +164,26 @@ wxDEFINE_EVENT( wxEVT_ASYNC_METHOD_CALL, wxAsyncMethodCallEvent );
 
 #if wxUSE_GUI
 
-wxDEFINE_EVENT( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_MENU_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_RADIOBUTTON_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_SCROLLBAR_UPDATED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_VLBOX_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TOOL_RCLICKED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TOOL_ENTER, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_SPINCTRL_UPDATED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_SPINCTRLDOUBLE_UPDATED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TOOL_DROPDOWN_CLICKED, wxCommandEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_COMBOBOX_DROPDOWN, wxCommandEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_COMBOBOX_CLOSEUP, wxCommandEvent);
+wxDEFINE_EVENT( wxEVT_BUTTON, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_CHECKBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_CHOICE, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_LISTBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_LISTBOX_DCLICK, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_CHECKLISTBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_MENU, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_SLIDER, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_RADIOBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_RADIOBUTTON, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_SCROLLBAR, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_VLBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_COMBOBOX, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOOL_RCLICKED, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOOL_ENTER, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_SPINCTRL, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_SPINCTRLDOUBLE, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOOL_DROPDOWN, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_COMBOBOX_DROPDOWN, wxCommandEvent);
+wxDEFINE_EVENT( wxEVT_COMBOBOX_CLOSEUP, wxCommandEvent);
 
 // Mouse event types
 wxDEFINE_EVENT( wxEVT_LEFT_DOWN, wxMouseEvent );
@@ -299,9 +299,9 @@ wxDEFINE_EVENT( wxEVT_INIT_DIALOG, wxInitDialogEvent );
 wxDEFINE_EVENT( wxEVT_UPDATE_UI, wxUpdateUIEvent );
 
 // Clipboard events
-wxDEFINE_EVENT( wxEVT_COMMAND_TEXT_COPY, wxClipboardTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TEXT_CUT, wxClipboardTextEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_TEXT_PASTE, wxClipboardTextEvent );
+wxDEFINE_EVENT( wxEVT_TEXT_COPY, wxClipboardTextEvent );
+wxDEFINE_EVENT( wxEVT_TEXT_CUT, wxClipboardTextEvent );
+wxDEFINE_EVENT( wxEVT_TEXT_PASTE, wxClipboardTextEvent );
 
 // Generic command events
 // Note: a click is a higher-level event than button down/up
@@ -370,6 +370,7 @@ wxEvent::wxEvent(int theId, wxEventType commandType)
     m_isCommandEvent = false;
     m_propagationLevel = wxEVENT_PROPAGATE_NONE;
     m_wasProcessed = false;
+    m_willBeProcessedAgain = false;
 }
 
 wxEvent::wxEvent(const wxEvent& src)
@@ -384,6 +385,7 @@ wxEvent::wxEvent(const wxEvent& src)
     , m_skipped(src.m_skipped)
     , m_isCommandEvent(src.m_isCommandEvent)
     , m_wasProcessed(false)
+    , m_willBeProcessedAgain(false)
 {
 }
 
@@ -402,6 +404,10 @@ wxEvent& wxEvent::operator=(const wxEvent& src)
     m_isCommandEvent = src.m_isCommandEvent;
 
     // don't change m_wasProcessed
+
+    // While the original again could be passed to another handler, this one
+    // isn't going to be processed anywhere else by default.
+    m_willBeProcessedAgain = false;
 
     return *this;
 }
@@ -427,7 +433,7 @@ wxCommandEvent::wxCommandEvent(wxEventType commandType, int theId)
 
 wxString wxCommandEvent::GetString() const
 {
-    if (m_eventType != wxEVT_COMMAND_TEXT_UPDATED || !m_eventObject)
+    if (m_eventType != wxEVT_TEXT || !m_eventObject)
     {
         return m_cmdString;
     }
@@ -559,6 +565,7 @@ wxMouseEvent::wxMouseEvent(wxEventType commandType)
     m_wheelRotation = 0;
     m_wheelDelta = 0;
     m_linesPerAction = 0;
+    m_columnsPerAction = 0;
 }
 
 void wxMouseEvent::Assign(const wxMouseEvent& event)
@@ -581,6 +588,7 @@ void wxMouseEvent::Assign(const wxMouseEvent& event)
     m_wheelRotation = event.m_wheelRotation;
     m_wheelDelta = event.m_wheelDelta;
     m_linesPerAction = event.m_linesPerAction;
+    m_columnsPerAction = event.m_columnsPerAction;
     m_wheelAxis = event.m_wheelAxis;
 }
 
@@ -1427,6 +1435,12 @@ bool wxEvtHandler::TryAfter(wxEvent& event)
     // the last one in the chain (which, admittedly, shouldn't happen often).
     if ( GetNextHandler() )
         return GetNextHandler()->TryAfter(event);
+
+    // If this event is going to be processed in another handler next, don't
+    // pass it to wxTheApp now, it will be done from TryAfter() of this other
+    // handler.
+    if ( event.WillBeProcessedAgain() )
+        return false;
 
 #if WXWIN_COMPATIBILITY_2_8
     // as above, call the old virtual function for compatibility

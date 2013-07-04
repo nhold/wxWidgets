@@ -179,7 +179,7 @@ bool wxSpinCtrl::ProcessTextCommand(WXWORD cmd, WXWORD WXUNUSED(id))
 {
     if ( (cmd == EN_CHANGE) && (!m_blockEvent ))
     {
-        wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, GetId());
+        wxCommandEvent event(wxEVT_TEXT, GetId());
         event.SetEventObject(this);
         wxString val = wxGetWindowText(m_hwndBuddy);
         event.SetString(val);
@@ -197,7 +197,7 @@ void wxSpinCtrl::OnChar(wxKeyEvent& event)
     {
         case WXK_RETURN:
             {
-                wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, m_windowId);
+                wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
                 InitCommandEvent(event);
                 wxString val = wxGetWindowText(m_hwndBuddy);
                 event.SetString(val);
@@ -399,12 +399,11 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     if ( value.ToLong(&initialFromText) )
         initial = initialFromText;
 
-    SetValue(initial);
-
-    m_oldValue = initial;
-
-    // Set the range in the native control
+    // Set the range in the native control: notice that we must do it before
+    // calling SetValue() to use the correct validity checks for the initial
+    // value.
     SetRange(min, max);
+    SetValue(initial);
 
     // Also set the text part of the control if it was specified independently
     // but don't generate an event for this, it would be unexpected.
@@ -670,7 +669,7 @@ void wxSpinCtrl::DoSetToolTip(wxToolTip *tip)
 
 void wxSpinCtrl::SendSpinUpdate(int value)
 {
-    wxCommandEvent event(wxEVT_COMMAND_SPINCTRL_UPDATED, GetId());
+    wxCommandEvent event(wxEVT_SPINCTRL, GetId());
     event.SetEventObject(this);
     event.SetInt(value);
 

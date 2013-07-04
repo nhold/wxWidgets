@@ -338,6 +338,7 @@ wxDCImpl::wxDCImpl( wxDC *owner )
         , m_userScaleX(1.0), m_userScaleY(1.0)
         , m_scaleX(1.0), m_scaleY(1.0)
         , m_signX(1), m_signY(1)
+        , m_contentScaleFactor(1)
         , m_minX(0), m_minY(0), m_maxX(0), m_maxY(0)
         , m_clipX1(0), m_clipY1(0), m_clipX2(0), m_clipY2(0)
         , m_logicalFunction(wxCOPY)
@@ -622,8 +623,8 @@ void wxDCImpl::DrawPolygon(const wxPointList *list,
 
 void
 wxDCImpl::DoDrawPolyPolygon(int n,
-                            int count[],
-                            wxPoint points[],
+                            const int count[],
+                            const wxPoint points[],
                             wxCoord xoffset, wxCoord yoffset,
                             wxPolygonFillMode fillStyle)
 {
@@ -673,11 +674,11 @@ void wxDCImpl::DrawSpline(wxCoord x1, wxCoord y1,
     DrawSpline(WXSIZEOF(points), points);
 }
 
-void wxDCImpl::DrawSpline(int n, wxPoint points[])
+void wxDCImpl::DrawSpline(int n, const wxPoint points[])
 {
     wxPointList list;
     for ( int i = 0; i < n; i++ )
-        list.Append(&points[i]);
+        list.Append(const_cast<wxPoint*>(&points[i]));
 
     DrawSpline(&list);
 }
@@ -799,7 +800,7 @@ void wxDCImpl::DoDrawSpline( const wxPointList *points )
 {
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
 
-    wxPoint *p;
+    const wxPoint *p;
     double           cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4;
     double           x1, y1, x2, y2;
 
@@ -808,7 +809,7 @@ void wxDCImpl::DoDrawSpline( const wxPointList *points )
         // empty list
         return;
 
-    p = (wxPoint *)node->GetData();
+    p = node->GetData();
 
     x1 = p->x;
     y1 = p->y;

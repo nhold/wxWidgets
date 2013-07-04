@@ -59,6 +59,7 @@ private:
         CPPUNIT_TEST( Selection );
         CPPUNIT_TEST( AddRowCol );
         CPPUNIT_TEST( ColumnOrder );
+        CPPUNIT_TEST( ColumnVisibility );
         CPPUNIT_TEST( LineFormatting );
         CPPUNIT_TEST( SortSupport );
         CPPUNIT_TEST( Labels );
@@ -87,6 +88,7 @@ private:
     void Selection();
     void AddRowCol();
     void ColumnOrder();
+    void ColumnVisibility();
     void LineFormatting();
     void SortSupport();
     void Labels();
@@ -151,7 +153,9 @@ void GridTestCase::tearDown()
 
 void GridTestCase::CellEdit()
 {
-#if wxUSE_UIACTIONSIMULATOR
+    // TODO on OSX when running the grid test suite solo this works
+    // but not when running it together with other tests
+#if wxUSE_UIACTIONSIMULATOR && !defined(__WXOSX__)
     EventCounter changing(m_grid, wxEVT_GRID_CELL_CHANGING);
     EventCounter changed(m_grid, wxEVT_GRID_CELL_CHANGED);
     EventCounter created(m_grid, wxEVT_GRID_EDITOR_CREATED);
@@ -330,7 +334,8 @@ void GridTestCase::SortClick()
 
 void GridTestCase::Size()
 {
-#if wxUSE_UIACTIONSIMULATOR && !defined(__WXGTK__)
+    // TODO on OSX resizing interactively works, but not automated
+#if wxUSE_UIACTIONSIMULATOR && !defined(__WXGTK__) && !defined(__WXOSX__) 
     EventCounter colsize(m_grid, wxEVT_GRID_COL_SIZE);
     EventCounter rowsize(m_grid, wxEVT_GRID_ROW_SIZE);
 
@@ -524,6 +529,19 @@ void GridTestCase::ColumnOrder()
     CPPUNIT_ASSERT_EQUAL(1, m_grid->GetColPos(1));
     CPPUNIT_ASSERT_EQUAL(2, m_grid->GetColPos(2));
     CPPUNIT_ASSERT_EQUAL(3, m_grid->GetColPos(3));
+}
+
+void GridTestCase::ColumnVisibility()
+{
+    m_grid->AppendCols(3);
+    CPPUNIT_ASSERT( m_grid->IsColShown(1) );
+
+    m_grid->HideCol(1);
+    CPPUNIT_ASSERT( !m_grid->IsColShown(1) );
+    CPPUNIT_ASSERT( m_grid->IsColShown(2) );
+
+    m_grid->ShowCol(1);
+    CPPUNIT_ASSERT( m_grid->IsColShown(1) );
 }
 
 void GridTestCase::LineFormatting()

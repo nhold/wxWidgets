@@ -49,8 +49,8 @@
 
 IMPLEMENT_DYNAMIC_CLASS(wxListbook, wxBookCtrlBase)
 
-wxDEFINE_EVENT( wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING, wxBookCtrlEvent );
-wxDEFINE_EVENT( wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
+wxDEFINE_EVENT( wxEVT_LISTBOOK_PAGE_CHANGING, wxBookCtrlEvent );
+wxDEFINE_EVENT( wxEVT_LISTBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
 
 BEGIN_EVENT_TABLE(wxListbook, wxBookCtrlBase)
     EVT_SIZE(wxListbook::OnSize)
@@ -303,12 +303,12 @@ void wxListbook::UpdateSelectedPage(size_t newsel)
 
 wxBookCtrlEvent* wxListbook::CreatePageChangingEvent() const
 {
-    return new wxBookCtrlEvent(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING, m_windowId);
+    return new wxBookCtrlEvent(wxEVT_LISTBOOK_PAGE_CHANGING, m_windowId);
 }
 
 void wxListbook::MakeChangedEvent(wxBookCtrlEvent &event)
 {
-    event.SetEventType(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED);
+    event.SetEventType(wxEVT_LISTBOOK_PAGE_CHANGED);
 }
 
 
@@ -348,28 +348,13 @@ wxListbook::InsertPage(size_t n,
 
 wxWindow *wxListbook::DoRemovePage(size_t page)
 {
-    const size_t page_count = GetPageCount();
     wxWindow *win = wxBookCtrlBase::DoRemovePage(page);
 
     if ( win )
     {
         GetListView()->DeleteItem(page);
 
-        if (m_selection >= (int)page)
-        {
-            // force new sel valid if possible
-            int sel = m_selection - 1;
-            if (page_count == 1)
-                sel = wxNOT_FOUND;
-            else if ((page_count == 2) || (sel == wxNOT_FOUND))
-                sel = 0;
-
-            // force sel invalid if deleting current page - don't try to hide it
-            m_selection = (m_selection == (int)page) ? wxNOT_FOUND : m_selection - 1;
-
-            if ((sel != wxNOT_FOUND) && (sel != m_selection))
-                SetSelection(sel);
-        }
+        DoSetSelectionAfterRemoval(page);
 
         GetListView()->Arrange();
         UpdateSize();

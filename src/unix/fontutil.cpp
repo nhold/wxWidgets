@@ -29,12 +29,12 @@
 #ifndef WX_PRECOMP
     #include "wx/app.h"
     #include "wx/font.h" // wxFont enums
-    #include "wx/encinfo.h"
     #include "wx/hash.h"
     #include "wx/utils.h"       // for wxGetDisplay()
     #include "wx/module.h"
 #endif // PCH
 
+#include "wx/encinfo.h"
 #include "wx/fontmap.h"
 #include "wx/tokenzr.h"
 #include "wx/fontenum.h"
@@ -989,9 +989,9 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
 {
     wxString fontspec;
     fontspec.Printf(wxT("-*-%s-*-*-*-*-*-*-*-*-*-*-%s-%s"),
-                    !info.facename ? wxT("*") : info.facename.c_str(),
-                    info.xregistry.c_str(),
-                    info.xencoding.c_str());
+                    info.facename.empty() ? wxString("*") : info.facename,
+                    info.xregistry,
+                    info.xencoding);
 
     return wxTestFontSpec(fontspec);
 }
