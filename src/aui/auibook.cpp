@@ -36,8 +36,6 @@
     #include "wx/dcmemory.h"
 #endif
 
-#include "wx/aui/tabmdi.h"
-
 #ifdef __WXMAC__
 #include "wx/osx/private.h"
 #endif
