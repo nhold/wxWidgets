@@ -60,6 +60,11 @@ public:
     virtual void SetColour(const wxColour& colour) = 0;
     virtual void SetActiveColour(const wxColour& colour) = 0;
 
+    virtual void DrawBorder(
+                            wxDC& dc,
+                            wxWindow* wnd,
+                            const wxRect& rect) = 0;
+    
     virtual void DrawBackground(
                          wxDC& dc,
                          wxWindow* wnd,
@@ -100,10 +105,7 @@ public:
 
     virtual int GetIndentSize() = 0;
 
-    virtual wxSize GetBestTabSize(
-                         wxWindow* wnd,
-                         const wxAuiPaneInfoPtrArray& pages,
-                         const wxSize& requiredBmpSize) = 0;
+
 
     virtual int GetAdditionalBorderSpace(
                          wxWindow* wnd) = 0;
