@@ -11,9 +11,6 @@
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
-
 #ifndef _WX_AUINOTEBOOK_H_
 #define _WX_AUINOTEBOOK_H_
 
@@ -28,7 +25,6 @@
 #include "wx/bookctrl.h"
 #include "wx/containr.h"
 #include "wx/aui/framemanager.h"
-
 
 enum wxAuiNotebookOption
 {
@@ -89,6 +85,163 @@ private:
 #endif
 };
 
+class WXDLLIMPEXP_AUI wxAuiNotebookPage
+{
+public:
+    wxWindow* window;     // page's associated window
+    wxString caption;     // caption displayed on the tab
+    wxString tooltip;     // tooltip displayed when hovering over tab title
+    wxBitmap bitmap;      // tab's bitmap
+    wxRect rect;          // tab's hit rectangle
+    bool active;          // true if the page is currently active
+};
+
+class WXDLLIMPEXP_AUI wxAuiTabContainerButton
+{
+public:
+
+    int id;               // button's id
+    int curState;        // current state (normal, hover, pressed, etc.)
+    int location;         // buttons location (wxLEFT, wxRIGHT, or wxCENTER)
+    wxBitmap bitmap;      // button's hover bitmap
+    wxBitmap disBitmap;  // button's disabled bitmap
+    wxRect rect;          // button's hit rectangle
+};
+
+
+#ifndef SWIG
+WX_DECLARE_USER_EXPORTED_OBJARRAY(wxAuiNotebookPage, wxAuiNotebookPageArray, WXDLLIMPEXP_AUI);
+WX_DECLARE_USER_EXPORTED_OBJARRAY(wxAuiTabContainerButton, wxAuiTabContainerButtonArray, WXDLLIMPEXP_AUI);
+#endif
+
+class WXDLLIMPEXP_AUI wxAuiTabContainer
+{
+public:
+	wxAuiTabContainer();
+    wxAuiTabContainer(wxAuiTabArt* artProvider,wxAuiManager* mgr);
+    virtual ~wxAuiTabContainer();
+
+    void SetArtProvider(wxAuiTabArt* art);
+    wxAuiTabArt* GetArtProvider() const;
+
+    void SetFlags(unsigned int flags);
+    unsigned int GetFlags() const;
+    bool HasFlag(int flag) const;
+
+    // returns true if we have wxAUI_NB_TOP or wxAUI_NB_BOTTOM style
+    bool IsHorizontal() const;
+
+    bool AddPage(wxAuiNotebookPage& info);
+    bool InsertPage(wxWindow* page, wxAuiNotebookPage& info, size_t idx);
+    bool MovePage(wxWindow* page, size_t newIndex);
+    bool RemovePage(wxWindow* page);
+    bool SetActivePage(wxWindow* page);
+    bool SetActivePage(size_t page);
+    void SetNoneActive();
+    int GetActivePage() const;
+    bool TabHitTest(int x, int y, wxWindow** hit) const;
+    bool ButtonHitTest(int x, int y, wxAuiTabContainerButton** hit) const;
+    wxWindow* GetWindowFromIdx(size_t idx) const;
+    int GetIdxFromWindow(wxWindow* page) const;
+    size_t GetPageCount() const;
+    wxAuiNotebookPage& GetPage(size_t idx);
+    const wxAuiNotebookPage& GetPage(size_t idx) const;
+    wxAuiNotebookPageArray& GetPages();
+    void SetNormalFont(const wxFont& normalFont);
+    void SetSelectedFont(const wxFont& selectedFont);
+    void SetMeasuringFont(const wxFont& measuringFont);
+    void SetRect(const wxRect& rect);
+
+    void RemoveButton(int id);
+    void AddButton(int id, int location, const wxBitmap& normalBitmap = wxNullBitmap, const wxBitmap& disabledBitmap = wxNullBitmap);
+
+    size_t GetTabOffset() const;
+    void SetTabOffset(size_t offset);
+
+    bool HasFocus(){ return m_focus; };
+    void SetFocus(bool focus){ m_focus = focus; };
+
+    // Is the tab visible?
+    bool IsTabVisible(int tabPage, int tabOffset, wxDC* dc, wxWindow* wnd);
+
+    // Make the tab visible if it wasn't already
+    void MakeTabVisible(int tabPage);
+
+    void DrawTabs(wxDC* dc, wxWindow* wnd,const wxRect& rect);
+
+    void CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
+    void CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
+protected:
+
+    virtual void Render(wxDC* dc, wxWindow* wnd);
+
+
+    void OnChildKeyDown(wxKeyEvent& evt);
+
+protected:
+    bool m_focus;
+    wxAuiManager* m_mgr;
+    wxAuiTabArt* m_tab_art;
+	wxAuiNotebookPageArray m_pages;
+    wxAuiTabContainerButtonArray m_buttons;
+    wxAuiTabContainerButtonArray m_tabCloseButtons;
+    wxRect m_rect;
+    wxRect m_targetRect;
+    size_t m_tabOffset;
+    unsigned int m_flags;
+    friend class wxAuiManager;
+};
+
+class WXDLLIMPEXP_AUI wxAuiTabCtrl : public wxControl,
+                                     public wxAuiTabContainer
+{
+public:
+
+    wxAuiTabCtrl(wxWindow* parent,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 long style = 0);
+
+    ~wxAuiTabCtrl();
+
+    bool IsDragging() const { return m_isDragging; }
+
+protected:
+    // choose the default border for this window
+    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+
+    void OnPaint(wxPaintEvent& evt);
+    void OnEraseBackground(wxEraseEvent& evt);
+    void OnSize(wxSizeEvent& evt);
+    void OnLeftDown(wxMouseEvent& evt);
+    void OnLeftDClick(wxMouseEvent& evt);
+    void OnLeftUp(wxMouseEvent& evt);
+    void OnMiddleDown(wxMouseEvent& evt);
+    void OnMiddleUp(wxMouseEvent& evt);
+    void OnRightDown(wxMouseEvent& evt);
+    void OnRightUp(wxMouseEvent& evt);
+    void OnMotion(wxMouseEvent& evt);
+    void OnLeaveWindow(wxMouseEvent& evt);
+    void OnButton(wxAuiNotebookEvent& evt);
+    void OnSetFocus(wxFocusEvent& event);
+    void OnKillFocus(wxFocusEvent& event);
+    void OnChar(wxKeyEvent& event);
+    void OnCaptureLost(wxMouseCaptureLostEvent& evt);
+
+protected:
+
+    wxPoint m_clickPt;
+    wxWindow* m_clickTab;
+    bool m_isDragging;
+    wxAuiTabContainerButton* m_hoverButton;
+    wxAuiTabContainerButton* m_pressedButton;
+
+#ifndef SWIG
+    DECLARE_CLASS(wxAuiTabCtrl)
+    DECLARE_EVENT_TABLE()
+#endif
+};
 
 class WXDLLIMPEXP_AUI wxAuiNotebook : public wxNavigationEnabled<wxBookCtrlBase>
 {
@@ -258,9 +411,6 @@ protected:
     DECLARE_EVENT_TABLE()
 #endif
 };
-
-
-
 
 // wx event machinery
 

@@ -34,10 +34,10 @@
 #include "wx/bitmap.h"
 
 
+class wxAuiNotebookPage;
+class wxAuiNotebookPageArray;
 class wxWindow;
 class wxDC;
-class wxAuiPaneInfo;
-class wxAuiPaneInfoPtrArray;
 
 // tab art class
 
@@ -72,7 +72,7 @@ public:
 
     virtual void DrawTab(wxDC& dc,
                          wxWindow* wnd,
-                         const wxAuiPaneInfo& pane,
+                         const wxAuiNotebookPage& pane,
                          const wxRect& inRect,
                          int closeButtonState,
                          bool haveFocus,
@@ -100,7 +100,7 @@ public:
 
     virtual int ShowDropDown(
                          wxWindow* wnd,
-                         const wxAuiPaneInfoPtrArray& items,
+                         const wxAuiNotebookPageArray& items,
                          int activeIdx) = 0;
 
     virtual int GetIndentSize() = 0;
@@ -112,12 +112,12 @@ public:
 
     virtual wxSize GetBestTabSize(
                          wxWindow* wnd,
-                         const wxAuiPaneInfoPtrArray& pages,
+                         const wxAuiNotebookPageArray& pages,
                          const wxSize& requiredBmpSize) = 0;
 
     virtual int GetBestTabCtrlSize(
                          wxWindow* wnd,
-                         const wxAuiPaneInfoPtrArray& pages,
+                         const wxAuiNotebookPageArray& pages,
                          const wxSize& requiredBmpSize) = 0;
 
     int m_fixedTabSize;
@@ -158,7 +158,7 @@ public:
 
     void DrawTab(wxDC& dc,
                  wxWindow* wnd,
-                 const wxAuiPaneInfo& pane,
+                 const wxAuiNotebookPage& pane,
                  const wxRect& inRect,
                  int closeButtonState,
                  bool haveFocus,
@@ -194,15 +194,15 @@ public:
 
     int ShowDropDown(
                  wxWindow* wnd,
-                 const wxAuiPaneInfoPtrArray& items,
+                 const wxAuiNotebookPageArray& items,
                  int activeIdx);
 
     wxSize GetBestTabSize(wxWindow* wnd,
-                 const wxAuiPaneInfoPtrArray& pages,
+                 const wxAuiNotebookPageArray& pages,
                  const wxSize& requiredBmpSize);
 
     int GetBestTabCtrlSize(wxWindow* wnd,
-                 const wxAuiPaneInfoPtrArray& pages,
+                 const wxAuiNotebookPageArray& pages,
                  const wxSize& requiredBmpSize)
                  {
                      return GetBestTabSize(wnd, pages, requiredBmpSize).GetHeight();
