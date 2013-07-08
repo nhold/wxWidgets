@@ -4009,10 +4009,9 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
         wxAuiPaneInfo* hitPane=NULL;
         int page;
         // If we are above a tab then insert before it, otherwise insert at the end
-		wxWindow** hitPaneWindow;
-		if(!part->m_tab_container->TabHitTest(pt.x,pt.y, hitPaneWindow))
+        if(!part->m_tab_container->TabHitTest(pt.x,pt.y,&hitPane))
         {
-            if( part->m_tab_container->TabHitTest(pt.x+10,pt.y,hitPaneWindow) || part->m_tab_container->TabHitTest(pt.x+10,pt.y+10,hitPaneWindow) || part->m_tab_container->TabHitTest(pt.x,pt.y+10,hitPaneWindow) )
+            if( part->m_tab_container->TabHitTest(pt.x+10,pt.y,&hitPane) || part->m_tab_container->TabHitTest(pt.x+10,pt.y+10,&hitPane) || part->m_tab_container->TabHitTest(pt.x,pt.y+10,&hitPane) )
             {
                 //Before first tab - don't do anything
                 return false;

@@ -361,7 +361,7 @@ void wxAuiGenericTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const
 // outButtonRect - actual output rectangle for button
 // xExtent - the advance x; where the next tab should start
 
-void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPage& page, const wxRect& inRect, int closeButtonState, bool haveFocus, wxRect* outTabRect, wxRect* outButtonRect, int* xExtent)
+void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page, const wxRect& inRect, int closeButtonState, bool haveFocus, wxRect* outTabRect, wxRect* outButtonRect, int* xExtent)
 {
     wxCoord normalTextX, normalTextY;
     wxCoord selectedTextX, selectedTextY;
@@ -381,9 +381,9 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
     // figure out the size of the tab
     wxSize tabSize = GetTabSize(dc,
                                  wnd,
-                                 page.caption,
-                                 page.bitmap,
-                                 page.active,
+                                 page.GetCaption(),
+                                 page.GetBitmap(),
+                                 page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                                  closeButtonState,
                                  xExtent);
 
@@ -413,7 +413,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
 
     // select pen, brush and font for the tab to be drawn
 
-    if (page.active)
+    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
     {
         dc.SetFont(m_selectedFont);
         texty = selectedTextY;
@@ -494,7 +494,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
     }
 
 
-    if (page.active)
+    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
     {
         // draw active tab
 
@@ -651,7 +651,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
 
     // there are two horizontal grey lines at the bottom of the tab control,
     // this gets rid of the top one of those lines in the tab control
-    if (page.active)
+    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
     {
         dc.SetPen(m_baseColourPen);
 
@@ -693,17 +693,17 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
     }
 
     int bitmapOffset = 0;
-    if (page.bitmap.IsOk())
+    if (page.GetBitmap().IsOk())
     {
         bitmapOffset = tabX + 8;
 
         // draw bitmap
-        dc.DrawBitmap(page.bitmap,
+        dc.DrawBitmap(page.GetBitmap(),
                       bitmapOffset,
-                      drawnTabYOff + (drawnTabHeight/2) - (page.bitmap.GetHeight()/2),
+                      drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
                       true);
 
-        textOffset = bitmapOffset + page.bitmap.GetWidth();
+        textOffset = bitmapOffset + page.GetBitmap().GetWidth();
         textOffset += 3; // bitmap padding
 
     }
@@ -719,7 +719,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
     dc.DrawText(drawText, textOffset, drawnTabYOff + (drawnTabHeight)/2 - (texty/2) - 1);
 
     // draw focus rectangle
-    if (page.active && haveFocus)
+    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && haveFocus)
     {
         wxRect focusRectText(textOffset, (drawnTabYOff + (drawnTabHeight)/2 - (texty/2) - 1),
             selectedTextX, selectedTextY);
@@ -727,15 +727,15 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPag
         wxRect focusRect;
         wxRect focusRectBitmap;
 
-        if (page.bitmap.IsOk())
-            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.bitmap.GetHeight()/2),
-                                            page.bitmap.GetWidth(), page.bitmap.GetHeight());
+        if (page.GetBitmap().IsOk())
+            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
+                                            page.GetBitmap().GetWidth(), page.GetBitmap().GetHeight());
 
-        if (page.bitmap.IsOk() && drawText.IsEmpty())
+        if (page.GetBitmap().IsOk() && drawText.IsEmpty())
             focusRect = focusRectBitmap;
-        else if (!page.bitmap.IsOk() && !drawText.IsEmpty())
+        else if (!page.GetBitmap().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText;
-        else if (page.bitmap.IsOk() && !drawText.IsEmpty())
+        else if (page.GetBitmap().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText.Union(focusRectBitmap);
 
         focusRect.Inflate(2, 2);
@@ -950,14 +950,14 @@ void wxAuiGenericTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxR
     *outRect = rect;
 }
 
-int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiNotebookPageArray& pages, int WXUNUSED(activeIndex))
+int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiPaneInfoPtrArray& pages, int WXUNUSED(activeIndex))
 {
     wxMenu menuPopup;
 
     size_t i, count = pages.GetCount();
     for (i = 0; i < count; ++i)
     {
-        const wxAuiNotebookPage& page = pages.Item(i);
+        const wxAuiPaneInfo& page = *pages.Item(i);
         wxString caption = page.caption;
 
         // if there is no caption, make it a space.  This will prevent
@@ -966,8 +966,8 @@ int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiNotebookPageArray
             caption = wxT(" ");
 
         wxMenuItem* item = new wxMenuItem(NULL, 1000+i, caption);
-        if (page.bitmap.IsOk())
-            item->SetBitmap(page.bitmap);
+        if (page.GetBitmap().IsOk())
+            item->SetBitmap(page.GetBitmap());
         menuPopup.Append(item);
     }
 
@@ -987,7 +987,7 @@ int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiNotebookPageArray
     return -1;
 }
 
-wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiNotebookPageArray& pages, const wxSize& requiredBmpSize)
+wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrArray& pages, const wxSize& requiredBmpSize)
 {
     wxClientDC dc(wnd);
     dc.SetFont(m_measuringFont);
@@ -1009,13 +1009,13 @@ wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiNotebookPage
     size_t i, pageCount = pages.GetCount();
     for (i = 0; i < pageCount; ++i)
     {
-        wxAuiNotebookPage& page = pages.Item(i);
+        wxAuiPaneInfo& page = *pages.Item(i);
 
         wxBitmap bmp;
         if (measureBmp.IsOk())
             bmp = measureBmp;
         else
-            bmp = page.bitmap;
+            bmp = page.GetBitmap();
 
         int ext = 0;
         wxSize s = GetTabSize(dc,
