@@ -408,6 +408,10 @@ Changes in behaviour which may result in compilation errors
   any more. Use wxBookCtrlEvent in your code if you need to forward-declare
   it or just include the appropriate header instead of forward declaration.
 
+- wxStandardPaths class can't be created now. This was never the right thing
+  to do, wxStandardPaths::Get() always had to be used to access the global
+  object of the correct type but now doing it results in a compilation error.
+
 
 Deprecated methods and their replacements
 -----------------------------------------
@@ -497,6 +501,9 @@ Changes in behaviour visible to end users
 Build system changes
 --------------------
 
+- Cocoa is now used by default under OS X instead of Carbon. Pass --with-carbon
+  option to configure to use wxCarbon.
+
 - In wxMSW makefile builds, "_x64" is used instead of "_amd64" when compiling
   for this architecture in the architecture-specific paths and library names.
   TARGET_CPU can still be specified as "amd64" for compatibility but "x64"
@@ -550,7 +557,7 @@ Major new features in this release
   was added.
 
 
-2.9.5: (released ????-??-??)
+2.9.5: (released 2013-07-15)
 ----------------------------
 
 INCOMPATIBLE CHANGES SINCE 2.9.4:
@@ -681,7 +688,8 @@ All (GUI):
 
 wxGTK:
 
-- Allow building wxGTK3 with Broadway backend (Kolya Kosenko).
+- Allow building wxGTK3 with Broadway and Wayland backends (Kolya Kosenko).
+- Further improvements to wxGTK/Win32 port (Kolya Kosenko).
 - Provide native implementation of wxNotificationMessage using libnotify.
 - Generate clipboard events for wxComboBox and not only wxTextCtrl.
 - Improve drag-and-drop of URLs.
@@ -711,6 +719,7 @@ wxMSW:
 - Fix filter checks in wxDir::FindFirst/Next() (Catalin Raceanu).
 - Add support for wxICON_AUTH_NEEDED to wxMessageDialog (Chris Spencer).
 - Fix printing too many copies of the document in some cases (John Roberts).
+- Fix DST confusion in wxFileName::{Set,Get}Times().
 
 wxOSX/Cocoa:
 

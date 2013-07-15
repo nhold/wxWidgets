@@ -206,7 +206,11 @@ wxLanguageInfoArray *wxLocale::ms_languagesDB = NULL;
 
 void wxLocale::DoCommonInit()
 {
-    m_pszOldLocale = NULL;
+    // Store the current locale in order to be able to restore it in the dtor.
+    m_pszOldLocale = wxSetlocale(LC_ALL, NULL);
+    if ( m_pszOldLocale )
+        m_pszOldLocale = wxStrdup(m_pszOldLocale);
+
 
     m_pOldLocale = wxSetLocale(this);
 
@@ -285,13 +289,7 @@ bool wxLocale::DoInit(const wxString& name,
                     wxS("no locale to set in wxLocale::Init()") );
     }
 
-    const char *oldLocale = wxSetlocale(LC_ALL, szLocale);
-    if ( oldLocale )
-        m_pszOldLocale = wxStrdup(oldLocale);
-    else
-        m_pszOldLocale = NULL;
-
-    if ( m_pszOldLocale == NULL )
+    if ( !wxSetlocale(LC_ALL, szLocale) )
     {
         wxLogError(_("locale '%s' cannot be set."), szLocale);
     }
@@ -573,12 +571,14 @@ bool wxLocale::Init(int language, int flags)
 namespace
 {
 
+#ifndef __WXOSX__
 // Small helper function: get the value of the given environment variable and
 // return true only if the variable was found and has non-empty value.
 inline bool wxGetNonEmptyEnvVar(const wxString& name, wxString* value)
 {
     return wxGetEnv(name, value) && !value->empty();
 }
+#endif
 
 } // anonymous namespace
 
@@ -593,7 +593,7 @@ inline bool wxGetNonEmptyEnvVar(const wxString& name, wxString* value)
 #if defined(__UNIX__)
     // first get the string identifying the language from the environment
     wxString langFull;
-#ifdef __WXMAC__
+#ifdef __WXOSX__
     wxCFRef<CFLocaleRef> userLocaleRef(CFLocaleCopyCurrent());
 
     // because the locale identifier (kCFLocaleIdentifier) is formatted a little bit differently, eg
