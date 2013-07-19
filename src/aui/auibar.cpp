@@ -2305,7 +2305,7 @@ void wxAuiToolBar::OnIdle(wxIdleEvent& evt)
             wxOrientation newOrientation = m_orientation;
             if (pane.IsDocked())
             {
-                switch (pane.dock_direction)
+                switch (pane.GetDirection())
                 {
                     case wxAUI_DOCK_TOP:
                     case wxAUI_DOCK_BOTTOM:
@@ -2341,15 +2341,15 @@ void wxAuiToolBar::OnIdle(wxIdleEvent& evt)
                 Realize();
                 if (newOrientation == wxHORIZONTAL)
                 {
-                    pane.best_size = GetHintSize(wxAUI_DOCK_TOP);
+                    pane.SetBestSize( GetHintSize(wxAUI_DOCK_TOP) );
                 }
                 else
                 {
-                    pane.best_size = GetHintSize(wxAUI_DOCK_LEFT);
+                    pane.SetBestSize( GetHintSize(wxAUI_DOCK_LEFT) );
                 }
                 if (pane.IsDocked())
                 {
-                    pane.floating_size = wxDefaultSize;
+                    pane.SetFloatingSize( wxDefaultSize );
                 }
                 else
                 {

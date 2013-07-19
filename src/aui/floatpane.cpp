@@ -234,7 +234,7 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
         if (m_ownerMgr)
         {
             m_ownerMgr->GetPane(m_paneWindow).
-                floating_pos = winRect.GetPosition();
+                SetFloatingPosition( winRect.GetPosition() );
         }
 
         return;
