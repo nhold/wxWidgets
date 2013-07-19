@@ -1600,6 +1600,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
+        page.SetRect(page_rect);
 
         if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
         {
@@ -1638,6 +1639,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
+        page.SetRect(page_rect);
     }
 
 
