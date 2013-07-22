@@ -406,6 +406,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/clntdata.h
     wx/cmdargs.h
     wx/cmdline.h
+    wx/compiler.h
     wx/confbase.h
     wx/config.h
     wx/convauto.h
@@ -1276,7 +1277,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/textctrl.h
     wx/gtk/textentry.h
     wx/gtk/tglbtn.h
-    wx/gtk/treeentry_gtk.h
 </set>
 <set var="GTK2_HDR" hints="files">
     $(GTK_HDR)
@@ -3251,9 +3251,8 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="ADVANCED_UNIV_SRC" hints="files">
 <!--
-Don't include src/generic/animateg.cpp many times in ADVANCED_SRC(WXUNIV=='1').
-This file is already included in [OSX_CARBON, OSX_COCOA, OSX_IPHONE, COCOA, PM, MOTIF] TOOLKITs
-and TOOLKIT=='GTK' and TOOLKIT_VERSION==''.
+    Including src/generic/animateg.cpp hre unconditionally results in bakefile
+    errors when not fixing the value of TOOLKIT to MSW in msvc format, see #15327.
 -->
     <if cond="TOOLKIT=='GTK' and TOOLKIT_VERSION=='2'">
         src/generic/animateg.cpp
@@ -3262,6 +3261,9 @@ and TOOLKIT=='GTK' and TOOLKIT_VERSION==''.
         src/generic/animateg.cpp
     </if>
     <if cond="TOOLKIT=='WINCE'">
+        src/generic/animateg.cpp
+    </if>
+    <if cond="TOOLKIT=='X11'">
         src/generic/animateg.cpp
     </if>
 </set>

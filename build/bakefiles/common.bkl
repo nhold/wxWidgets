@@ -436,21 +436,10 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
                 </set>
             </if>
             <if cond="FORMAT!='msevc4prj'">
-                <!-- Unfortunately we have to include wx/univ/setup.h in both
-                     cases because WXUNIV==1 is not a weak condition, but at
-                     least don't include wxGTK setup.h when building wxMSW. -->
-                <if cond="TOOLKIT=='MSW'">
-                    <msvc-headers-setup-h>
-                        msw/setup.h
-                        univ/setup.h
-                    </msvc-headers-setup-h>
-                </if>
-                <if cond="TOOLKIT=='GTK'">
-                    <msvc-headers-setup-h>
-                        gtk/setup.h
-                        univ/setup.h
-                    </msvc-headers-setup-h>
-                </if>
+                <msvc-headers-setup-h>
+                    msw/setup.h
+                    univ/setup.h
+                </msvc-headers-setup-h>
                 <set var="_custom_build_include_wx_msw_setup_h">
                     <if cond="WXUNIV=='0' and TOOLKIT=='MSW'">
                         $(msvc_copy_setup_h_script % 'msw\setup.h')
@@ -635,6 +624,10 @@ $(TAB)$(VC_COMPILER) /EP /nologo "$(DOLLAR)(InputPath)" > "$(SETUPHDIR)\wx\msw\r
         <if cond="MONOLITHIC=='1'">$(LIB_PNG)</if>
     </set>
 
+    <set var="LIB_SCINTILLA_IF_MONO">
+        <if cond="MONOLITHIC=='1' and USE_STC=='1'">$(LIB_SCINTILLA)</if>
+    </set>
+
     <template id="wx_append_base" template_append="wx_append_base_nomono">
         <!-- Always link against the full wx library in monolithic build and
              also against the PNG one as core code references it for Tango
@@ -645,6 +638,7 @@ $(TAB)$(VC_COMPILER) /EP /nologo "$(DOLLAR)(InputPath)" > "$(SETUPHDIR)\wx\msw\r
     <template id="wx_append" template_append="wx_append_nomono">
         <!-- Always link against the wxWin library in monolithic build: -->
         <sys-lib>$(WXLIB_MONO)</sys-lib>
+        <sys-lib>$(LIB_SCINTILLA_IF_MONO)</sys-lib>
     </template>
 
 

@@ -149,6 +149,8 @@ private:
     wxRichTextCaretTimer m_timer;
     wxRichTextCtrl* m_richTextCtrl;
     bool          m_refreshEnabled;
+    wxPen         m_caretPen;
+    wxBrush       m_caretBrush;
 };
 #endif
 
@@ -4777,7 +4779,7 @@ void wxRichTextCaret::DoShow()
 {
     m_flashOn = true;
 
-    if (!m_timer.IsRunning())
+    if (!m_timer.IsRunning() && GetBlinkTime() > 0)
         m_timer.Start(GetBlinkTime());
 
     Refresh();
@@ -4861,10 +4863,15 @@ void wxRichTextCaret::Refresh()
 
 void wxRichTextCaret::DoDraw(wxDC *dc)
 {
-    dc->SetPen( *wxBLACK_PEN );
-
-    dc->SetBrush(*(m_hasFocus ? wxBLACK_BRUSH : wxTRANSPARENT_BRUSH));
-    dc->SetPen(*wxBLACK_PEN);
+    wxBrush brush(m_caretBrush);
+    wxPen pen(m_caretPen);
+    if (m_richTextCtrl && m_richTextCtrl->GetBasicStyle().HasTextColour())
+    {
+        brush = wxBrush(m_richTextCtrl->GetBasicStyle().GetTextColour());
+        pen = wxPen(m_richTextCtrl->GetBasicStyle().GetTextColour());
+    }
+    dc->SetBrush((m_hasFocus ? brush : *wxTRANSPARENT_BRUSH));
+    dc->SetPen(pen);
 
     wxPoint pt(m_x, m_y);
 

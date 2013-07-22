@@ -634,8 +634,6 @@ POSTLINK_COMMAND
 LIBWXMACRES
 WX_RESOURCES_MACOSX_DATA
 WX_RESOURCES_MACOSX_ASCII
-RESPROGRAMOBJ
-RESFLAGS
 RESCOMP
 WX_VERSION_TAG
 DMALLOC_LIBS
@@ -662,8 +660,6 @@ TOOLCHAIN_FULLNAME
 TOOLCHAIN_NAME
 TOOLKIT_DIR
 TOOLKIT
-WIN32INSTALL
-AFMINSTALL
 USE_GUI
 WX_LIBRARY_BASENAME_GUI
 WX_LIBRARY_BASENAME_NOGUI
@@ -706,6 +702,8 @@ COND_USE_EXCEPTIONS_1
 COND_USE_EXCEPTIONS_0
 COND_USE_CAIRO_1
 COND_UNICODE_1
+COND_TOOLKIT_X11_WXUNIV_1
+COND_TOOLKIT_X11_USE_GUI_1_WXUNIV_1
 COND_TOOLKIT_X11_USE_GUI_1
 COND_TOOLKIT_X11
 COND_TOOLKIT_WINCE_WXUNIV_0
@@ -806,6 +804,7 @@ COND_PLATFORM_MACOSX_0_USE_SOVERSION_1
 COND_PLATFORM_MACOSX_0_USE_SOVERCYGWIN_0_USE_SOVERSION_1
 COND_OFFICIAL_BUILD_1_PLATFORM_WIN32_1
 COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1
+COND_MONOLITHIC_1_USE_STC_1
 COND_MONOLITHIC_1_SHARED_1
 COND_MONOLITHIC_1_SHARED_0
 COND_MONOLITHIC_1
@@ -4103,7 +4102,7 @@ case "${host}" in
 
     $as_echo "#define TARGET_CARBON 1" >>confdefs.h
 
-    DEFAULT_DEFAULT_wxUSE_OSX_CARBON=1
+    DEFAULT_DEFAULT_wxUSE_OSX_COCOA=1
   ;;
 
   *-*-beos* )
@@ -19763,8 +19762,6 @@ if test "$wants_win32" = 1 ; then
     USE_WIN32=1
     $as_echo "#define __WIN32__ 1" >>confdefs.h
 
-    $as_echo "#define __WIN95__ 1" >>confdefs.h
-
     $as_echo "#define __WINDOWS__ 1" >>confdefs.h
 
     $as_echo "#define __GNUWIN32__ 1" >>confdefs.h
@@ -19826,8 +19823,6 @@ if test "x$ac_cv_lib_cExt_drand48" = xyes; then :
   LIBS="$LIBS -lcExt"
 fi
 
-      else
-                    RESPROGRAMOBJ="\${top_srcdir}/include/wx/os2/wx.res"
       fi
                                     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gcc/libc version" >&5
 $as_echo_n "checking for gcc/libc version... " >&6; }
@@ -20814,6 +20809,9 @@ if test $wx_cv_have_variadic_macros = "yes"; then
     $as_echo "#define HAVE_VARIADIC_MACROS 1" >>confdefs.h
 
 fi
+
+else
+    $as_echo "#define wxNO_VARIADIC_MACROS 1" >>confdefs.h
 
 fi
 
@@ -23247,9 +23245,6 @@ fi
 
 
 
-AFMINSTALL=
-WIN32INSTALL=
-
 TOOLKIT=
 TOOLKIT_INCLUDE=
 WIDGET_SET=
@@ -23295,12 +23290,7 @@ fi
                         LIBS="$LIBS -lkernel32 -luser32"
     esac
 
-        RESFLAGS="--include-dir \$(top_srcdir)/include --include-dir \$(top_srcdir)/\$(program_dir) --define __WIN32__ --define __WIN95__ --define __GNUWIN32__ $WINDRES_CPU_DEFINE"
-    RESPROGRAMOBJ="\$(PROGRAM)_resources.o"
-
-                WXCONFIG_RESFLAGS="--define __WIN32__ --define __WIN95__ --define __GNUWIN32__ $WINDRES_CPU_DEFINE"
-
-        WIN32INSTALL=win32install
+        WXCONFIG_RESFLAGS="--define __WIN32__ --define __GNUWIN32__ $WINDRES_CPU_DEFINE"
 fi
 
 if test "$wxUSE_GUI" = "yes"; then
@@ -23645,12 +23635,14 @@ else
 fi
 
 
-  pkg_config_args=gtk+-3.0
+  pkg_gtk_version=gtk+-3.0
+  pkg_config_args=$pkg_gtk_version
   for module in . $GTK_MODULES
   do
       case "$module" in
          gthread)
-             pkg_config_args="$pkg_config_args gthread-2.0"
+             pkg_gthread_version=gthread-2.0
+             pkg_config_args="$pkg_config_args $pkg_gthread_version"
          ;;
       esac
   done
@@ -23721,8 +23713,7 @@ $as_echo_n "checking for GTK+ - version >= $min_gtk_version... " >&6; }
 	  echo "Will use uninstalled version of GTK+ found in PKG_CONFIG_PATH"
 	  enable_gtktest=no
     fi
-
-    if $PKG_CONFIG --atleast-version $min_gtk_version $pkg_config_args; then
+    if $PKG_CONFIG --atleast-version $min_gtk_version $pkg_gtk_version ; then
 	  :
     else
 	  no_gtk=yes
@@ -24643,7 +24634,6 @@ done
 
         TOOLKIT_INCLUDE="$wx_cv_cflags_gtk"
         GUI_TK_LIBRARY="$wx_cv_libs_gtk $GUI_TK_LIBRARY"
-        AFMINSTALL=afminstall
         TOOLKIT=GTK
         GUIDIST=GTK_DIST
 
@@ -24913,7 +24903,6 @@ $as_echo "MicroWindows' libraries found." >&6; }
 
         wxUSE_UNIVERSAL="yes"
 
-        AFMINSTALL=afminstall
         TOOLKIT=MICROWIN
         GUIDIST=MICROWIN_DIST
 
@@ -25611,7 +25600,6 @@ fi
 
                                 GUI_TK_LIBRARY=`echo $X_LIBS | sed 's/ -LNONE//' | sed 's/ -RNONE//'`
         TOOLKIT_INCLUDE=`echo $X_CFLAGS | sed 's/ -INONE//'`
-        AFMINSTALL=afminstall
         COMPILED_X_PROGRAM=0
 
     fi
@@ -29872,7 +29860,20 @@ if test "$WCSLEN_FOUND" = 1; then
 
 fi
 
-for ac_func in wcsdup wcsftime strnlen wcsnlen wcscasecmp wcsncasecmp
+for ac_func in strnlen
+do :
+  ac_fn_c_check_func "$LINENO" "strnlen" "ac_cv_func_strnlen"
+if test "x$ac_cv_func_strnlen" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRNLEN 1
+_ACEOF
+
+fi
+done
+
+
+if test "$wxUSE_MAC" != 1; then
+    for ac_func in wcsdup wcsftime wcsnlen wcscasecmp wcsncasecmp
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -29884,6 +29885,7 @@ _ACEOF
 fi
 done
 
+fi
 
 if test "$USE_HPUX" = 1 -a "$GCC" != "yes"; then
     CPPFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CPPFLAGS"
@@ -40483,6 +40485,11 @@ EOF
         COND_MONOLITHIC_1_SHARED_1=""
     fi
 
+    COND_MONOLITHIC_1_USE_STC_1="#"
+    if test "x$MONOLITHIC" = "x1" -a "x$USE_STC" = "x1" ; then
+        COND_MONOLITHIC_1_USE_STC_1=""
+    fi
+
     COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1="#"
     if test "x$OFFICIAL_BUILD" = "x0" -a "x$PLATFORM_WIN32" = "x1" ; then
         COND_OFFICIAL_BUILD_0_PLATFORM_WIN32_1=""
@@ -40983,6 +40990,16 @@ EOF
         COND_TOOLKIT_X11_USE_GUI_1=""
     fi
 
+    COND_TOOLKIT_X11_USE_GUI_1_WXUNIV_1="#"
+    if test "x$TOOLKIT" = "xX11" -a "x$USE_GUI" = "x1" -a "x$WXUNIV" = "x1" ; then
+        COND_TOOLKIT_X11_USE_GUI_1_WXUNIV_1=""
+    fi
+
+    COND_TOOLKIT_X11_WXUNIV_1="#"
+    if test "x$TOOLKIT" = "xX11" -a "x$WXUNIV" = "x1" ; then
+        COND_TOOLKIT_X11_WXUNIV_1=""
+    fi
+
     COND_UNICODE_1="#"
     if test "x$UNICODE" = "x1" ; then
         COND_UNICODE_1=""
@@ -41347,10 +41364,6 @@ OBJCFLAGS="$OBJCFLAGS $CFLAGS_VISIBILITY"
 OBJCXXFLAGS="$OBJCXXFLAGS $CXXFLAGS_VISIBILITY"
 
 SAMPLES_SUBDIRS="`echo $SAMPLES_SUBDIRS | tr -s ' ' | tr ' ' '\n' | sort | uniq | tr '\n' ' '| tr -d '\r'`"
-
-
-
-
 
 
 

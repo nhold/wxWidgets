@@ -273,13 +273,13 @@ inline bool wxPlatformIs(int platform) { return wxPlatform::Is(platform); }
 // ----------------------------------------------------------------------------
 
 // Ensure subsequent IDs don't clash with this one
-WXDLLIMPEXP_BASE void wxRegisterId(long id);
+WXDLLIMPEXP_BASE void wxRegisterId(int id);
 
 // Return the current ID
-WXDLLIMPEXP_BASE long wxGetCurrentId();
+WXDLLIMPEXP_BASE int wxGetCurrentId();
 
 // Generate a unique ID
-WXDLLIMPEXP_BASE long wxNewId();
+WXDLLIMPEXP_BASE int wxNewId();
 
 // ----------------------------------------------------------------------------
 // Various conversions

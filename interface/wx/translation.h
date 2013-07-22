@@ -337,9 +337,11 @@ public:
     This is the default unless you change the loader with
     wxTranslations::SetLoader().
 
-    Catalogs are searched for in standard places (current directory first, then
-    the system one), but you may also prepend additional directories to the
-    search path with AddCatalogLookupPathPrefix().
+    Catalogs are searched for in standard places (system locales directory,
+    `LC_PATH` on Unix systems, Resources subdirectory of the application bundle
+    on OS X, executable's directory on Windows), but you may also prepend
+    additional directories to the search path with
+    AddCatalogLookupPathPrefix().
 
     @since 2.9.1
  */
@@ -348,7 +350,7 @@ class wxFileTranslationsLoader : public wxTranslationsLoader
 public:
     /**
         Add a prefix to the catalog lookup path: the message catalog files will
-        be looked up under prefix/lang/LC_MESSAGES, prefix/lang and prefix
+        be looked up under prefix/lang/LC_MESSAGES and prefix/lang directories
         (in this order).
 
         This only applies to subsequent invocations of

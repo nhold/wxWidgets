@@ -29,6 +29,7 @@
 #include "wx/menu.h"
 #include "wx/scopedptr.h"
 #include "wx/scopeguard.h"
+#include "wx/toolbar.h"
 #include "wx/uiaction.h"
 
 // FIXME: Currently under OS X testing paint event doesn't work because neither
@@ -540,10 +541,13 @@ void EventPropagationTestCase::DocView()
     wxDocument* const doc = docTemplate.CreateDocument("");
     wxView* const view = doc->GetFirstView();
 
-    wxScopedPtr<wxFrame>
+    wxScopedPtr<wxMDIChildFrame>
         child(new wxDocMDIChildFrame(doc, view, parent.get(), wxID_ANY, "Child"));
 
     wxMenu* const menuChild = CreateTestMenu(child.get());
+
+    // Ensure that the child that we've just created is the active one.
+    child->Activate();
 
 #ifdef __WXGTK__
     // There are a lot of hacks related to child frame menu bar handling in
@@ -575,6 +579,22 @@ void EventPropagationTestCase::DocView()
     // Check that wxDocument, wxView, wxDocManager, child frame and the parent
     // get the event in order.
     ASSERT_MENU_EVENT_RESULT( menuChild, "advmcpA" );
+
+
+#if wxUSE_TOOLBAR
+    // Also check that toolbar events get forwarded to the active child.
+    wxToolBar* const tb = parent->CreateToolBar(wxTB_NOICONS);
+    tb->AddTool(wxID_APPLY, "Apply", wxNullBitmap);
+    tb->Realize();
+
+    // As in CheckMenuEvent(), use toolbar method actually sending the event
+    // instead of bothering with wxUIActionSimulator which would have been
+    // trickier.
+    g_str.clear();
+    tb->OnLeftClick(wxID_APPLY, true /* doesn't matter */);
+
+    CPPUNIT_ASSERT_EQUAL( "advmcpA", g_str );
+#endif // wxUSE_TOOLBAR
 }
 
 #if wxUSE_UIACTIONSIMULATOR
