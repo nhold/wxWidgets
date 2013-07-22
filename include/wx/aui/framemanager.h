@@ -481,6 +481,10 @@ public:
             this->m_state &= ~flag;
         return *this;
     }
+    unsigned int GetFlags() const
+    {
+        return m_state;
+    }
 
     // adopt the default center pane settings for this pane.
     wxAuiPaneInfo& SetCentrePane() { return SetCenterPane(); }
@@ -581,23 +585,23 @@ public:
 
 public:
 #if WXWIN_COMPATIBILITY_2_8
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxString& name; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxString& caption; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxWindow*& window; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxFrame*& frame; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( unsigned int& state; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( int& dock_direction; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( int& dock_layer; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( int& dock_row; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( int& dock_pos; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxSize& best_size; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxSize& min_size; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxSize& max_size; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxPoint& floating_pos; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxSize& floating_size; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( int& dock_proportion; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxAuiPaneButtonArray& buttons; )
-    wxDEPRECATED_BUT_USED_INTERNALLY( wxRect& rect; )
+    wxDEPRECATED( wxString& name; )
+    wxDEPRECATED( wxString& caption; )
+    wxDEPRECATED( wxWindow*& window; )
+    wxDEPRECATED( wxFrame*& frame; )
+    wxDEPRECATED( unsigned int& state; )
+    wxDEPRECATED( int& dock_direction; )
+    wxDEPRECATED( int& dock_layer; )
+    wxDEPRECATED( int& dock_row; )
+    wxDEPRECATED( int& dock_pos; )
+    wxDEPRECATED( wxSize& best_size; )
+    wxDEPRECATED( wxSize& min_size; )
+    wxDEPRECATED( wxSize& max_size; )
+    wxDEPRECATED( wxPoint& floating_pos; )
+    wxDEPRECATED( wxSize& floating_size; )
+    wxDEPRECATED( int& dock_proportion; )
+    wxDEPRECATED( wxAuiPaneButtonArray& buttons; )
+    wxDEPRECATED( wxRect& rect; )
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
 private:
