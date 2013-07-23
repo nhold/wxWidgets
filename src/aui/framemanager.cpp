@@ -5682,10 +5682,10 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
     }
     else if (m_action == actionClickButton)
     {
-                m_hoverButton = NULL;
+        m_hoverButton = NULL;
         m_frame->ReleaseMouse();
-              m_hoverButton = NULL;
-            wxAuiPaneInfo& pane = *m_actionPart->pane;
+        m_hoverButton = NULL;
+        wxAuiPaneInfo& pane = *m_actionPart->pane;
         
         if (m_actionPart)
         {
