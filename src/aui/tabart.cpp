@@ -368,7 +368,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     wxCoord texty;
 
     // if the caption is empty, measure some temporary text
-    wxString caption = page.caption;
+    wxString caption = page.GetCaption();
     if (caption.empty())
         caption = wxT("Xj");
 
@@ -408,7 +408,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     if (HasFlag(wxAUI_NB_BOTTOM))
         tabY += 2;
 
-    caption = page.caption;
+    caption = page.GetCaption();
 
 
     // select pen, brush and font for the tab to be drawn
@@ -958,7 +958,7 @@ int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiPaneInfoPtrArray&
     for (i = 0; i < count; ++i)
     {
         const wxAuiPaneInfo& page = *pages.Item(i);
-        wxString caption = page.caption;
+        wxString caption = page.GetCaption();
 
         // if there is no caption, make it a space.  This will prevent
         // an assert in the menu code.
@@ -1020,7 +1020,7 @@ wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrA
         int ext = 0;
         wxSize s = GetTabSize(dc,
                               wnd,
-                              page.caption,
+                              page.GetCaption(),
                               bmp,
                               true,
                               wxAUI_BUTTON_STATE_HIDDEN,
@@ -1254,7 +1254,7 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     wxCoord textx, texty;
 
     // if the caption is empty, measure some temporary text
-    wxString caption = page.caption;
+    wxString caption = page.GetCaption();
     if (caption.empty())
         caption = wxT("Xj");
 
@@ -1284,7 +1284,7 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
         tabHeight += 2;
     }
 
-    caption = page.caption;
+    caption = page.GetCaption();
 
     // select pen, brush and font for the tab to be drawn
 
@@ -1613,7 +1613,7 @@ int wxAuiSimpleTabArt::ShowDropDown(wxWindow* wnd, const wxAuiPaneInfoPtrArray& 
     for (i = 0; i < count; ++i)
     {
         const wxAuiPaneInfo& page = *pages.Item(i);
-        menuPopup.AppendCheckItem(1000+i, page.caption);
+        menuPopup.AppendCheckItem(1000+i, page.GetCaption());
     }
 
     if (activeIndex != -1)
@@ -1653,7 +1653,7 @@ wxSize wxAuiSimpleTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrAr
         int ext = 0;
         wxSize s = GetTabSize(dc,
                               wnd,
-                              page->caption,
+                              page->GetCaption(),
                               wxNullBitmap,
                               true,
                               wxAUI_BUTTON_STATE_HIDDEN,

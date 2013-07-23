@@ -121,42 +121,42 @@ const int notebookTabHeight = 42;
 wxAuiPaneInfo::wxAuiPaneInfo()
 :
 #if WXWIN_COMPATIBILITY_2_8
-  name(m_name)
-, caption(m_caption)
-, window(m_window)
-, frame(m_frame)
-, state(m_state)
-, dock_direction(m_dock_direction)
-, dock_layer(m_dock_layer)
-, dock_row(m_dock_row)
-, dock_pos(m_dock_pos)
-, best_size(m_best_size)
-, min_size(m_min_size)
-, max_size(m_max_size)
-, floating_pos(m_floating_pos)
-, floating_size(m_floating_size)
-, dock_proportion(m_dock_proportion)
-, buttons(m_buttons)
-, rect(m_rect)
+  name(m_name),
+  caption(m_caption),
+  window(m_window),
+  frame(m_frame),
+  state(m_state),
+  dock_direction(m_dock_direction),
+  dock_layer(m_dock_layer),
+  dock_row(m_dock_row),
+  dock_pos(m_dock_pos),
+  best_size(m_best_size),
+  min_size(m_min_size),
+  max_size(m_max_size),
+  floating_pos(m_floating_pos),
+  floating_size(m_floating_size),
+  dock_proportion(m_dock_proportion),
+  buttons(m_buttons),
+  rect(m_rect), 
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
-, m_name(wxT(""))
-, m_caption(wxT(""))
-, m_tooltip(wxT(""))
-, m_window(NULL)
-, m_frame(NULL)
-, m_state(0)
-, m_dock_direction(wxAUI_DOCK_LEFT)
-, m_dock_layer(0)
-, m_dock_row(0)
-, m_dock_pos(0)
-, m_dock_page(0)
-, m_best_size(wxDefaultSize)
-, m_min_size(wxDefaultSize)
-, m_max_size(wxDefaultSize)
-, m_floating_pos(wxDefaultPosition)
-, m_floating_size(wxDefaultSize)
-, m_dock_proportion(0)
+  m_name(wxT("")),
+  m_caption(wxT("")),
+  m_tooltip(wxT("")),
+  m_window(NULL),
+  m_frame(NULL),
+  m_state(0),
+  m_dock_direction(wxAUI_DOCK_LEFT),
+  m_dock_layer(0),
+  m_dock_row(0),
+  m_dock_pos(0),
+  m_dock_page(0),
+  m_best_size(wxDefaultSize),
+  m_min_size(wxDefaultSize),
+  m_max_size(wxDefaultSize),
+  m_floating_pos(wxDefaultPosition),
+  m_floating_size(wxDefaultSize),
+  m_dock_proportion(0)
 {
     SetDefaultPane();
 }
@@ -867,7 +867,7 @@ bool wxAuiPaneInfo::IsValid() const
     // Should this RTTI and function call be rewritten as
     // sending a new event type to allow other window types
     // to check the pane settings?
-    wxAuiToolBar* toolbar = wxDynamicCast(window, wxAuiToolBar);
+    wxAuiToolBar* toolbar = wxDynamicCast(m_window, wxAuiToolBar);
     return !toolbar || toolbar->IsPaneValid(*this);
 }
 
@@ -1381,8 +1381,8 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
                                         wxAuiPaneInfo::optionRightDockable |
                                         wxAuiPaneInfo::optionTopDockable |
                                         wxAuiPaneInfo::optionBottomDockable;
-        const unsigned int defaultDock = wxAuiPaneInfo().SetDefaultPane().state & dockMask;
-        if ((test.state & dockMask) == defaultDock)
+        const unsigned int defaultDock = wxAuiPaneInfo().SetDefaultPane().GetFlags() & dockMask;
+        if ((test.GetFlags() & dockMask) == defaultDock)
         {
             // set docking flags based on toolbar style
             if (toolbar->GetWindowStyleFlag() & wxAUI_TB_VERTICAL)
@@ -1397,9 +1397,9 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
         else
         {
             // see whether non-default docking flags are valid
-            test.window = window;
-            wxCHECK_MSG(test.IsValid(), false,
-                        "toolbar style and pane docking flags are incompatible");
+            test.SetWindow(window);
+            if (test.GetWindow() != window)
+                return false;
         }
     }
 
@@ -2310,7 +2310,7 @@ void wxAuiManager::LayoutAddPane(wxSizer* cont, wxAuiDockInfo& dock, wxAuiPaneIn
         int border_flags = wxALL;
         if(!allowtitlebar)
         {
-            wxAuiNotebook* nb = wxDynamicCast(pane.window->GetParent(), wxAuiNotebook);
+            wxAuiNotebook* nb = wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook);
             if (nb)
             {
                 if (m_tab_art->m_flags & wxAUI_NB_TOP)
@@ -3485,15 +3485,15 @@ void wxAuiManager::Update()
                     ShowWnd(p.GetFrame(),p.IsShown());
 
                 // update whether the pane is resizable or not
-                long style = p.frame->GetWindowStyleFlag();
+                long style = p.GetFrame()->GetWindowStyleFlag();
                 if (p.IsFixed())
                     style &= ~wxRESIZE_BORDER;
                 else
                     style |= wxRESIZE_BORDER;
-                p.frame->SetWindowStyleFlag(style);
+                p.GetFrame()->SetWindowStyleFlag(style);
 
-                if (p.frame->GetLabel() != p.caption)
-                    p.frame->SetLabel(p.caption);
+                if (p.GetFrame()->GetLabel() != p.GetCaption())
+                    p.GetFrame()->SetLabel(p.GetCaption());
 
             }
         }
@@ -3807,14 +3807,14 @@ bool wxAuiManager::ProcessDockResult(wxAuiPaneInfo& target, const wxAuiPaneInfo&
         // Should this RTTI and function call be rewritten as
         // sending a new event type to allow other window types
         // to vary size based on dock location?
-        wxAuiToolBar* toolbar = wxDynamicCast(target.window, wxAuiToolBar);
+        wxAuiToolBar* toolbar = wxDynamicCast(target.GetWindow(), wxAuiToolBar);
         if (toolbar)
         {
-            wxSize hintSize = toolbar->GetHintSize(target.dock_direction);
-            if (target.best_size != hintSize)
+            wxSize hintSize = toolbar->GetHintSize(target.GetDirection());
+            if (target.GetBestSize() != hintSize)
             {
-                target.best_size = hintSize;
-                target.floating_size = wxDefaultSize;
+                target.SetBestSize( hintSize );
+                target.SetFloatingSize( wxDefaultSize );
             }
         }
     }
@@ -4409,11 +4409,11 @@ void wxAuiManager::StartPaneDrag(wxWindow* paneWindow, const wxPoint& offset)
     m_actionOffset = offset;
     m_frame->CaptureMouse();
 
-    if (pane.frame)
+    if (pane.GetFrame())
     {
-        wxRect windowRect = pane.frame->GetRect();
-        wxRect clientRect = pane.frame->GetClientRect();
-        wxPoint clientPt = pane.frame->ClientToScreen(clientRect.GetTopLeft());
+        wxRect windowRect = pane.GetFrame()->GetRect();
+        wxRect clientRect = pane.GetFrame()->GetClientRect();
+        wxPoint clientPt = pane.GetFrame()->ClientToScreen(clientRect.GetTopLeft());
         wxPoint originPt = clientPt - windowRect.GetTopLeft();
         m_actionOffset += originPt;
     }
@@ -4657,7 +4657,7 @@ void wxAuiManager::OnFloatingPaneMoveStart(wxWindow* wnd)
     wxAuiPaneInfo& pane = GetPane(wnd);
     wxASSERT_MSG(pane.IsOk(), wxT("Pane window not found"));
 
-    if(!pane.frame)
+    if(!pane.GetFrame())
         return;
 
     if (HasFlag(wxAUI_MGR_TRANSPARENT_DRAG))
@@ -5271,7 +5271,7 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
                 {
                     SetActivePane(hitPane->GetWindow());
 
-                    m_actionOffset = wxPoint(evt.m_x-hitPane->rect.x,evt.m_y-part->rect.y);
+                    m_actionOffset = wxPoint(evt.m_x-hitPane->GetRect().x,evt.m_y-part->rect.y);
 
                     m_action = actionClickCaption;
                     m_actionPart = part;
@@ -6258,7 +6258,7 @@ void wxAuiManager::OnMotion(wxMouseEvent& evt)
             if (!wxDynamicCast(m_actionWindow,wxAuiFloatingFrame))
             {
                 wxAuiPaneInfo& pane = GetPane(m_actionWindow);
-                m_actionWindow = pane.frame;
+                m_actionWindow = pane.GetFrame();
             }
 
             wxPoint pt = m_frame->ClientToScreen(evt.GetPosition());
