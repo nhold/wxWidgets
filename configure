@@ -1288,6 +1288,7 @@ enable_notebook
 enable_notifmsg
 enable_odcombobox
 enable_popupwin
+enable_prefseditor
 enable_radiobox
 enable_radiobtn
 enable_richmsgdlg
@@ -2222,6 +2223,7 @@ Optional Features:
   --enable-notifmsg       use wxNotificationMessage class
   --enable-odcombobox     use wxOwnerDrawnComboBox class
   --enable-popupwin       use wxPopUpWindow class
+  --enable-prefseditor    use wxPreferencesEditor class
   --enable-radiobox       use wxRadioBox class
   --enable-radiobtn       use wxRadioButton class
   --enable-richmsgdlg     use wxRichMessageDialog class
@@ -13045,6 +13047,50 @@ $as_echo "$result" >&6; }
               fi
           fi
 
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --${enablestring:-enable}-prefseditor" >&5
+$as_echo_n "checking for --${enablestring:-enable}-prefseditor... " >&6; }
+          # Check whether --enable-prefseditor was given.
+if test "${enable_prefseditor+set}" = set; then :
+  enableval=$enable_prefseditor;
+                          if test "$enableval" = yes; then
+                            wx_cv_use_prefseditor='wxUSE_PREFERENCES_EDITOR=yes'
+                          else
+                            wx_cv_use_prefseditor='wxUSE_PREFERENCES_EDITOR=no'
+                          fi
+
+else
+
+                          wx_cv_use_prefseditor='wxUSE_PREFERENCES_EDITOR=${'DEFAULT_wxUSE_PREFERENCES_EDITOR":-$defaultval}"
+
+fi
+
+
+          eval "$wx_cv_use_prefseditor"
+
+          if test x"$enablestring" = xdisable; then
+            if test $wxUSE_PREFERENCES_EDITOR = no; then
+              result=yes
+            else
+              result=no
+            fi
+          else
+            result=$wxUSE_PREFERENCES_EDITOR
+          fi
+
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: $result" >&5
+$as_echo "$result" >&6; }
+
+
+          enablestring=
+          defaultval=$wxUSE_ALL_FEATURES
+          if test -z "$defaultval"; then
+              if test x"$enablestring" = xdisable; then
+                  defaultval=yes
+              else
+                  defaultval=no
+              fi
+          fi
+
           { $as_echo "$as_me:${as_lineno-$LINENO}: checking for --${enablestring:-enable}-radiobox" >&5
 $as_echo_n "checking for --${enablestring:-enable}-radiobox... " >&6; }
           # Check whether --enable-radiobox was given.
@@ -19888,89 +19934,6 @@ $as_echo "$as_me: WARNING: Building DLLs requires OMF mode, enabled" >&2;}
         wxUSE_OMF=yes
         enable_omf=yes
       fi
-        ;;
-  *)
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strcasecmp() in string.h" >&5
-$as_echo_n "checking for strcasecmp() in string.h... " >&6; }
-if ${ac_cv_string_strcasecmp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-              #include <string.h>
-
-int
-main ()
-{
-
-                  strcasecmp("foo", "bar");
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_string_strcasecmp=yes
-else
-  ac_cv_string_strcasecmp=no
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_string_strcasecmp" >&5
-$as_echo "$ac_cv_string_strcasecmp" >&6; }
-
-      if test x"$ac_cv_string_strcasecmp" = "xyes"; then
-          $as_echo "#define HAVE_STRCASECMP_IN_STRING_H 1" >>confdefs.h
-
-      else
-          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strcasecmp() in strings.h" >&5
-$as_echo_n "checking for strcasecmp() in strings.h... " >&6; }
-if ${ac_cv_strings_strcasecmp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-              cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-                  #include <strings.h>
-
-int
-main ()
-{
-
-                      strcasecmp("foo", "bar");
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_strings_strcasecmp=yes
-else
-  ac_cv_strings_strcasecmp=no
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_strings_strcasecmp" >&5
-$as_echo "$ac_cv_strings_strcasecmp" >&6; }
-
-          if test x"$ac_cv_strings_strcasecmp" = "xyes"; then
-              $as_echo "#define HAVE_STRCASECMP_IN_STRINGS_H 1" >>confdefs.h
-
-          else
-              as_fn_error $? "No case-insensitive string comparison function found." "$LINENO" 5
-          fi
-      fi
-
         ;;
 esac
 
@@ -29860,12 +29823,12 @@ if test "$WCSLEN_FOUND" = 1; then
 
 fi
 
-for ac_func in strnlen
+for ac_func in wcsftime
 do :
-  ac_fn_c_check_func "$LINENO" "strnlen" "ac_cv_func_strnlen"
-if test "x$ac_cv_func_strnlen" = xyes; then :
+  ac_fn_c_check_func "$LINENO" "wcsftime" "ac_cv_func_wcsftime"
+if test "x$ac_cv_func_wcsftime" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_STRNLEN 1
+#define HAVE_WCSFTIME 1
 _ACEOF
 
 fi
@@ -29873,7 +29836,7 @@ done
 
 
 if test "$wxUSE_MAC" != 1; then
-    for ac_func in wcsdup wcsftime wcsnlen wcscasecmp wcsncasecmp
+    for ac_func in strnlen wcsdup wcsnlen wcscasecmp wcsncasecmp
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -36642,6 +36605,12 @@ $as_echo "$as_me: WARNING: wxPopupWindow not yet supported under PM... disabled"
     fi
 fi
 
+if test "$wxUSE_PREFERENCES_EDITOR" = "yes"; then
+    $as_echo "#define wxUSE_PREFERENCES_EDITOR 1" >>confdefs.h
+
+    SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS prefseditor"
+fi
+
 if test "$wxUSE_DIALUP_MANAGER" = "yes"; then
     if test "$wxUSE_MAC" = 1 -o "$wxUSE_OLD_COCOA" = 1; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Dialup manager not supported on this platform... disabled" >&5
@@ -37745,7 +37714,7 @@ if test "$wxUSE_GUI" = "yes"; then
 
 
         SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS artprov controls dialogs drawing \
-                     erase event exec font image minimal preferences render \
+                     erase event exec font image minimal render \
                      shaped svg taborder vscroll widgets wrapsizer"
 
     if test "$wxUSE_MONOLITHIC" != "yes"; then

@@ -173,11 +173,19 @@ wxNotebookPage* wxNotebook::DoRemovePage(size_t nPage)
 
     wxNotebookPage* page = m_pages[nPage] ;
     m_pages.RemoveAt(nPage);
+    m_images.RemoveAt(nPage);
 
     MacSetupTabs();
 
-    if (m_selection >= (int)GetPageCount())
-        m_selection = GetPageCount() - 1;
+    if ( m_selection >= (int)nPage )
+    {
+        if ( GetPageCount() == 0 )
+            m_selection = wxNOT_FOUND;
+        else
+            m_selection = m_selection ? m_selection - 1 : 0;
+
+        GetPeer()->SetValue( m_selection + 1 ) ;
+    }
 
     if (m_selection >= 0)
         m_pages[m_selection]->Show(true);
@@ -190,7 +198,8 @@ wxNotebookPage* wxNotebook::DoRemovePage(size_t nPage)
 // remove all pages
 bool wxNotebook::DeleteAllPages()
 {
-    WX_CLEAR_ARRAY(m_pages) ;
+    WX_CLEAR_ARRAY(m_pages);
+    m_images.clear();
     MacSetupTabs();
     m_selection = wxNOT_FOUND ;
     InvalidateBestSize();
