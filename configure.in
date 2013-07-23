@@ -971,6 +971,7 @@ WX_ARG_FEATURE(notebook,    [  --enable-notebook       use wxNotebook class], wx
 WX_ARG_FEATURE(notifmsg,    [  --enable-notifmsg       use wxNotificationMessage class], wxUSE_NOTIFICATION_MESSAGE)
 WX_ARG_FEATURE(odcombobox,  [  --enable-odcombobox     use wxOwnerDrawnComboBox class], wxUSE_ODCOMBOBOX)
 WX_ARG_FEATURE(popupwin,    [  --enable-popupwin       use wxPopUpWindow class], wxUSE_POPUPWIN)
+WX_ARG_FEATURE(prefseditor, [  --enable-prefseditor    use wxPreferencesEditor class], wxUSE_PREFERENCES_EDITOR)
 WX_ARG_FEATURE(radiobox,    [  --enable-radiobox       use wxRadioBox class], wxUSE_RADIOBOX)
 WX_ARG_FEATURE(radiobtn,    [  --enable-radiobtn       use wxRadioButton class], wxUSE_RADIOBTN)
 WX_ARG_FEATURE(richmsgdlg,  [  --enable-richmsgdlg     use wxRichMessageDialog class], wxUSE_RICHMSGDLG)
@@ -1517,50 +1518,6 @@ case "${host}" in
         enable_omf=yes
       fi
       dnl (end of OS/2-only piece)
-  ;;
-  *)
-      dnl ---------------------------------------------------------------------
-      dnl look for strcasecmp() in string.h and then strings.h if it's not
-      dnl there. Don't do this on OS/2, where "stricmp" is the function to be
-      dnl used.
-      dnl ---------------------------------------------------------------------
-      dnl (non-OS/2-only piece)
-
-      AC_CACHE_CHECK([for strcasecmp() in string.h], ac_cv_string_strcasecmp, [
-          AC_TRY_LINK([
-              #include <string.h>
-              ],
-              [
-                  strcasecmp("foo", "bar");
-              ],
-              ac_cv_string_strcasecmp=yes,
-              ac_cv_string_strcasecmp=no
-          )
-      ])
-
-      if test x"$ac_cv_string_strcasecmp" = "xyes"; then
-          AC_DEFINE(HAVE_STRCASECMP_IN_STRING_H)
-      else
-          AC_CACHE_CHECK([for strcasecmp() in strings.h], ac_cv_strings_strcasecmp, [
-              AC_TRY_LINK([
-                  #include <strings.h>
-                  ],
-                  [
-                      strcasecmp("foo", "bar");
-                  ],
-                  ac_cv_strings_strcasecmp=yes,
-                  ac_cv_strings_strcasecmp=no
-              )
-          ])
-
-          if test x"$ac_cv_strings_strcasecmp" = "xyes"; then
-              AC_DEFINE(HAVE_STRCASECMP_IN_STRINGS_H)
-          else
-              AC_MSG_ERROR([No case-insensitive string comparison function found.])
-          fi
-      fi
-
-      dnl (end of non-OS/2-only piece)
   ;;
 esac
 
@@ -4095,15 +4052,17 @@ if test "$WCSLEN_FOUND" = 1; then
     AC_DEFINE(HAVE_WCSLEN)
 fi
 
-AC_CHECK_FUNCS(strnlen)
+dnl Notice that unlike the functions below, this one seems to be present in all
+dnl support OS X versions so it's OK to test for it here.
+AC_CHECK_FUNCS(wcsftime)
 
-dnl OS X provides the wide character functions starting from 10.7 so our tests
-dnl would succeed if we're configuring under 10.7 or later, yet the compiled
-dnl programs would fail if ran under 10.6 or earlier. To avoid this problem we
-dnl define the corresponding HAVE_XXX in wx/osx/config_xcode.h instead of
-dnl testing for them here.
+dnl OS X provides the wide character functions (and also strnlen(), for some
+dnl reason) only starting from 10.7 so our tests would succeed if we're
+dnl configuring under 10.7 or later, yet the compiled programs would fail if
+dnl ran under 10.6 or earlier. To avoid this problem, define the corresponding
+dnl HAVE_XXX in wx/osx/config_xcode.h instead of testing for them here.
 if test "$wxUSE_MAC" != 1; then
-    AC_CHECK_FUNCS([wcsdup wcsftime wcsnlen wcscasecmp wcsncasecmp])
+    AC_CHECK_FUNCS([strnlen wcsdup wcsnlen wcscasecmp wcsncasecmp])
 fi
 
 dnl On HP-UX aCC need this define to find mbstrtowcs() &c
@@ -7077,6 +7036,11 @@ if test "$wxUSE_POPUPWIN" = "yes"; then
     fi
 fi
 
+if test "$wxUSE_PREFERENCES_EDITOR" = "yes"; then
+    AC_DEFINE(wxUSE_PREFERENCES_EDITOR)
+    SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS prefseditor"
+fi
+
 if test "$wxUSE_DIALUP_MANAGER" = "yes"; then
     if test "$wxUSE_MAC" = 1 -o "$wxUSE_OLD_COCOA" = 1; then
         AC_MSG_WARN([Dialup manager not supported on this platform... disabled])
@@ -7813,7 +7777,7 @@ if test "$wxUSE_GUI" = "yes"; then
 
     dnl TODO some samples are never built so far: mfc (requires VC++)
     SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS artprov controls dialogs drawing \
-                     erase event exec font image minimal preferences render \
+                     erase event exec font image minimal render \
                      shaped svg taborder vscroll widgets wrapsizer"
 
     if test "$wxUSE_MONOLITHIC" != "yes"; then

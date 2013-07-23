@@ -414,6 +414,8 @@ typedef pid_t GPid;
 #define wxUSE_POPUPWIN 1
 #endif
 
+#define wxUSE_PREFERENCES_EDITOR 1
+
 #define wxUSE_TIPWINDOW    1
 
 #define wxUSE_STC 1
@@ -1316,12 +1318,6 @@ typedef pid_t GPid;
 
 /* Define this if you have fputws() */
 #define HAVE_FPUTWS 1
-
-/* Define this if you have strcasecmp() function in <string.h> */
-#define HAVE_STRCASECMP_IN_STRING_H 1
-
-/* Define this if you have strcasecmp() function in <strings.h> */
-#undef HAVE_STRCASECMP_IN_STRINGS_H
 
 /* Define this if you have wprintf() and related functions */
 #define HAVE_WPRINTF 1

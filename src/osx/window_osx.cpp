@@ -416,6 +416,9 @@ bool wxWindowMac::Create(wxWindowMac *parent,
 
     m_windowVariant = parent->GetWindowVariant() ;
 
+    m_hScrollBarAlwaysShown =
+    m_vScrollBarAlwaysShown = HasFlag(wxALWAYS_SHOW_SB);
+
     if ( m_peer != kOSXNoWidgetImpl )
     {
         SetPeer(wxWidgetImpl::CreateUserPane( this, parent, id, pos, size , style, GetExtraStyle() ));
@@ -872,9 +875,22 @@ void wxWindowMac::DoGetClientSize( int *x, int *y ) const
 
 #endif
     if (x)
-       *x = ww;
+    {
+        // we shouldn't return invalid width
+        if ( ww < 0 )
+            ww = 0;
+        
+        *x = ww;
+    }
+    
     if (y)
-       *y = hh;
+    {
+        // we shouldn't return invalid height
+        if ( hh < 0 )
+            hh = 0;
+        
+        *y = hh;
+    }
 }
 
 bool wxWindowMac::SetCursor(const wxCursor& cursor)

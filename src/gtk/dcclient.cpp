@@ -64,8 +64,6 @@ static const double RAD2DEG  = 180.0 / M_PI;
 static inline double dmax(double a, double b) { return a > b ? a : b; }
 static inline double dmin(double a, double b) { return a < b ? a : b; }
 
-static inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
-
 static GdkPixmap* GetHatch(int style)
 {
     wxASSERT(style >= wxBRUSHSTYLE_FIRST_HATCH && style <= wxBRUSHSTYLE_LAST_HATCH);
@@ -1397,158 +1395,72 @@ void wxWindowDCImpl::DoDrawText(const wxString& text,
                                 wxCoord xLogical,
                                 wxCoord yLogical)
 {
-    wxCHECK_RET( IsOk(), wxT("invalid window dc") );
-
-    if (!m_gdkwindow) return;
-
-    if (text.empty()) return;
-
-    wxCoord x = XLOG2DEV(xLogical),
-            y = YLOG2DEV(yLogical);
-
-    wxCHECK_RET( m_context, wxT("no Pango context") );
-    wxCHECK_RET( m_layout, wxT("no Pango layout") );
-    wxCHECK_RET( m_fontdesc, wxT("no Pango font description") );
-
-    gdk_pango_context_set_colormap( m_context, m_cmap );  // not needed in gtk+ >= 2.6
-
-    wxCharBuffer data = wxGTK_CONV(text);
-    if ( !data )
-        return;
-
-    pango_layout_set_text(m_layout, data, data.length());
-    const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
-
-    int oldSize = 0;
-    const bool isScaled = fabs(m_scaleY - 1.0) > 0.00001;
-    if (isScaled)
-    {
-        // If there is a user or actually any scale applied to
-        // the device context, scale the font.
-
-        // scale font description
-        oldSize = pango_font_description_get_size(m_fontdesc);
-        pango_font_description_set_size(m_fontdesc, int(oldSize * m_scaleY));
-
-        // actually apply scaled font
-        pango_layout_set_font_description( m_layout, m_fontdesc );
-    }
-
-    int w, h;
-    pango_layout_get_pixel_size(m_layout, &w, &h);
-
-    // Draw layout.
-    int x_rtl = x;
-    if (m_window && m_window->GetLayoutDirection() == wxLayout_RightToLeft)
-        x_rtl -= w;
-
-    const GdkColor* bg_col = NULL;
-    if (m_backgroundMode == wxBRUSHSTYLE_SOLID)
-        bg_col = m_textBackgroundColour.GetColor();
-
-    gdk_draw_layout_with_colors(m_gdkwindow, m_textGC, x_rtl, y, m_layout, NULL, bg_col);
-
-    if (isScaled)
-    {
-         // reset unscaled size
-         pango_font_description_set_size( m_fontdesc, oldSize );
-
-         // actually apply unscaled font
-         pango_layout_set_font_description( m_layout, m_fontdesc );
-    }
-    if (setAttrs)
-    {
-        // undo underline attributes setting:
-        pango_layout_set_attributes(m_layout, NULL);
-    }
-
-    CalcBoundingBox(xLogical + int(w / m_scaleX), yLogical + int(h / m_scaleY));
-    CalcBoundingBox(xLogical, yLogical);
+    DoDrawRotatedText(text, xLogical, yLogical, 0);
 }
 
-// TODO: When GTK2.6 is required, merge DoDrawText and DoDrawRotatedText to
-// avoid code duplication
-void wxWindowDCImpl::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, double angle )
+void wxWindowDCImpl::DoDrawRotatedText(const wxString& text, int xLogical, int yLogical, double angle)
 {
     if (!m_gdkwindow || text.empty())
         return;
 
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
 
-    x = XLOG2DEV(x);
-    y = YLOG2DEV(y);
-
     pango_layout_set_text(m_layout, wxGTK_CONV(text), -1);
     const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
-    int oldSize = 0;
-    const bool isScaled = fabs(m_scaleY - 1.0) > 0.00001;
-    if (isScaled)
-    {
-        //TODO: when Pango >= 1.6 is required, use pango_matrix_scale()
-         // If there is a user or actually any scale applied to
-         // the device context, scale the font.
-
-         // scale font description
-        oldSize = pango_font_description_get_size(m_fontdesc);
-        pango_font_description_set_size(m_fontdesc, int(oldSize * m_scaleY));
-
-         // actually apply scaled font
-         pango_layout_set_font_description( m_layout, m_fontdesc );
-    }
-
-    int w, h;
-    pango_layout_get_pixel_size(m_layout, &w, &h);
 
     const GdkColor* bg_col = NULL;
     if (m_backgroundMode == wxBRUSHSTYLE_SOLID)
         bg_col = m_textBackgroundColour.GetColor();
 
-    // rotate the text
     PangoMatrix matrix = PANGO_MATRIX_INIT;
+    pango_matrix_scale(&matrix, m_scaleX, m_scaleY);
     pango_matrix_rotate (&matrix, angle);
     pango_context_set_matrix (m_context, &matrix);
     pango_layout_context_changed (m_layout);
 
-    // To be compatible with MSW, the rotation axis must be in the old
-    // top-left corner.
-    // Calculate the vertices of the rotated rectangle containing the text,
-    // relative to the old top-left vertex.
-    // We could use the matrix for this, but it's simpler with trignonometry.
-    double rad = DegToRad(angle);
-    // the rectangle vertices are counted clockwise with the first one
-    // being at (0, 0)
-    double x2 = w * cos(rad);
-    double y2 = -w * sin(rad);   // y axis points to the bottom, hence minus
-    double x4 = h * sin(rad);
-    double y4 = h * cos(rad);
-    double x3 = x4 + x2;
-    double y3 = y4 + y2;
-    // Then we calculate max and min of the rotated rectangle.
-    wxCoord maxX = (wxCoord)(dmax(dmax(0, x2), dmax(x3, x4)) + 0.5),
-            maxY = (wxCoord)(dmax(dmax(0, y2), dmax(y3, y4)) + 0.5),
-            minX = (wxCoord)(dmin(dmin(0, x2), dmin(x3, x4)) - 0.5),
-            minY = (wxCoord)(dmin(dmin(0, y2), dmin(y3, y4)) - 0.5);
+    int w, h;
+    pango_layout_get_pixel_size(m_layout, &w, &h);
 
-    gdk_draw_layout_with_colors(m_gdkwindow, m_textGC, x+minX, y+minY,
-                                m_layout, NULL, bg_col);
+    int x = LogicalToDeviceX(xLogical);
+    int y = LogicalToDeviceY(yLogical);
+    if (m_window && m_window->GetLayoutDirection() == wxLayout_RightToLeft)
+        x -= LogicalToDeviceXRel(w);
 
-    if (setAttrs)
-        pango_layout_set_attributes(m_layout, NULL);
-
-    // clean up the transformation matrix
-    pango_context_set_matrix(m_context, NULL);
-
-    if (isScaled)
+    if (wxIsNullDouble(angle))
     {
-         // reset unscaled size
-         pango_font_description_set_size( m_fontdesc, oldSize );
-
-         // actually apply unscaled font
-         pango_layout_set_font_description( m_layout, m_fontdesc );
+        CalcBoundingBox(xLogical, yLogical);
+        CalcBoundingBox(xLogical + w, yLogical + h);
+    }
+    else
+    {
+        // To be compatible with MSW, the rotation axis must be in the old
+        // top-left corner.
+        // Calculate the vertices of the rotated rectangle containing the text,
+        // relative to the old top-left vertex.
+        // the rectangle vertices are counted clockwise with the first one
+        // being at (0, 0)
+        double x2 = w * matrix.xx;
+        double y2 = w * matrix.yx;
+        double x4 = h * matrix.xy;
+        double y4 = h * matrix.yy;
+        double x3 = x4 + x2;
+        double y3 = y4 + y2;
+        // Then we calculate max and min of the rotated rectangle.
+        wxCoord maxX = (wxCoord)(dmax(dmax(0, x2), dmax(x3, x4)) + 0.5),
+                maxY = (wxCoord)(dmax(dmax(0, y2), dmax(y3, y4)) + 0.5),
+                minX = (wxCoord)(dmin(dmin(0, x2), dmin(x3, x4)) - 0.5),
+                minY = (wxCoord)(dmin(dmin(0, y2), dmin(y3, y4)) - 0.5);
+        x += minX;
+        y += minY;
+        CalcBoundingBox(DeviceToLogicalX(x), DeviceToLogicalY(y));
+        CalcBoundingBox(DeviceToLogicalX(x + maxX - minX), DeviceToLogicalY(y + maxY - minY));
     }
 
-    CalcBoundingBox(x+minX, y+minY);
-    CalcBoundingBox(x+maxX, y+maxY);
+    gdk_draw_layout_with_colors(m_gdkwindow, m_textGC, x, y, m_layout, NULL, bg_col);
+
+    pango_context_set_matrix(m_context, NULL);
+    if (setAttrs)
+        pango_layout_set_attributes(m_layout, NULL);
 }
 
 void wxWindowDCImpl::DoGetTextExtent(const wxString &string,
