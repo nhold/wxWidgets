@@ -5684,51 +5684,57 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
     {
         m_hoverButton = NULL;
         m_frame->ReleaseMouse();
-		wxAuiPaneInfo* pane = m_actionPart->pane;
-		int buttonId = m_actionPart->button->button_id;
-
-		bool passHitTest = false;
+        m_hoverButton = NULL;
+        wxAuiPaneInfo& pane = *m_actionPart->pane;
+        
         if (m_actionPart)
         {
-            UpdateButtonOnScreen(m_actionPart, evt);
-
-            // make sure we're still over the item that was originally clicked
-            if (m_actionPart == HitTest(evt.GetX(), evt.GetY()))
+ 
+            bool passHitTest=false;
+            int buttonid=0;
+            if(m_actionPart->type == wxAuiDockUIPart::typePaneTab)
             {
-                // fire button-click event
-                wxAuiManagerEvent e(wxEVT_AUI_PANE_BUTTON);
-                e.SetManager(this);
-                e.SetPane(m_actionPart->pane);
-                e.SetButton(m_actionPart->button->button_id);
-                ProcessMgrEvent(e);
-				passHitTest = true;
+                wxAuiTabContainerButton* hitbutton;
+                if(m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton))
+                {
+                    passHitTest=( (hitbutton==m_hoverButton2) && (m_hoverButton2->curState==wxAUI_BUTTON_STATE_PRESSED) );
+                }
+                    
+                    buttonid=m_hoverButton2->id;
+                    m_hoverButton2->curState = wxAUI_BUTTON_STATE_NORMAL;
+                    m_hoverButton2=NULL;
             }
-        }
-    
+            else
+            {
+                UpdateButtonOnScreen(m_actionPart, evt);
+                passHitTest = (m_actionPart == HitTest(evt.GetX(), evt.GetY()));
+                buttonid=m_actionPart->button->button_id;
+            }
             if (passHitTest)
             {
                 // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_BUTTON event to notify user of change.
                 if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
                 {
                     wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_BUTTON, GetManagedWindow()->GetId());
-                    e.SetSelection(GetAllPanes().Index(*pane));
-                    e.SetInt(buttonId);
+                    e.SetSelection(GetAllPanes().Index(pane));
+                    e.SetInt(buttonid);
                     e.SetEventObject(GetManagedWindow());
                     GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
                 }
-
+                
                 // fire button-click event
                 wxAuiManagerEvent e(wxEVT_AUI_PANE_BUTTON);
                 e.SetManager(this);
-                e.SetPane(pane);
-                e.SetButton(buttonId);
+
+                e.SetPane(&pane);
+                e.SetButton(buttonid);
                 ProcessMgrEvent(e);
             }
             else
             {
                 Update();
             }
-        
+        }
     }
     else if (m_action == actionClickCaption)
     {
