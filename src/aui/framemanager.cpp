@@ -3179,7 +3179,8 @@ wxSizer* wxAuiManager::LayoutAll(wxAuiPaneInfoArray& panes,
         // are being moved right now, make sure the panes
         // do not overlap each other.  If they do, we will
         // adjust the positions of the panes
-        // If panes share an identical position they must continue to do so as they are then part of a notebook.
+        // If panes share an identical position they must continue to do so as they are then part of a notebook,
+        // excepted if they are toolbars (toolbars cannot be part of notebooks)
         if (dock.fixed && !actionPaneMarked)
         {
             wxArrayInt panePositions, paneSizes;
@@ -3190,7 +3191,7 @@ wxSizer* wxAuiManager::LayoutAll(wxAuiPaneInfoArray& panes,
             for (j = 0; j < dockPaneCount; ++j)
             {
                 wxAuiPaneInfo& pane = *(dock.panes.Item(j));
-                if(pane.GetPosition()==lastposition)
+                if(!pane.IsToolbar() && pane.GetPosition()==lastposition)
                 {
                     pane.SetPosition(dock.panes.Item(j-1)->GetPosition());
                     continue;
