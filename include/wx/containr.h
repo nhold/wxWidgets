@@ -76,11 +76,12 @@ public:
     bool DoSetFocus();
 
     // returns whether we should accept focus ourselves or not
-    bool AcceptsFocus() const { return m_acceptsFocusSelf; }
+    bool AcceptsFocus() const;
 
     // Returns whether we or one of our children accepts focus.
     bool AcceptsFocusRecursively() const
-        { return m_acceptsFocusSelf || m_acceptsFocusChildren; }
+        { return AcceptsFocus() ||
+            (m_acceptsFocusChildren && HasAnyChildrenAcceptingFocus()); }
 
     // We accept focus from keyboard if we accept it at all.
     bool AcceptsFocusFromKeyboard() const { return AcceptsFocusRecursively(); }
@@ -96,6 +97,10 @@ protected:
 
     // return true if we have any children accepting focus
     bool HasAnyFocusableChildren() const;
+
+    // return true if we have any children that do accept focus right now
+    bool HasAnyChildrenAcceptingFocus() const;
+
 
     // the parent window we manage the children for
     wxWindow *m_winParent;
