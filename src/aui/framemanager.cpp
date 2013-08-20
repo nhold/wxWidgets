@@ -801,7 +801,7 @@ size_t wxAuiManager::GetActivePane(wxWindow* focus) const
             return i;
         }
     }
-    return 0;
+    return wxNOT_FOUND;
 }
 
 
