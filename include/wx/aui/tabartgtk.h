@@ -5,7 +5,6 @@
 // Modified by: Malcolm MacLeod (mmacleod@webmail.co.za)
 // Modified by: Jens Lody
 // Created:     2012-03-23
-// RCS-ID:      $Id:$
 // Copyright:   (c) 2012 Jens Lody <jens@codeblocks.org>
 //                  and Teodor Petrov
 //              2012, Jens Lody for the code related to left and right

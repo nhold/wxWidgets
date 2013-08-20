@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id$
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -404,12 +403,13 @@ void wxApp::MacReopenApp()
 #if wxOSX_USE_COCOA_OR_IPHONE
 void wxApp::OSXOnWillFinishLaunching()
 {
-    wxTheApp->OnInit();
+#if wxOSX_USE_IPHONE
+    m_onInitResult = OnInit();
+#endif
 }
 
 void wxApp::OSXOnDidFinishLaunching()
 {
-    wxTheApp->OnLaunched();
 }
 
 void wxApp::OSXOnWillTerminate()
@@ -417,8 +417,6 @@ void wxApp::OSXOnWillTerminate()
     wxCloseEvent event;
     event.SetCanVeto(false);
     wxTheApp->OnEndSession(event);
-    
-    wxTheApp->OnExit();
 }
 
 bool wxApp::OSXOnShouldTerminate()
@@ -891,7 +889,7 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     return true;
 }
 
-#if wxOSX_USE_COCOA_OR_CARBON
+#if wxOSX_USE_CARBON
 bool wxApp::CallOnInit()
 {
     wxMacAutoreleasePool autoreleasepool;

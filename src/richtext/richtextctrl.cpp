@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2665,7 +2664,7 @@ bool wxRichTextCtrl::RecreateBuffer(const wxSize& size)
 // ----------------------------------------------------------------------------
 // file IO functions
 // ----------------------------------------------------------------------------
-
+#if wxUSE_FFILE && wxUSE_STREAMS
 bool wxRichTextCtrl::DoLoadFile(const wxString& filename, int fileType)
 {
     SetFocusObject(& GetBuffer(), true);
@@ -2707,6 +2706,7 @@ bool wxRichTextCtrl::DoSaveFile(const wxString& filename, int fileType)
 
     return false;
 }
+#endif // wxUSE_FFILE && wxUSE_STREAMS
 
 // ----------------------------------------------------------------------------
 // wxRichTextCtrl specific functionality
