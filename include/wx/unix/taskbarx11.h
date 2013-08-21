@@ -4,6 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     04/04/2003
+// RCS-ID:      $Id$
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////

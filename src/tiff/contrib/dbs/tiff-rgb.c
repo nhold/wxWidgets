@@ -1,3 +1,4 @@
+/* $Id$ */
 
 /*
  * tiff-rgb.c -- create a 24-bit Class R (rgb) TIFF file

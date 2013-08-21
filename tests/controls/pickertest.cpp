@@ -3,6 +3,7 @@
 // Purpose:     Tests for various wxPickerBase based classes
 // Author:      Steven Lamerton
 // Created:     2010-08-07
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 Steven Lamerton
 ///////////////////////////////////////////////////////////////////////////////
 

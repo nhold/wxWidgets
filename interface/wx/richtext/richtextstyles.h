@@ -2,6 +2,7 @@
 // Name:        richtext/richtextstyles.h
 // Purpose:     interface of wxRichTextStyleListCtrl
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

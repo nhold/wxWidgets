@@ -2,6 +2,7 @@
 // Name:        wx/protocol/protocol.h
 // Purpose:     interface of wxProtocol
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

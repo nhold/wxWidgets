@@ -2,6 +2,7 @@
 // Name:        stattext.h
 // Purpose:     interface of wxStaticText
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

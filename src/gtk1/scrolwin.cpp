@@ -5,6 +5,7 @@
 // Modified by: Ron Lee
 //              Vadim Zeitlin: removed 90% of duplicated common code
 // Created:     01/02/97
+// RCS-ID:      $Id$
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        html/helpdata.h
 // Purpose:     interface of wxHtmlHelpData
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2,6 +2,7 @@
 // Name:        display.h
 // Purpose:     interface of wxDisplay
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

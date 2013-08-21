@@ -2,6 +2,7 @@
 // Name:        src/gtk/statbox.cpp
 // Purpose:
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -108,8 +109,6 @@ bool wxStaticBox::Create( wxWindow *parent,
     }
 #endif
 
-    m_container.DisableSelfFocus();
-
     return true;
 }
 
@@ -124,7 +123,7 @@ void wxStaticBox::AddChild( wxWindowBase *child )
         gtk_container_add( GTK_CONTAINER (m_widget), m_wxwindow );
     }
 
-    wxStaticBoxBase::AddChild(child);
+    wxWindow::AddChild( child );
 }
 
 void wxStaticBox::SetLabel( const wxString& label )
@@ -155,6 +154,7 @@ wxStaticBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
     return GetDefaultAttributesFromGTKWidget(gtk_frame_new(""));
 }
+
 
 void wxStaticBox::GetBordersForSizer(int *borderTop, int *borderOther) const
 {

@@ -3,6 +3,7 @@
 // Purpose:     wxControlBase::*Ellipsize* unit test
 // Author:      Francesco Montorsi
 // Created:     2010-03-10
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 Francesco Montorsi
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -5,6 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Chris Elliott
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

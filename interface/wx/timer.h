@@ -2,6 +2,7 @@
 // Name:        timer.h
 // Purpose:     interface of wxTimer
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

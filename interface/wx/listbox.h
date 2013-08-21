@@ -2,6 +2,7 @@
 // Name:        listbox.h
 // Purpose:     interface of wxListBox
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -3,6 +3,7 @@
 // Purpose:     Declaration of wxKeyboardState class
 // Author:      Vadim Zeitlin
 // Created:     2008-09-19
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

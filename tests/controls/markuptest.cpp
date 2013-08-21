@@ -3,6 +3,7 @@
 // Purpose:     wxMarkupParser and related classes unit tests
 // Author:      Vadim Zeitlin
 // Created:     2011-02-17
+// RCS-ID:      $Id$
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 ///////////////////////////////////////////////////////////////////////////////
 

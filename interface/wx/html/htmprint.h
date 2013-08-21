@@ -2,6 +2,7 @@
 // Name:        html/htmprint.h
 // Purpose:     interface of wxHtmlDCRenderer
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

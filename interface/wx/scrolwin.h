@@ -2,6 +2,7 @@
 // Name:        scrolwin.h
 // Purpose:     interface of wxScrolled template
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

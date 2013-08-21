@@ -3,6 +3,7 @@
 // Author:      Chris Elliott
 // Modified by:
 // Created:     26/Apr/07
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 //

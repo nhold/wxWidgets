@@ -1,3 +1,4 @@
+/* $Id$ */
 
 /* tiffcrop.c -- a port of tiffcp.c extended to include manipulations of
  * the image data through additional options listed below

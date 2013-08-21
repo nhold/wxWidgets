@@ -2,6 +2,7 @@
 // Name:        tests/misc/typeinfotest.cpp
 // Purpose:     Test typeinfo.h
 // Author:      Jaakko Salli
+// RCS-ID:      $Id$
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

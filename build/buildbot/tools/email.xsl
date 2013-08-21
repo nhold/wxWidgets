@@ -4,6 +4,7 @@
     Name:       email.xsl
     Purpose:    Create email address lookup.
     Author:     Mike Wetherell
+    RCS-ID:     $Id$
     Copyright:  (c) 2007 Mike Wetherell
     Licence:    wxWindows licence
 

@@ -3,6 +3,7 @@
 // Purpose:     XML resource handler for wxStaticLine
 // Author:      Vaclav Slavik
 // Created:     2000/09/00
+// RCS-ID:      $Id$
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 // Purpose:     Helper functions for working with GDK and wx events
 // Author:      Vaclav Slavik
 // Created:     2011-10-14
+// RCS-ID:      $Id$
 // Copyright:   (c) 2011 Vaclav Slavik
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

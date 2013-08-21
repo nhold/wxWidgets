@@ -2,6 +2,7 @@
 // Name:        power.h
 // Purpose:     interface of wxPowerEvent
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

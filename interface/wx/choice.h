@@ -2,6 +2,7 @@
 // Name:        choice.h
 // Purpose:     interface of wxChoice
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

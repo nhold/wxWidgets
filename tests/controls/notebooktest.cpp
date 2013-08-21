@@ -3,6 +3,7 @@
 // Purpose:     wxNotebook unit test
 // Author:      Steven Lamerton
 // Created:     2010-07-02
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 Steven Lamerton
 ///////////////////////////////////////////////////////////////////////////////
 

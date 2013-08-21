@@ -4,6 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxButton
 // Author:      Vadim Zeitlin
 // Created:     10.04.01
+// Id:          $Id$
 // Copyright:   (c) 2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

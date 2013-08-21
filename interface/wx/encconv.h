@@ -2,6 +2,7 @@
 // Name:        encconv.h
 // Purpose:     interface of wxEncodingConverter
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

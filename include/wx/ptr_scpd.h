@@ -3,6 +3,7 @@
 // Purpose:     compatibility wrapper for wxScoped{Ptr,Array}
 // Author:      Vadim Zeitlin
 // Created:     2009-02-03
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

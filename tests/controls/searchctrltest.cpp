@@ -3,6 +3,7 @@
 // Purpose:     wxSearchCtrl unit test
 // Author:      Vadim Zeitlin
 // Created:     2013-01-20
+// RCS-ID:      $Id$
 // Copyright:   (c) 2013 Vadim Zeitlin <vadim@wxwidgets.org>
 ///////////////////////////////////////////////////////////////////////////////
 

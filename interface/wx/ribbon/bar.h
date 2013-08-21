@@ -2,6 +2,7 @@
 // Name:        ribbon/bar.h
 // Purpose:     interface of wxRibbonBar
 // Author:      Peter Cawley
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 

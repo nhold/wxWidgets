@@ -3,6 +3,7 @@
 // Purpose:     STC test application
 // Maintainer:  Otto Wyss
 // Created:     2003-09-01
+// RCS-ID:      $Id$
 // Copyright:   (c) wxGuide
 // Licence:     wxWindows licence
 //////////////////////////////////////////////////////////////////////////////

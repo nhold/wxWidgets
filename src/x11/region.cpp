@@ -3,6 +3,7 @@
 // Purpose:   Region class
 // Author:    Julian Smart, Robert Roebling
 // Created:   Fri Oct 24 10:46:34 MET 1997
+// RCS-ID:    $Id$
 // Copyright: (c) 1997 Julian Smart, Robert Roebling
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

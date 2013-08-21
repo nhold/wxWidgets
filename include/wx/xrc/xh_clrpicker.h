@@ -3,6 +3,7 @@
 // Purpose:     XML resource handler for wxColourPickerCtrl
 // Author:      Francesco Montorsi
 // Created:     2006-04-17
+// RCS-ID:      $Id$
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

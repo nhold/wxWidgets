@@ -2,6 +2,7 @@
 // Name:        platinfo.h
 // Purpose:     interface of wxPlatformInfo
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

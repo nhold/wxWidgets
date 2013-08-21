@@ -2,6 +2,7 @@
 // Name:        clipboard.cpp
 // Purpose:     clipboard wxWidgets sample
 // Author:      Robert Roebling
+// RCS-ID:      $Id$
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

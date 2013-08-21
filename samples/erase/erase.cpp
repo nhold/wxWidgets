@@ -3,6 +3,7 @@
 // Purpose:     Erase wxWidgets sample
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     04/01/98
+// RCS-ID:      $Id$
 // Copyright:   (c) 1998 Robert Roebling
 //              (c) 2009 Vadim Zeitlin
 // Licence:     wxWindows licence

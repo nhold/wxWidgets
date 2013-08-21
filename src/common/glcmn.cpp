@@ -3,6 +3,7 @@
 // Purpose:     wxGLCanvasBase implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-04-09
+// RCS-ID:      $Id$
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

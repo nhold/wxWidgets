@@ -3,6 +3,7 @@
 // Purpose:     wxGTK wxAnyButton class declaration
 // Author:      Robert Roebling
 // Created:     1998-05-20 (extracted from button.h)
+// Id:          $Id: anybutton.h 67066 2011-02-27 12:48:30Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

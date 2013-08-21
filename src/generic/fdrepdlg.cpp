@@ -4,6 +4,7 @@
 // Author:      Markus Greither and Vadim Zeitlin
 // Modified by:
 // Created:     05/25/01
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        tests/testfile.h
 // Purpose:     TestFile class
 // Author:      Mike Wetherell
+// RCS-ID:      $Id$
 // Copyright:   (c) 2005 Mike Wetherell
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        introduction.h
 // Purpose:     Introduction page of the Doxygen manual
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

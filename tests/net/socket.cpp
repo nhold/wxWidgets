@@ -2,6 +2,7 @@
 // Name:        tests/net/socket.cpp
 // Purpose:     wxSocket unit tests
 // Author:      Vadim Zeitlin
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

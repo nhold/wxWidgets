@@ -2,6 +2,7 @@
 // Name:        dir.h
 // Purpose:     interface of wxDir and wxDirTraverser
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

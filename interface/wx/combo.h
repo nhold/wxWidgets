@@ -2,6 +2,7 @@
 // Name:        combo.h
 // Purpose:     interface of wxComboCtrl and wxComboPopup
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

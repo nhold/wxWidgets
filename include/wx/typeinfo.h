@@ -3,6 +3,7 @@
 // Purpose:     wxTypeId implementation
 // Author:      Jaakko Salli
 // Created:     2009-11-19
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

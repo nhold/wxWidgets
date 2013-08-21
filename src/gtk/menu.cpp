@@ -2,6 +2,7 @@
 // Name:        src/gtk/menu.cpp
 // Purpose:     implementation of wxMenuBar and wxMenu classes for wxGTK
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

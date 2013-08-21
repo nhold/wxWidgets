@@ -2,6 +2,7 @@
 // Name:        html/helpwnd.h
 // Purpose:     interface of wxHtmlHelpWindow
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

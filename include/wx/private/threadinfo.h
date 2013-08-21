@@ -3,6 +3,7 @@
 // Purpose:     declaration of wxThreadSpecificInfo: thread-specific information
 // Author:      Vadim Zeitlin
 // Created:     2009-07-13
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

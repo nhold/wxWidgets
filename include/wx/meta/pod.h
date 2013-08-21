@@ -3,6 +3,7 @@
 // Purpose:     Test if a type is POD
 // Author:      Vaclav Slavik, Jaakko Salli
 // Created:     2010-06-14
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        datstrm.h
 // Purpose:     interface of wxDataInputStream and wxDataOutputStream
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

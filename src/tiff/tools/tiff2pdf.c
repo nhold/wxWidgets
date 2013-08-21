@@ -1,3 +1,4 @@
+/* $Id$
  *
  * tiff2pdf - converts a TIFF image to a PDF document
  *

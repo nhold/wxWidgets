@@ -4,6 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-09-25
+// RCS-ID:      $Id$
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

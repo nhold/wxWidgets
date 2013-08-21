@@ -2,6 +2,7 @@
 // Name:        tooltip.h
 // Purpose:     interface of wxToolTip
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

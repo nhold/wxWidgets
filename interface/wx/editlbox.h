@@ -2,6 +2,7 @@
 // Name:        editlbox.h
 // Purpose:     interface of wxEditableListBox
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

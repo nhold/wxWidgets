@@ -2,6 +2,7 @@
 // Name:        filepicker.h
 // Purpose:     interface of wxFilePickerCtrl
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

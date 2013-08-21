@@ -3,6 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     1998-05-20 (extracted from button.cpp)
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

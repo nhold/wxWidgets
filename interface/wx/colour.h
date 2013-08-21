@@ -2,6 +2,7 @@
 // Name:        colour.h
 // Purpose:     interface of wxColour
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

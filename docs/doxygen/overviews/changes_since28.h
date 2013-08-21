@@ -3,6 +3,7 @@
 // Purpose:     topic overview
 // Author:      Vadim Zeitlin
 // Created:     2008-05-08
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

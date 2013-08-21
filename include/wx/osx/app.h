@@ -4,6 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
+// RCS-ID:      $Id$
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -141,7 +142,6 @@ public:
     virtual void         MacNewFile() ;
     // in response of a reopen-application apple event
     virtual void         MacReopenApp() ;
-#if wxOSX_USE_COCOA_OR_IPHONE
     // immediately before the native event loop launches
     virtual void         OSXOnWillFinishLaunching();
     // immediately when the native event loop starts, no events have been served yet
@@ -150,14 +150,6 @@ public:
     virtual bool         OSXOnShouldTerminate();
     // before application terminates
     virtual void         OSXOnWillTerminate();
-
-private:
-#if wxOSX_USE_IPHONE
-    bool                m_onInitResult;
-#endif
-public:
-
-#endif
     
     // Hide the application windows the same as the system hide command would do it.
     void MacHideApp();

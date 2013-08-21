@@ -4,6 +4,7 @@
     Name:       include/defs.xml
     Purpose:    Common declarations for buildbot
     Author:     Mike Wetherell
+    RCS-ID:     $Id$
     Copyright:  (c) 2007 Mike Wetherell
     Licence:    wxWindows licence
 -->

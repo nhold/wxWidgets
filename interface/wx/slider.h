@@ -2,6 +2,7 @@
 // Name:        slider.h
 // Purpose:     interface of wxSlider
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

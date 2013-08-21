@@ -2,6 +2,7 @@
 // Name:        aui/dockart.h
 // Purpose:     interface of wxAuiDockArt
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

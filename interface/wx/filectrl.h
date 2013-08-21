@@ -2,6 +2,7 @@
 // Name:        filectrl.h
 // Purpose:     interface of wxFileCtrl
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -3,6 +3,7 @@
 // Purpose:     wxHtml testing example
 // Author:      Vaclav Slavik
 // Created:     1999-07-07
+// RCS-ID:      $Id$
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

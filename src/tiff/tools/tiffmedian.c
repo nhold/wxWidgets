@@ -1,3 +1,4 @@
+/* $Id$ */
 
 /*
  * Apply median cut on an image.

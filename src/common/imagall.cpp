@@ -2,6 +2,7 @@
 // Name:        src/common/imagall.cpp
 // Purpose:     wxImage access all handler
 // Author:      Sylvain Bougnoux
+// RCS-ID:      $Id$
 // Copyright:   (c) Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

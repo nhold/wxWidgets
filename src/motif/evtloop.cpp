@@ -4,6 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     01.11.02
+// RCS-ID:      $Id$
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        tipwin.h
 // Purpose:     interface of wxTipWindow
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

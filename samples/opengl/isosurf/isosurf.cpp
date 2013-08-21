@@ -4,6 +4,7 @@
 // Author:      Brian Paul (original gltk version), Wolfram Gloger
 // Modified by: Julian Smart, Francesco Montorsi
 // Created:     04/01/98
+// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

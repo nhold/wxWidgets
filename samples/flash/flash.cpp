@@ -3,6 +3,7 @@
 // Purpose:     Sample showing integration of Flash ActiveX control
 // Author:      Vadim Zeitlin
 // Created:     2009-01-13
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

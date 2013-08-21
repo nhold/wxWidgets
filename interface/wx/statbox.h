@@ -2,6 +2,7 @@
 // Name:        statbox.h
 // Purpose:     interface of wxStaticBox
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

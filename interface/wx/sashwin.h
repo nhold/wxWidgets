@@ -2,6 +2,7 @@
 // Name:        sashwin.h
 // Purpose:     interface of wxSashWindow
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

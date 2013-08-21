@@ -3,6 +3,7 @@
 // Purpose:     Smart pointer for COM interfaces.
 // Author:      PB
 // Created:     2012-04-16
+// RCS-ID:      $Id$
 // Copyright:   (c) 2012 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        html/htmlcell.h
 // Purpose:     interface of wxHtml*Cell
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

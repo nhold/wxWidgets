@@ -4,6 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     09.08.00
+ * RCS-ID:      $Id$
  * Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -2208,7 +2209,7 @@
 #   if !wxUSE_NOTEBOOK
 #       ifdef __WXOSX_COCOA__
 #           if !wxUSE_TOOLBAR || !wxOSX_USE_NATIVE_TOOLBAR
-#               ifdef wxABORT_ON_CONFIG_ERROR
+#               if wxABORT_ON_CONFIG_ERROR
 #                   error "wxUSE_PREFERENCES_EDITOR requires native toolbar in wxOSX"
 #               else
 #                   undef wxUSE_PREFERENCES_EDITOR
@@ -2216,7 +2217,7 @@
 #               endif
 #           endif
 #       else
-#           ifdef wxABORT_ON_CONFIG_ERROR
+#           if wxABORT_ON_CONFIG_ERROR
 #               error "wxUSE_PREFERENCES_EDITOR requires wxNotebook"
 #           else
 #               undef wxUSE_PREFERENCES_EDITOR

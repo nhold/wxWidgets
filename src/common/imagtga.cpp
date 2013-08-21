@@ -2,6 +2,7 @@
 // Name:        src/common/imagtga.cpp
 // Purpose:     wxImage TGA handler
 // Author:      Seth Jackson
+// CVS-ID:      $Id$
 // Copyright:   (c) 2005 Seth Jackson
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

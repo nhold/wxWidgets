@@ -9,6 +9,7 @@
 //              robust Abort(), support for arbitrary FTP commands, ...)
 //              Randall Fox (support for active mode)
 // Created:     07/07/1997
+// RCS-ID:      $Id$
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 1998-2004 wxWidgets team
 // Licence:     wxWindows licence

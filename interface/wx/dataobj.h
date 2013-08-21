@@ -2,6 +2,7 @@
 // Name:        dataobj.h
 // Purpose:     interface of wx*DataObject
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2,6 +2,7 @@
 // Name:        url.h
 // Purpose:     interface of wxURL
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

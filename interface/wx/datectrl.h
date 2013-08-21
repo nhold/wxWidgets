@@ -2,6 +2,7 @@
 // Name:        datectrl.h
 // Purpose:     interface of wxDatePickerCtrl
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -3,6 +3,7 @@
 // Purpose:     wxFileSystem unit test
 // Author:      Vaclav Slavik
 // Created:     2004-03-28
+// RCS-ID:      $Id$
 // Copyright:   (c) 2004 Vaclav Slavik
 ///////////////////////////////////////////////////////////////////////////////
 

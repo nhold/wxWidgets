@@ -4,6 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2007-04-16
+// RCS-ID:      $Id$
 // Copyright:   (c) 2007 REA Elektronik GmbH
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 // Purpose:     wxFileSystemWatcher unit test
 // Author:      Bartosz Bekier
 // Created:     2009-06-11
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Bartosz Bekier
 ///////////////////////////////////////////////////////////////////////////////
 

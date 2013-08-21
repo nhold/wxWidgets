@@ -2,6 +2,7 @@
 // Name:        wx/editlbox.h
 // Purpose:     ListBox with editable items
 // Author:      Vaclav Slavik
+// RCS-ID:      $Id$
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        src/gtk/clipbrd.cpp
 // Purpose:     wxClipboard implementation for wxGTK
 // Author:      Robert Roebling, Vadim Zeitlin
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 //              (c) 2007 Vadim Zeitlin
 // Licence:     wxWindows licence

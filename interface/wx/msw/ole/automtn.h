@@ -2,6 +2,7 @@
 // Name:        msw/ole/automtn.h
 // Purpose:     interface of wxAutomationObject
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

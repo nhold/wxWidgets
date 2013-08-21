@@ -4,6 +4,7 @@
 # Name:         build/osx/fix_xcode_ids.py
 # Author:       Dimitri Schoolwerth
 # Created:      2010-09-08
+# RCS-Id:       $Id$
 # Copyright:    (c) 2010 wxWidgets team
 # Licence:      wxWindows licence
 ###############################################################################

@@ -70,4 +70,5 @@ important global ones are in docs/latex/wx/cppconst.tex.
 === EOF ===
 
 Author:  VZ
+Version: $Id$
 

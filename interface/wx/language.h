@@ -2,6 +2,7 @@
 // Name:        language.h
 // Purpose:     wxLanguage enum
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

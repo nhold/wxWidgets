@@ -2,6 +2,7 @@
 // Name:        stopwatch.h
 // Purpose:     interface of wxStopWatch
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

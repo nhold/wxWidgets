@@ -2,6 +2,7 @@
 // Name:        wx/scopedarray.h
 // Purpose:     interface of wxScopedArray
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

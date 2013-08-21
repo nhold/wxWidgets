@@ -70,6 +70,7 @@ source tree. Here is the minimal.bkl Bakefile used in the sample:
 minimal.bkl
 -------------------------------------------------------------
 <?xml version="1.0" ?>
+<!-- $Id$ -->
 
 <makefile>
 

@@ -2,6 +2,7 @@
 // Name:        wx/unix/execute.h
 // Purpose:     private details of wxExecute() implementation
 // Author:      Vadim Zeitlin
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart, Vadim Zeitlin
 //              (c) 2013 Vadim Zeitlin
 // Licence:     wxWindows licence

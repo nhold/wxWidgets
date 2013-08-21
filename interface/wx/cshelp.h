@@ -2,6 +2,7 @@
 // Name:        cshelp.h
 // Purpose:     interface of wxHelpProvider
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

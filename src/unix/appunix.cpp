@@ -3,6 +3,7 @@
 // Purpose:     wxAppConsole with wxMainLoop implementation
 // Author:      Lukasz Michalski
 // Created:     28/01/2005
+// RCS-ID:      $Id$
 // Copyright:   (c) Lukasz Michalski
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

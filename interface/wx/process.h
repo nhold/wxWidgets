@@ -2,6 +2,7 @@
 // Name:        process.h
 // Purpose:     interface of wxProcess
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

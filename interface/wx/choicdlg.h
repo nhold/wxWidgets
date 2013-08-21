@@ -2,6 +2,7 @@
 // Name:        choicdlg.h
 // Purpose:     interface of wx[Multi|Single]ChoiceDialog
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

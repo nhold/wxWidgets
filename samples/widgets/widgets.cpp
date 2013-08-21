@@ -4,6 +4,7 @@
 // Purpose:     Sample showing most of the simple wxWidgets widgets
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
+// Id:          $Id$
 // Copyright:   (c) 2001 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

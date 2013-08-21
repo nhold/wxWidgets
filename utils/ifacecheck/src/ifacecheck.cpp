@@ -3,6 +3,7 @@
 // Purpose:     Interface headers <=> real headers coherence checker
 // Author:      Francesco Montorsi
 // Created:     2008/03/17
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

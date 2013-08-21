@@ -3,6 +3,7 @@
 // Purpose:     Test wxTimer events
 // Author:      Vadim Zeitlin
 // Created:     2008-10-22
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 ///////////////////////////////////////////////////////////////////////////////
 

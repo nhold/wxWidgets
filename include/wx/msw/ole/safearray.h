@@ -3,6 +3,7 @@
 // Purpose:     Helpers for working with OLE SAFEARRAYs.
 // Author:      PB
 // Created:     2012-09-23
+// RCS-ID:      $Id$
 // Copyright:   (c) 2012 wxWidgets development team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 // Purpose:     Wrapper around <windows.h>, to be included instead of it
 // Author:      Vaclav Slavik
 // Created:     2003/07/22
+// RCS-ID:      $Id$
 // Copyright:   (c) 2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

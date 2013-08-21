@@ -3,6 +3,7 @@
 // Purpose:     wxSocketImpl implementation for Unix systems
 // Authors:     Guilhem Lavaux, Vadim Zeitlin
 // Created:     April 1997
+// RCS-ID:      $Id$
 // Copyright:   (c) 1997 Guilhem Lavaux
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence

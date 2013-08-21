@@ -4,6 +4,7 @@
 // Author:      Jan van Dijk <jan@etpmod.phys.tue.nl>
 // Modified by:
 // Created:     18.12.2002
+// RCS-ID:      $Id$
 // Copyright:   wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

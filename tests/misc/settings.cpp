@@ -3,6 +3,7 @@
 // Purpose:     test wxSettings
 // Author:      Francesco Montorsi
 // Created:     2009-03-24
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Francesco Montorsi
 ///////////////////////////////////////////////////////////////////////////////
 

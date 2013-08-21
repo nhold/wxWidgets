@@ -2,6 +2,7 @@
 // Name:        translations.h
 // Purpose:     List of wxWidgets available translations
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

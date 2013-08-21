@@ -2,6 +2,7 @@
 // Name:        src/gtk1/fontdlg.cpp
 // Purpose:     wxFontDialog
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

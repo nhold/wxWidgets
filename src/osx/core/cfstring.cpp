@@ -4,6 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2004-10-29 (from code in src/osx/carbon/utils.cpp)
+// RCS-ID:      $Id$
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 // Usage:       Darwin (base library)

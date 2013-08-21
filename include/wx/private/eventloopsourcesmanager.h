@@ -3,6 +3,7 @@
 // Purpose:     declares wxEventLoopSourcesManagerBase class
 // Author:      Rob Bresalier
 // Created:     2013-06-19
+// RCS-ID:      $Id$
 // Copyright:   (c) 2013 Rob Bresalier
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

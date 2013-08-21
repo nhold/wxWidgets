@@ -2,6 +2,7 @@
 // Name:        textctrl.h
 // Purpose:     interface of wxTextAttr
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

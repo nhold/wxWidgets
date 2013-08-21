@@ -4,6 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     17/07/97
+// RCS-ID:      $Id$
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

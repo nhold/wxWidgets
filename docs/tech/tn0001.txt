@@ -57,3 +57,4 @@ samples/ with demos/ where needed).
 === EOF ===
 
 Author:  VZ
+Version: $Id$

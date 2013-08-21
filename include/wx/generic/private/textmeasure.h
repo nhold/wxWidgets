@@ -3,6 +3,7 @@
 // Purpose:     Generic wxTextMeasure declaration.
 // Author:      Vadim Zeitlin
 // Created:     2012-10-17
+// RCS-ID:      $Id$
 // Copyright:   (c) 1997-2012 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

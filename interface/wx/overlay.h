@@ -2,6 +2,7 @@
 // Name:        overlay.h
 // Purpose:     interface of wxOverlay
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -4,6 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxStaticBitmap
 // Author:      Marcin Wojdyr
 // Created:     2008-06-19
+// Id:          $Id$
 // Copyright:   (c) 2008 Marcin Wojdyr
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

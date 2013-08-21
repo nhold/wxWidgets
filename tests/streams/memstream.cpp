@@ -2,6 +2,7 @@
 // Name:        tests/streams/memstream.cpp
 // Purpose:     Test wxMemoryInputStream/wxMemoryOutputStream
 // Author:      Hans Van Leemputten
+// RCS-ID:      $Id$
 // Copyright:   (c) 2004 Hans Van Leemputten
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

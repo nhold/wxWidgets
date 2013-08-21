@@ -2,6 +2,7 @@
 // Name:        richtext/richtextxml.h
 // Purpose:     interface of wxRichTextXMLHandler
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

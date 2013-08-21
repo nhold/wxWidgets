@@ -3,6 +3,7 @@
 // Purpose:     wxTextFile unit test
 // Author:      Vadim Zeitlin
 // Created:     2006-03-31
+// RCS-ID:      $Id$
 // Copyright:   (c) 2006 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 

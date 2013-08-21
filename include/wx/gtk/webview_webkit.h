@@ -2,6 +2,7 @@
 // Name:        include/gtk/wx/webview.h
 // Purpose:     GTK webkit backend for web view component
 // Author:      Robert Roebling, Marianne Gagnon
+// Id:          $Id$
 // Copyright:   (c) 2010 Marianne Gagnon, 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

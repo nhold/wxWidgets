@@ -2,6 +2,7 @@
 // Name:        const_cpp.h
 // Purpose:     Preprocessor symbols
 // Author:      Vadim Zeitlin
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -4,6 +4,7 @@
 // Author:      Julian Smart, after Robert Roebling, Vadim Zeitlin, SciTech
 // Modified by:
 // Created:     2006-04-13
+// Id:          $Id$
 // Copyright:   (c) Julian Smart, Robert Roebling, Vadim Zeitlin,
 //              SciTech Software, Inc.
 // Licence:     wxWindows licence

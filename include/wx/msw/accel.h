@@ -4,6 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     31/7/98
+// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

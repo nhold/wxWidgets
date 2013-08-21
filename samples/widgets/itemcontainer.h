@@ -3,6 +3,7 @@
 // Name:        itemcontainer.h
 // Purpose:     Part of the widgets sample showing wxComboBox
 // Created:     20.07.07
+// Id:          $Id$
 // License:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

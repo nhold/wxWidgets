@@ -4,6 +4,7 @@
 // Purpose:     Shows wxColourPickerCtrl
 // Author:      Francesco Montorsi
 // Created:     20/6/2006
+// Id:          $Id$
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -143,8 +144,8 @@ void ColourPickerWidgetsPage::CreateContent()
     wxSizer *boxleft = new wxBoxSizer(wxVERTICAL);
 
     wxStaticBoxSizer *clrbox = new wxStaticBoxSizer(wxVERTICAL, this, wxT("&ColourPicker style"));
-    m_chkColourTextCtrl = CreateCheckBoxAndAddToSizer(clrbox, wxT("With textctrl"));
-    m_chkColourShowLabel = CreateCheckBoxAndAddToSizer(clrbox, wxT("With label"));
+    m_chkColourTextCtrl = CreateCheckBoxAndAddToSizer(clrbox, wxT("With textctrl"), false);
+    m_chkColourShowLabel = CreateCheckBoxAndAddToSizer(clrbox, wxT("With label"), false);
     boxleft->Add(clrbox, 0, wxALL|wxGROW, 5);
 
     boxleft->Add(new wxButton(this, PickerPage_Reset, wxT("&Reset")),

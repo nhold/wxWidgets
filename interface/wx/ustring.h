@@ -3,6 +3,7 @@
 // Purpose:     interface of wxUString
 // Author:      Robert Roebling
 // Copyright:   (c) Robert Roebling
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

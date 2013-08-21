@@ -4,6 +4,7 @@
     Name:       embedded.xsl
     Purpose:    Used by check.sh for offline checking of the configuration.
     Author:     Mike Wetherell
+    RCS-ID:     $Id$
     Copyright:  (c) 2007 Mike Wetherell
     Licence:    wxWindows licence
 -->

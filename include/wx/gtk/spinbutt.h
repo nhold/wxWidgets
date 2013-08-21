@@ -3,6 +3,7 @@
 // Purpose:     wxSpinButton class
 // Author:      Robert Roebling
 // Modified by:
+// RCS-ID:      $Id$
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

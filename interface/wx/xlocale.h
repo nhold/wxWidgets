@@ -2,6 +2,7 @@
 // Name:        xlocale.h
 // Purpose:     interface of wxXLocale
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

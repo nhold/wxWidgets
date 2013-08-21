@@ -2,6 +2,7 @@
 // Name:        font.h
 // Purpose:     interface of wxFont
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

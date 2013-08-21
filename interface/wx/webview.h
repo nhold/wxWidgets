@@ -2,6 +2,7 @@
 // Name:        webview.h
 // Purpose:     interface of wxWebView
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

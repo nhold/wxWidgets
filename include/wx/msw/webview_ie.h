@@ -2,6 +2,7 @@
 // Name:        include/wx/msw/webview_ie.h
 // Purpose:     wxMSW IE wxWebView backend
 // Author:      Marianne Gagnon
+// Id:          $Id$
 // Copyright:   (c) 2010 Marianne Gagnon, 2011 Steven Lamerton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

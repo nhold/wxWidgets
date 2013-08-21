@@ -2,6 +2,7 @@
 // Name:        dynlib.h
 // Purpose:     interface of wxDynamicLibrary and wxDynamicLibraryDetails
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

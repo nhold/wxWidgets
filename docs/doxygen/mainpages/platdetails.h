@@ -2,6 +2,7 @@
 // Name:        platdetails.h
 // Purpose:     Platform details page of the Doxygen manual
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

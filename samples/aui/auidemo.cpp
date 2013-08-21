@@ -5,6 +5,7 @@
 // Modified by: Malcolm MacLeod
 // Modified by: Jens Lody
 // Created:     2005-10-03
+// RCS-ID:      $Id$
 // Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
 //                            2012, Jens Lody for the code related to left
 //                                  and right positioning

@@ -2,6 +2,7 @@
 // Name:        include/wx/gtk/webviewhistoryitem.h
 // Purpose:     wxWebViewHistoryItem header for GTK
 // Author:      Steven Lamerton
+// Id:          $Id$
 // Copyright:   (c) 2011 Steven Lamerton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

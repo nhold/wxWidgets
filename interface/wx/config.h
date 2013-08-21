@@ -2,6 +2,7 @@
 // Name:        config.h
 // Purpose:     interface of wxConfigBase
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

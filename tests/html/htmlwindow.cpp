@@ -3,6 +3,7 @@
 // Purpose:     wxHtmlWindow tests
 // Author:      Vaclav Slavik
 // Created:     2008-10-15
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Vaclav Slavik <vslavik@fastmail.fm>
 ///////////////////////////////////////////////////////////////////////////////
 

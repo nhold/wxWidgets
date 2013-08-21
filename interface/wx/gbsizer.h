@@ -2,6 +2,7 @@
 // Name:        gbsizer.h
 // Purpose:     interface of wxGBPosition
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

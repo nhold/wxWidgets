@@ -2,6 +2,7 @@
 // Name:        arrstr.h
 // Purpose:     interface of wxArrayString
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -265,21 +266,24 @@ public:
     wxSortedArrayString is an efficient container for storing wxString objects
     which always keeps the string in alphabetical order.
 
-    wxSortedArrayString uses binary search in its wxSortedArrayString::Index() method
+    wxSortedArrayString uses binary search in its wxArrayString::Index() function
     (instead of linear search for wxArrayString::Index()) which makes it much more
     efficient if you add strings to the array rarely (because, of course, you have
     to pay for Index() efficiency by having Add() be slower) but search for them
     often. Several methods should not be used with sorted array (basically, all
     those which break the order of items) which is mentioned in their description.
 
+    @todo what about STL? who does it integrates?
+
     @library{wxbase}
     @category{containers}
 
     @see wxArray, wxString, @ref overview_string
 */
-class wxSortedArrayString : public wxArray
+class wxSortedArrayString : public wxArrayString
 {
 public:
+
     /**
         Conversion constructor.
 

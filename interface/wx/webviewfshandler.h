@@ -2,6 +2,7 @@
 // Name:        webviewfshandler.h
 // Purpose:     interface of wxWebViewFSHandler
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

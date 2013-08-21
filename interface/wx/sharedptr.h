@@ -2,6 +2,7 @@
 // Name:        sharedptr.h
 // Purpose:     interface of wxSharedPtr<T>
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -3,6 +3,7 @@
 // Purpose:     XML resource handler for wxFileCtrl
 // Author:      Kinaou Hervé
 // Created:     2009-05-11
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 wxWidgets development team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

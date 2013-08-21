@@ -2,6 +2,7 @@
 // Name:        toolbar.h
 // Purpose:     interface of wxToolBar
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2,6 +2,7 @@
 // Name:        wx/gtk/toplevel.h
 // Purpose:
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -94,8 +95,6 @@ public:
 
     virtual void GTKHandleRealized();
 
-    void GTKConfigureEvent(int x, int y);
-
     // do *not* call this to iconize the frame, this is a private function!
     void SetIconizeState(bool iconic);
 
@@ -110,11 +109,7 @@ public:
                   m_gdkDecor;
 
     // size of WM decorations
-    struct DecorSize
-    {
-        int left, right, top, bottom;
-    };
-    DecorSize m_decorSize;
+    wxSize m_decorSize;
 
     // private gtk_timeout_add result for mimicing wxUSER_ATTENTION_INFO and
     // wxUSER_ATTENTION_ERROR difference, -2 for no hint, -1 for ERROR hint, rest for GtkTimeout handle.
@@ -125,7 +120,7 @@ public:
     // return the size of the window without WM decorations
     void GTKDoGetSize(int *width, int *height) const;
 
-    void GTKUpdateDecorSize(const DecorSize& decorSize);
+    void GTKUpdateDecorSize(const wxSize& decorSize);
 
 protected:
     // give hints to the Window Manager for how the size
@@ -151,7 +146,7 @@ protected:
 
 private:
     void Init();
-    DecorSize& GetCachedDecorSize();
+    wxSize& GetCachedDecorSize();
 
     // size hint increments
     int m_incWidth, m_incHeight;

@@ -2,6 +2,7 @@
 // Name:        dcps.h
 // Purpose:     interface of wxPostScriptDC
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

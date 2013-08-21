@@ -3,6 +3,7 @@
 // Purpose:     generic wxAboutBox() implementation
 // Author:      Vadim Zeitlin
 // Created:     2006-10-07
+// RCS-ID:      $Id$
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

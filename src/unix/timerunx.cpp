@@ -3,6 +3,7 @@
 // Purpose:     wxTimer implementation for non-GUI applications under Unix
 // Author:      Lukasz Michalski
 // Created:     15/01/2005
+// RCS-ID:      $Id$
 // Copyright:   (c) 2007 Lukasz Michalski
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

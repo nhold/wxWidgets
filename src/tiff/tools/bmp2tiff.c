@@ -1,3 +1,4 @@
+/* $Id$
  *
  * Project:  libtiff tools
  * Purpose:  Convert Windows BMP files in TIFF.

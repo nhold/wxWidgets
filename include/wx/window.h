@@ -4,6 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ron Lee
 // Created:     01/02/97
+// RCS-ID:      $Id$
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1829,6 +1830,15 @@ private:
 
     // base for dialog unit conversion, i.e. average character size
     wxSize GetDlgUnitBase() const;
+
+    // the stack of windows which have captured the mouse
+    static struct WXDLLIMPEXP_FWD_CORE wxWindowNext *ms_winCaptureNext;
+
+    // the window that currently has mouse capture
+    static wxWindow *ms_winCaptureCurrent;
+
+    // indicates if execution is inside CaptureMouse/ReleaseMouse
+    static bool ms_winCaptureChanging;
 
 
     // number of Freeze() calls minus the number of Thaw() calls: we're frozen

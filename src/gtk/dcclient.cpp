@@ -2,6 +2,7 @@
 // Name:        src/gtk/dcclient.cpp
 // Purpose:     wxWindowDCImpl implementation
 // Author:      Robert Roebling
+// RCS-ID:      $Id$
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1412,13 +1413,10 @@ void wxWindowDCImpl::DoDrawRotatedText(const wxString& text, int xLogical, int y
         bg_col = m_textBackgroundColour.GetColor();
 
     PangoMatrix matrix = PANGO_MATRIX_INIT;
-    if (!wxIsSameDouble(m_scaleX, 1) || !wxIsSameDouble(m_scaleY, 1) || !wxIsNullDouble(angle))
-    {
-        pango_matrix_scale(&matrix, m_scaleX, m_scaleY);
-        pango_matrix_rotate(&matrix, angle);
-        pango_context_set_matrix(m_context, &matrix);
-        pango_layout_context_changed(m_layout);
-    }
+    pango_matrix_scale(&matrix, m_scaleX, m_scaleY);
+    pango_matrix_rotate (&matrix, angle);
+    pango_context_set_matrix (m_context, &matrix);
+    pango_layout_context_changed (m_layout);
 
     int w, h;
     pango_layout_get_pixel_size(m_layout, &w, &h);

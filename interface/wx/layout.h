@@ -2,6 +2,7 @@
 // Name:        layout.h
 // Purpose:     interface of layout constraints classes
 // Author:      wxWidgets team
+// RCS-ID:      $Id: $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2,6 +2,7 @@
 // Name:        popupwin.h
 // Purpose:     interface of wxPopupWindow
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2,6 +2,7 @@
 // Name:        statbmp.h
 // Purpose:     interface of wxStaticBitmap
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

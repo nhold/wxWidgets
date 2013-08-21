@@ -1,3 +1,4 @@
+/* $Id$ */
 
 /*
  * tiff-grayscale.c -- create a Class G (grayscale) TIFF file

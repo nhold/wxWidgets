@@ -2,6 +2,7 @@
 // Name:        volume.h
 // Purpose:     interface of wxFSVolume
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

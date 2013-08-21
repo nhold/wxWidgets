@@ -2,6 +2,7 @@
 // Name:        const_wxusedef.h
 // Purpose:     wxUSE preprocessor symbols
 // Author:      Tim Stahlhut
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

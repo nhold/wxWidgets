@@ -2,6 +2,7 @@
 // Name:        gauge.h
 // Purpose:     interface of wxGauge
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

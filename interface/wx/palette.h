@@ -2,6 +2,7 @@
 // Name:        palette.h
 // Purpose:     interface of wxPalette
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

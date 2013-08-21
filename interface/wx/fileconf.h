@@ -2,6 +2,7 @@
 // Name:        fileconf.h
 // Purpose:     interface of wxFileConfig
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

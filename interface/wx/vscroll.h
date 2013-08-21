@@ -2,6 +2,7 @@
 // Name:        vscroll.h
 // Purpose:     interface of wxVarHScrollHelper
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

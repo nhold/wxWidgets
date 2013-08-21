@@ -4,6 +4,7 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     9-Oct-2001
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

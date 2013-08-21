@@ -4,6 +4,7 @@
 // Author:      Sandro Sigala
 // Modified by:
 // Created:     2005-11-10
+// RCS-ID:      $Id$
 // Copyright:   (c) Sandro Sigala
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

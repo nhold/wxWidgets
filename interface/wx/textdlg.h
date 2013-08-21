@@ -2,6 +2,7 @@
 // Name:        textdlg.h
 // Purpose:     interface of wxPasswordEntryDialog
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

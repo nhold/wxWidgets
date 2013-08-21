@@ -2,6 +2,7 @@
 // Name:        src/gtk/webview_webkit.cpp
 // Purpose:     GTK WebKit backend for web view component
 // Author:      Marianne Gagnon, Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 2010 Marianne Gagnon, 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@
 // Author:      David Webster (adapted from msw version by Vadim Zeitlin)
 // Modified by:
 // Created:     20.11.99
+// RCS-ID:      $Id$
 // Copyright:   (c) 1999 David Webster
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

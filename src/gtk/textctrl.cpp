@@ -2,6 +2,7 @@
 // Name:        src/gtk/textctrl.cpp
 // Purpose:
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

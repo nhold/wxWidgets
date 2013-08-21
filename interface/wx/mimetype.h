@@ -2,6 +2,7 @@
 // Name:        mimetype.h
 // Purpose:     interface of wxMimeTypesManager
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

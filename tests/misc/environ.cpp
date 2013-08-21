@@ -3,6 +3,7 @@
 // Purpose:     Test wxGet/SetEnv
 // Author:      Francesco Montorsi (extracted from console sample)
 // Created:     2010-06-13
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 wxWidgets team
 ///////////////////////////////////////////////////////////////////////////////
 

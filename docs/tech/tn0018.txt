@@ -65,3 +65,4 @@ have to do:
 === EOF ===
 
 Author:  VZ
+Version: $Id$

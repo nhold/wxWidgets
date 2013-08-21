@@ -4,6 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     8/10/2006
+// RCS-ID:      $Id$
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////

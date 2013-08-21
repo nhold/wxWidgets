@@ -3,6 +3,7 @@
 // Purpose:     wxLocale::InitLanguagesDB()
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Created:     2010-04-23
+// RCS-ID:      $Id$
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

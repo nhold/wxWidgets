@@ -4,6 +4,7 @@
 // Author:      DavidStefan Csomor
 // Modified by:
 // Created:     2008-06-20
+// RCS-ID:      $Id$
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -658,7 +659,7 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
     // If the parent is modal, windows with wxFRAME_FLOAT_ON_PARENT style need
     // to be in kCGUtilityWindowLevel and not kCGFloatingWindowLevel to stay
     // above the parent.
-    wxDialog * const parentDialog = parent == NULL ? NULL : wxDynamicCast(parent->MacGetTopLevelWindow(), wxDialog);
+    wxDialog * const parentDialog = wxDynamicCast(parent, wxDialog);
     if (parentDialog && parentDialog->IsModal())
     {
         if (level == kCGFloatingWindowLevel)

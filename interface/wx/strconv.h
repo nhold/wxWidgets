@@ -2,6 +2,7 @@
 // Name:        strconv.h
 // Purpose:     interface of wxMBConvUTF7
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

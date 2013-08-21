@@ -3,6 +3,7 @@
 // Purpose:     wxListCtrl unit tests for virtual mode
 // Author:      Vadim Zeitlin
 // Created:     2010-11-13
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 Vadim Zeitlin <vadim@wxwidgets.org>
 ///////////////////////////////////////////////////////////////////////////////
 

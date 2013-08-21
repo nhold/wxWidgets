@@ -3,6 +3,7 @@
 // Purpose:     Determine resulting type from implicit conversion
 // Author:      Vaclav Slavik
 // Created:     2010-10-22
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

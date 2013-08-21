@@ -2,6 +2,7 @@
 // Name:        wrapsizer.h
 // Purpose:     interface of wxWrapSizer
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

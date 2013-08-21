@@ -4,6 +4,7 @@
 // Author:      Joel Farley, Ove Kåven
 // Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
 // Created:     1998/06/12
+// RCS-ID:      $Id$
 // Copyright:   (c) 1998-2006 wxWidgets dev team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

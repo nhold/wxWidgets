@@ -4,6 +4,7 @@
 // Author:      Stefan Csomor (lifted from dnd.h)
 // Modified by:
 // Created:     10/21/99
+// RCS-ID:      $Id$
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

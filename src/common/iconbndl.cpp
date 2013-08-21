@@ -3,6 +3,7 @@
 // Purpose:     wxIconBundle
 // Author:      Mattia Barbon, Vadim Zeitlin
 // Created:     23.03.2002
+// RCS-ID:      $Id$
 // Copyright:   (c) Mattia barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

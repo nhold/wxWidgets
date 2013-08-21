@@ -2,6 +2,7 @@
 // Name:        laywin.h
 // Purpose:     interface of wxLayoutAlgorithm
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

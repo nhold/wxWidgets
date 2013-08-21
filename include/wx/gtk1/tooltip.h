@@ -2,6 +2,7 @@
 // Name:        wx/gtk1/tooltip.h
 // Purpose:     wxToolTip class
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

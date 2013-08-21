@@ -4,6 +4,7 @@
 // Author:      Ryan Norton & Brian Victor
 // Modified by: Royce Mitchell III, Vadim Zeitlin
 // Created:     06/21/02
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

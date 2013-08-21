@@ -4,6 +4,7 @@
 // Author:      Dave Webster
 // Modified by:
 // Created:     13.05.02
+// RCS-ID:      $Id$
 // Copyright:   (c) 2002 Dave Webster <dwebster@bhmi.com>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

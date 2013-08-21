@@ -2,6 +2,7 @@
 // Name:        tests/any/anytest.cpp
 // Purpose:     Test the wxAny classes
 // Author:      Jaakko Salli
+// RCS-ID:      $Id$
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

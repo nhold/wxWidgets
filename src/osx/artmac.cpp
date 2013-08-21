@@ -3,6 +3,7 @@
 // Purpose:     wxArtProvider instance with native Mac stock icons
 // Author:      Alan Shouls
 // Created:     2006-10-30
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWindows team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

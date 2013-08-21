@@ -4,6 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,7 +73,6 @@
 #endif
 
 #include "wx/platinfo.h"
-#include "wx/recguard.h"
 #include "wx/private/window.h"
 
 #ifdef __WINDOWS__
@@ -88,14 +88,6 @@ wxMenu *wxCurrentPopupMenu = NULL;
 #endif // wxUSE_MENUS
 
 extern WXDLLEXPORT_DATA(const char) wxPanelNameStr[] = "panel";
-
-namespace wxMouseCapture
-{
-
-// Check if the given window is in the capture stack.
-bool IsInCaptureStack(wxWindowBase* win);
-
-} // wxMouseCapture
 
 // ----------------------------------------------------------------------------
 // static data
@@ -456,9 +448,7 @@ bool wxWindowBase::ToggleWindowStyle(int flag)
 // common clean up
 wxWindowBase::~wxWindowBase()
 {
-    wxASSERT_MSG( !wxMouseCapture::IsInCaptureStack(this),
-                    "Destroying window before releasing mouse capture: this "
-                    "will result in a crash later." );
+    wxASSERT_MSG( GetCapture() != this, wxT("attempt to destroy window with mouse capture") );
 
     // FIXME if these 2 cases result from programming errors in the user code
     //       we should probably assert here instead of silently fixing them
@@ -3213,106 +3203,72 @@ wxHitTest wxWindowBase::DoHitTest(wxCoord x, wxCoord y) const
 // mouse capture
 // ----------------------------------------------------------------------------
 
-// Private data used for mouse capture tracking.
-namespace wxMouseCapture
+struct WXDLLEXPORT wxWindowNext
 {
-
-// Stack of the windows which previously had the capture, the top most element
-// is the window that has the mouse capture now.
-//
-// NB: We use wxVector and not wxStack to be able to examine all of the stack
-//     elements for debug checks, but only the stack operations should be
-//     performed with this vector.
-wxVector<wxWindow*> stack;
-
-// Flag preventing reentrancy in {Capture,Release}Mouse().
-wxRecursionGuardFlag changing;
-
-bool IsInCaptureStack(wxWindowBase* win)
-{
-    for ( wxVector<wxWindow*>::const_iterator it = stack.begin();
-          it != stack.end();
-          ++it )
-    {
-        if ( *it == win )
-            return true;
-    }
-
-    return false;
-}
-
-} // wxMouseCapture
+    wxWindow *win;
+    wxWindowNext *next;
+} *wxWindowBase::ms_winCaptureNext = NULL;
+wxWindow *wxWindowBase::ms_winCaptureCurrent = NULL;
+bool wxWindowBase::ms_winCaptureChanging = false;
 
 void wxWindowBase::CaptureMouse()
 {
     wxLogTrace(wxT("mousecapture"), wxT("CaptureMouse(%p)"), static_cast<void*>(this));
 
-    wxRecursionGuard guard(wxMouseCapture::changing);
-    wxASSERT_MSG( !guard.IsInside(), wxT("recursive CaptureMouse call?") );
+    wxASSERT_MSG( !ms_winCaptureChanging, wxT("recursive CaptureMouse call?") );
 
-    wxASSERT_MSG( !wxMouseCapture::IsInCaptureStack(this),
-                    "Recapturing the mouse in the same window?" );
+    ms_winCaptureChanging = true;
 
     wxWindow *winOld = GetCapture();
     if ( winOld )
+    {
         ((wxWindowBase*) winOld)->DoReleaseMouse();
 
-    DoCaptureMouse();
+        // save it on stack
+        wxWindowNext *item = new wxWindowNext;
+        item->win = winOld;
+        item->next = ms_winCaptureNext;
+        ms_winCaptureNext = item;
+    }
+    //else: no mouse capture to save
 
-    wxMouseCapture::stack.push_back(static_cast<wxWindow*>(this));
+    DoCaptureMouse();
+    ms_winCaptureCurrent = (wxWindow*)this;
+
+    ms_winCaptureChanging = false;
 }
 
 void wxWindowBase::ReleaseMouse()
 {
     wxLogTrace(wxT("mousecapture"), wxT("ReleaseMouse(%p)"), static_cast<void*>(this));
 
-    wxRecursionGuard guard(wxMouseCapture::changing);
-    wxASSERT_MSG( !guard.IsInside(), wxT("recursive ReleaseMouse call?") );
+    wxASSERT_MSG( !ms_winCaptureChanging, wxT("recursive ReleaseMouse call?") );
 
-#if wxDEBUG_LEVEL
-    wxWindow* const winCapture = GetCapture();
-    if ( !winCapture )
-    {
-        wxFAIL_MSG
-        (
-          wxString::Format
-          (
-            "Releasing mouse in %p(%s) but it is not captured",
-            this, GetClassInfo()->GetClassName()
-          )
-        );
-    }
-    else if ( winCapture != this )
-    {
-        wxFAIL_MSG
-        (
-          wxString::Format
-          (
-            "Releasing mouse in %p(%s) but it is captured by %p(%s)",
-            this, GetClassInfo()->GetClassName(),
-            winCapture, winCapture->GetClassInfo()->GetClassName()
-          )
-        );
-    }
-#endif // wxDEBUG_LEVEL
+    wxASSERT_MSG( GetCapture() == this,
+                  "attempt to release mouse, but this window hasn't captured it" );
+    wxASSERT_MSG( ms_winCaptureCurrent == this,
+                  "attempt to release mouse, but this window hasn't captured it" );
+
+    ms_winCaptureChanging = true;
 
     DoReleaseMouse();
+    ms_winCaptureCurrent = NULL;
 
-    wxCHECK_RET( !wxMouseCapture::stack.empty(),
-                    "Releasing mouse capture but capture stack empty?" );
-    wxCHECK_RET( wxMouseCapture::stack.back() == this,
-                    "Window releasing mouse capture not top of capture stack?" );
-
-    wxMouseCapture::stack.pop_back();
-
-    // Restore the capture to the previous window, if any.
-    if ( !wxMouseCapture::stack.empty() )
+    if ( ms_winCaptureNext )
     {
-        ((wxWindowBase*)wxMouseCapture::stack.back())->DoCaptureMouse();
+        ((wxWindowBase*)ms_winCaptureNext->win)->DoCaptureMouse();
+        ms_winCaptureCurrent = ms_winCaptureNext->win;
+
+        wxWindowNext *item = ms_winCaptureNext;
+        ms_winCaptureNext = item->next;
+        delete item;
     }
+    //else: stack is empty, no previous capture
+
+    ms_winCaptureChanging = false;
 
     wxLogTrace(wxT("mousecapture"),
-        wxT("After ReleaseMouse() mouse is captured by %p"),
+        (const wxChar *) wxT("After ReleaseMouse() mouse is captured by %p"),
         static_cast<void*>(GetCapture()));
 }
 
@@ -3335,17 +3291,26 @@ void wxWindowBase::NotifyCaptureLost()
 {
     // don't do anything if capture lost was expected, i.e. resulted from
     // a wx call to ReleaseMouse or CaptureMouse:
-    wxRecursionGuard guard(wxMouseCapture::changing);
-    if ( guard.IsInside() )
+    if ( ms_winCaptureChanging )
         return;
 
     // if the capture was lost unexpectedly, notify every window that has
     // capture (on stack or current) about it and clear the stack:
-    while ( !wxMouseCapture::stack.empty() )
-    {
-        DoNotifyWindowAboutCaptureLost(wxMouseCapture::stack.back());
 
-        wxMouseCapture::stack.pop_back();
+    if ( ms_winCaptureCurrent )
+    {
+        DoNotifyWindowAboutCaptureLost(ms_winCaptureCurrent);
+        ms_winCaptureCurrent = NULL;
+    }
+
+    while ( ms_winCaptureNext )
+    {
+        wxWindowNext *item = ms_winCaptureNext;
+        ms_winCaptureNext = item->next;
+
+        DoNotifyWindowAboutCaptureLost(item->win);
+
+        delete item;
     }
 }
 

@@ -2,6 +2,7 @@
 // Name:        src/gtk/win_gtk.cpp
 // Purpose:     native GTK+ widget for wxWindow
 // Author:      Paul Cornett
+// Id:          $Id$
 // Copyright:   (c) 2007 Paul Cornett
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

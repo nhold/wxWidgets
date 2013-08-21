@@ -4,6 +4,7 @@
 // Author:      David Webster
 // Modified by:
 // Created:     20.08.2003 (extracted from os2/utils.cpp)
+// RCS-ID:      $Id$
 // Copyright:   (c) David Webster
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 // Purpose:     wxRichMessageDialogBase
 // Author:      Rickard Westerlund
 // Created:     2010-07-03
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

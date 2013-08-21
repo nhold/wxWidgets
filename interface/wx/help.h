@@ -2,6 +2,7 @@
 // Name:        help.h
 // Purpose:     interface of wxHelpController
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

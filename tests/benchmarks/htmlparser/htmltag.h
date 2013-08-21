@@ -2,6 +2,7 @@
 // Name:        htmltag.h
 // Purpose:     wx28HtmlTag class (represents single tag)
 // Author:      Vaclav Slavik
+// RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

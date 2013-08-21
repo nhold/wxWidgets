@@ -3,6 +3,7 @@
 // Purpose:     Test wxStopWatch class
 // Author:      Francesco Montorsi (extracted from console sample)
 // Created:     2010-05-16
+// RCS-ID:      $Id$
 // Copyright:   (c) 2010 wxWidgets team
 ///////////////////////////////////////////////////////////////////////////////
 

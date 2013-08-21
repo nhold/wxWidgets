@@ -2,6 +2,7 @@
 // Name:        src/html/m_pre.cpp
 // Purpose:     wxHtml module for <PRE> ... </PRE> tag (code citation)
 // Author:      Vaclav Slavik
+// RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

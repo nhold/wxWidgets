@@ -2,6 +2,7 @@
 // Name:        wx/simplebook.h
 // Purpose:     wxSimplebook public API documentation.
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

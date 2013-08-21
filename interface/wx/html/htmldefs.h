@@ -2,6 +2,7 @@
 // Name:        html/htmldefs.h
 // Purpose:     constants for wxhtml library
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

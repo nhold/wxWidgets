@@ -4,6 +4,7 @@
 // Author:      Ported to Linux by Guilhem Lavaux
 // Modified by:
 // Created:     05/23/98
+// RCS-ID:      $Id$
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

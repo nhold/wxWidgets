@@ -5,6 +5,7 @@
 #               in the future...)
 # Author:       Vadim Zeitlin
 # Created:      2009-01-04
+# RCS-Id:       $Id$
 # Copyright:    (c) 2009 Vadim Zeitlin
 # Licence:      wxWindows licence
 ###############################################################################

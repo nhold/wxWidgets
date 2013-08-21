@@ -3,6 +3,7 @@
 // Purpose:     XRC resource for wxComboCtrl
 // Author:      Jaakko Salli
 // Created:     2009/01/25
+// RCS-ID:      $Id$
 // Copyright:   (c) 2009 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

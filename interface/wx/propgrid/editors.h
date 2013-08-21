@@ -2,6 +2,7 @@
 // Name:        editors.h
 // Purpose:     interface of wxPropertyGrid editors
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

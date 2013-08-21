@@ -5,6 +5,7 @@
 // Modified by:
 // Created:     Aug-31-2006
 // Copyright:   (c) Jaakko Salli
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

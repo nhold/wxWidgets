@@ -3,6 +3,7 @@
 // Purpose:     XML resource handler for wxGenericDirCtrl
 // Author:      Markus Greither
 // Created:     2002/01/20
+// RCS-ID:      $Id$
 // Copyright:   (c) 2002 Markus Greither
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

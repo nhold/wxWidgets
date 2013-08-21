@@ -4,6 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: refactored wxPen code to wxPenRefData
 // Created:     04/01/98
+// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

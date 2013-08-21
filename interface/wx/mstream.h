@@ -2,6 +2,7 @@
 // Name:        mstream.h
 // Purpose:     interface of wxMemoryOutputStream, wxMemoryInputStream
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

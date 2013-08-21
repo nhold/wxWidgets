@@ -3,6 +3,7 @@
 // Purpose:     wxOverlay implementation for wxDFB
 // Author:      Vaclav Slavik
 // Created:     2006-10-20
+// RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

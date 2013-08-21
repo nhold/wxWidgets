@@ -4,6 +4,7 @@
     Name:       include/csleobuild.xml
     Purpose:    Declarations for the csleobuild slave
     Author:     Michael Wetherel, Stefan Csomor
+    RCS-ID:     $Id$
     Copyright:  (c) Stefan Csomor
     Licence:    wxWindows licence
 -->

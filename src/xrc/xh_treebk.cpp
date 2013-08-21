@@ -3,6 +3,7 @@
 // Purpose:     XRC resource handler for wxTreebook
 // Author:      Evgeniy Tarassov
 // Created:     2005/09/28
+// RCS-ID:      $Id$
 // Copyright:   (c) 2005 TT-Solutions <vadim@tt-solutions.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

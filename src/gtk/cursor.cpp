@@ -2,6 +2,7 @@
 // Name:        src/gtk/cursor.cpp
 // Purpose:     wxCursor implementation
 // Author:      Robert Roebling
+// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

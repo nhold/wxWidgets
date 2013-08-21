@@ -2,6 +2,7 @@
 // Name:        dcgraph.h
 // Purpose:     interface of wxGCDC
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

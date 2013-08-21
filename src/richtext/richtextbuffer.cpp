@@ -4,6 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
+// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -8316,7 +8317,6 @@ wxString wxRichTextBuffer::GetExtWildcard(bool combine, bool save, wxArrayInt* t
     return wildcard;
 }
 
-#if wxUSE_FFILE && wxUSE_STREAMS
 /// Load a file
 bool wxRichTextBuffer::LoadFile(const wxString& filename, wxRichTextFileType type)
 {
@@ -8345,9 +8345,7 @@ bool wxRichTextBuffer::SaveFile(const wxString& filename, wxRichTextFileType typ
     else
         return false;
 }
-#endif // wxUSE_FFILE && wxUSE_STREAMS
 
-#if wxUSE_STREAMS
 /// Load from a stream
 bool wxRichTextBuffer::LoadFile(wxInputStream& stream, wxRichTextFileType type)
 {
@@ -8376,7 +8374,6 @@ bool wxRichTextBuffer::SaveFile(wxOutputStream& stream, wxRichTextFileType type)
     else
         return false;
 }
-#endif // wxUSE_STREAMS
 
 /// Copy the range to the clipboard
 bool wxRichTextBuffer::CopyToClipboard(const wxRichTextRange& range)
@@ -9520,13 +9517,12 @@ bool wxRichTextTable::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
     wxRichTextAttr attr(GetAttributes());
     context.ApplyVirtualAttributes(attr, this);
 
-    bool tableHasPercentWidth = (attr.GetTextBoxAttr().GetWidth().GetUnits() == wxTEXT_ATTR_UNITS_PERCENTAGE);
     // If we have no fixed table size, and assuming we're not pushed for
     // space, then we don't have to try to stretch the table to fit the contents.
-    bool stretchToFitTableWidth = tableHasPercentWidth;
-    
+    bool stretchToFitTableWidth = false;
+
     int tableWidth = rect.width;
-    if (attr.GetTextBoxAttr().GetWidth().IsValid() && !tableHasPercentWidth)
+    if (attr.GetTextBoxAttr().GetWidth().IsValid())
     {
         tableWidth = converter.GetPixels(attr.GetTextBoxAttr().GetWidth());
 

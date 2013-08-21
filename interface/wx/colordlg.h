@@ -2,6 +2,7 @@
 // Name:        colordlg.h
 // Purpose:     interface of wxColourDialog
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

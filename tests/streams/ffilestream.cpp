@@ -2,6 +2,7 @@
 // Name:        tests/streams/ffilestream.cpp
 // Purpose:     Test wxFFileInputStream/wxFFileOutputStream
 // Author:      Hans Van Leemputten
+// RCS-ID:      $Id$
 // Copyright:   (c) 2004 Hans Van Leemputten
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

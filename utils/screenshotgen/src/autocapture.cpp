@@ -2,6 +2,7 @@
 // Name:        autocapture.cpp
 // Purpose:     Implement wxCtrlMaskOut class
 // Author:      Utensil Candel (UtensilCandel@@gmail.com)
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

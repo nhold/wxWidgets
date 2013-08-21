@@ -2,6 +2,7 @@
 // Name:        uiaction.h
 // Purpose:     interface of wxUIActionSimulator
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

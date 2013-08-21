@@ -3,6 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by:
+// RCS-ID:      $Id$
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,30 +76,6 @@ gtk_changed(GtkSpinButton* spinbutton, wxSpinCtrl* win)
     win->HandleWindowEvent( event );
 }
 }
-
-// ----------------------------------------------------------------------------
-// wxSpinCtrlEventDisabler: helper to temporarily disable GTK+ events
-// ----------------------------------------------------------------------------
-
-class wxSpinCtrlEventDisabler
-{
-public:
-    wxEXPLICIT wxSpinCtrlEventDisabler(wxSpinCtrlGTKBase* spin)
-        : m_spin(spin)
-    {
-        m_spin->GtkDisableEvents();
-    }
-
-    ~wxSpinCtrlEventDisabler()
-    {
-        m_spin->GtkEnableEvents();
-    }
-
-private:
-    wxSpinCtrlGTKBase* const m_spin;
-
-    wxDECLARE_NO_COPY_CLASS(wxSpinCtrlEventDisabler);
-};
 
 //-----------------------------------------------------------------------------
 // wxSpinCtrlGTKBase
@@ -231,16 +208,18 @@ void wxSpinCtrlGTKBase::SetValue( const wxString& value )
     }
 
     // invalid number - set text as is (wxMSW compatible)
-    wxSpinCtrlEventDisabler disable(this);
+    GtkDisableEvents();
     gtk_entry_set_text( GTK_ENTRY(m_widget), wxGTK_CONV( value ) );
+    GtkEnableEvents();
 }
 
 void wxSpinCtrlGTKBase::DoSetValue( double value )
 {
     wxCHECK_RET( (m_widget != NULL), wxT("invalid spin button") );
 
-    wxSpinCtrlEventDisabler disable(this);
+    GtkDisableEvents();
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(m_widget), value);
+    GtkEnableEvents();
 }
 
 void wxSpinCtrlGTKBase::SetSnapToTicks(bool snap_to_ticks)
@@ -267,21 +246,23 @@ void wxSpinCtrlGTKBase::DoSetRange(double minVal, double maxVal)
 {
     wxCHECK_RET( (m_widget != NULL), wxT("invalid spin button") );
 
-    wxSpinCtrlEventDisabler disable(this);
+    GtkDisableEvents();
     gtk_spin_button_set_range( GTK_SPIN_BUTTON(m_widget), minVal, maxVal);
+    GtkEnableEvents();
 }
 
 void wxSpinCtrlGTKBase::DoSetIncrement(double inc)
 {
     wxCHECK_RET( m_widget, "invalid spin button" );
 
-    wxSpinCtrlEventDisabler disable(this);
+    GtkDisableEvents();
 
     // Preserve the old page value when changing just the increment.
     double page = 10*inc;
     gtk_spin_button_get_increments( GTK_SPIN_BUTTON(m_widget), NULL, &page);
 
     gtk_spin_button_set_increments( GTK_SPIN_BUTTON(m_widget), inc, page);
+    GtkEnableEvents();
 }
 
 void wxSpinCtrlGTKBase::GtkDisableEvents() const
@@ -491,7 +472,6 @@ void wxSpinCtrlDouble::SetDigits(unsigned digits)
 {
     wxCHECK_RET( m_widget, "invalid spin button" );
 
-    wxSpinCtrlEventDisabler disable(this);
     gtk_spin_button_set_digits( GTK_SPIN_BUTTON(m_widget), digits);
 }
 

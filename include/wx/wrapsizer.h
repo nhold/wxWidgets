@@ -3,6 +3,7 @@
 // Purpose:     provide wrapping sizer for layout (wxWrapSizer)
 // Author:      Arne Steinarson
 // Created:     2008-05-08
+// RCS-ID:      $Id$
 // Copyright:   (c) Arne Steinarson
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

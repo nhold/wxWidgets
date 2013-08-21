@@ -2,6 +2,7 @@
 // Name:        snglinst.h
 // Purpose:     interface of wxSingleInstanceChecker
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -23,7 +24,7 @@
     bool MyApp::OnInit()
     {
         m_checker = new wxSingleInstanceChecker;
-        if ( m_checker->IsAnotherRunning() )
+        if ( m_checker-IsAnotherRunning() )
         {
             wxLogError(_("Another program instance is already running, aborting."));
 

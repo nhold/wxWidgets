@@ -2,6 +2,7 @@
 // Name:        calctrl.h
 // Purpose:     interface of wxCalendarCtrl
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

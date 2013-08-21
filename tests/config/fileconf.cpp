@@ -3,6 +3,7 @@
 // Purpose:     wxFileConf unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-09-19
+// RCS-ID:      $Id$
 // Copyright:   (c) 2004 Vadim Zeitlin
 ///////////////////////////////////////////////////////////////////////////////
 

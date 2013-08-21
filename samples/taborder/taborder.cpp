@@ -2,6 +2,7 @@
 // Name:        taborder.cpp
 // Purpose:     Sample for testing TAB navigation
 // Author:      Vadim Zeitlin
+// RCS-ID:      $Id$
 // Copyright:   (c) 2007 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

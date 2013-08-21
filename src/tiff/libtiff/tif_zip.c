@@ -1,3 +1,4 @@
+/* $Id$ */
 
 /*
  * Copyright (c) 1995-1997 Sam Leffler

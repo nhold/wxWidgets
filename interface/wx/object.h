@@ -2,6 +2,7 @@
 // Name:        object.h
 // Purpose:     interface of wxRefCounter
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

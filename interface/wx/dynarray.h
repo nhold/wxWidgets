@@ -2,6 +2,7 @@
 // Name:        dynarray.h
 // Purpose:     interface of wxArray<T>
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

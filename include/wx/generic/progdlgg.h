@@ -4,6 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by: Francesco Montorsi
 // Created:     09.05.1999
+// RCS-ID:      $Id$
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

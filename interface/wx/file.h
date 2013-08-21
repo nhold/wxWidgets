@@ -2,6 +2,7 @@
 // Name:        file.h
 // Purpose:     interface of wxTempFile, wxFile
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

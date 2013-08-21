@@ -4,6 +4,7 @@
 // Author:      Kevin Ollivier
 // Modified by:
 // Created:     2009-10-31
+// RCS-ID:      $Id$
 // Copyright:   (c) Kevin Ollivier
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

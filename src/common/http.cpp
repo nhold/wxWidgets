@@ -4,6 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Simo Virokannas (authentication, Dec 2005)
 // Created:     August 1997
+// RCS-ID:      $Id$
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -340,23 +341,37 @@ bool wxHTTP::Connect(const wxSockAddress& addr, bool WXUNUSED(wait))
     return true;
 }
 
-bool wxHTTP::BuildRequest(const wxString& path, const wxString& method)
+bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
 {
-    // Use the data in the post buffer, if any.
-    if ( !m_postBuffer.IsEmpty() )
+    const wxChar *request;
+
+    switch (req)
     {
-        wxString len;
-        len << m_postBuffer.GetDataLen();
+        case wxHTTP_GET:
+            request = wxT("GET");
+            break;
 
-        // Content length must be correct, so always set, possibly
-        // overriding the value set explicitly by a previous call to
-        // SetHeader("Content-Length").
-        SetHeader(wxS("Content-Length"), len);
+        case wxHTTP_POST:
+            request = wxT("POST");
+            // Content length must be correct, so always set, possibly
+            // overriding the value set explicitly by a previous call to
+            // SetHeader("Content-Length").
+            if ( !m_postBuffer.IsEmpty() )
+            {
+                wxString len;
+                len << m_postBuffer.GetDataLen();
 
-        // However if the user had explicitly set the content type, don't
-        // override it with the content type passed to SetPostText().
-        if ( !m_contentType.empty() && GetContentType().empty() )
-            SetHeader(wxS("Content-Type"), m_contentType);
+                SetHeader(wxS("Content-Length"), len);
+            }
+
+            // However if the user had explicitly set the content type, don't
+            // override it with the content type passed to SetPostText().
+            if ( !m_contentType.empty() && GetContentType().empty() )
+                SetHeader(wxS("Content-Type"), m_contentType);
+            break;
+
+        default:
+            return false;
     }
 
     m_http_response = 0;
@@ -381,14 +396,15 @@ bool wxHTTP::BuildRequest(const wxString& path, const wxString& method)
     Notify(false);
 
     wxString buf;
-    buf.Printf(wxT("%s %s HTTP/1.0\r\n"), method, path);
+    buf.Printf(wxT("%s %s HTTP/1.0\r\n"), request, path.c_str());
     const wxWX2MBbuf pathbuf = buf.mb_str();
     Write(pathbuf, strlen(pathbuf));
     SendHeaders();
     Write("\r\n", 2);
 
-    if ( !m_postBuffer.IsEmpty() ) {
-        Write(m_postBuffer.GetData(), m_postBuffer.GetDataLen());
+    if ( req == wxHTTP_POST ) {
+        if ( !m_postBuffer.IsEmpty() )
+            Write(m_postBuffer.GetData(), m_postBuffer.GetDataLen());
 
         m_postBuffer.Clear();
     }
@@ -522,13 +538,7 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
         return NULL;
 #endif
 
-    // Use the user-specified method if any or determine the method to use
-    // automatically depending on whether we have anything to post or not.
-    wxString method = m_method;
-    if (method.empty())
-        method = m_postBuffer.IsEmpty() ? wxS("GET"): wxS("POST");
-
-    if (!BuildRequest(path, method))
+    if (!BuildRequest(path, m_postBuffer.IsEmpty() ? wxHTTP_GET : wxHTTP_POST))
         return NULL;
 
     inp_stream = new wxHTTPStream(this);

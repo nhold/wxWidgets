@@ -2,6 +2,7 @@
 // Name:        notifmsg.h
 // Purpose:     interface of wxNotificationMessage
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

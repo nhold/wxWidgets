@@ -3,6 +3,7 @@
 // Purpose:     wxDateTime unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-06-23 (extracted from samples/console/console.cpp)
+// RCS-ID:      $Id$
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 ///////////////////////////////////////////////////////////////////////////////
 

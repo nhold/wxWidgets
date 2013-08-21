@@ -2,6 +2,7 @@
 // Name:        dnd.h
 // Purpose:     interface of wxDropSource and wx*DropTarget
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

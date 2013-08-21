@@ -2,6 +2,7 @@
 // Name:        dirdlg.h
 // Purpose:     interface of wxDirDialog
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

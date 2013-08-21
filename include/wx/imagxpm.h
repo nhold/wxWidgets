@@ -2,6 +2,7 @@
 // Name:        wx/imagxpm.h
 // Purpose:     wxImage XPM handler
 // Author:      Vaclav Slavik
+// RCS-ID:      $Id$
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

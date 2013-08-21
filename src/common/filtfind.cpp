@@ -2,6 +2,7 @@
 // Name:        src/common/filtfind.cpp
 // Purpose:     Streams for filter formats
 // Author:      Mike Wetherell
+// RCS-ID:      $Id$
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 // Name:        cursor.h
 // Purpose:     interface of wxCursor
 // Author:      wxWidgets team
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

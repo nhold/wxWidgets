@@ -4,6 +4,7 @@
 // Author:      David Elliott, Ryan Norton (wxMacExecute)
 // Modified by: Stefan Csomor (added necessary wxT for unicode builds)
 // Created:     2004-11-04
+// RCS-ID:      $Id$
 // Copyright:   (c) David Elliott, Ryan Norton
 //              (c) 2013 Rob Bresalier
 // Licence:     wxWindows licence

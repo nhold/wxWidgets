@@ -3,6 +3,7 @@
 // Purpose:     declares wxIf<> metaprogramming construct
 // Author:      Vaclav Slavik
 // Created:     2008-01-22
+// RCS-ID:      $Id$
 // Copyright:   (c) 2008 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

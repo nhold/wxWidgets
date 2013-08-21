@@ -3,6 +3,7 @@
 // Purpose:     XRC resource for wxScrolledWindow
 // Author:      Vaclav Slavik
 // Created:     2002/10/18
+// RCS-ID:      $Id$
 // Copyright:   (c) 2002 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

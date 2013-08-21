@@ -4,6 +4,7 @@
 // Author:      Vadim Zeitlin, Andrej Putrin
 // Modified by:
 // Created:     2005-01-21
+// RCS-ID:      $Id$
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,11 +39,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/filename.h"
-#ifdef wxUSE_FFILE
-    #include "wx/ffile.h"
-#else
-    #include "wx/file.h"
-#endif
+#include "wx/ffile.h"
 #include "wx/mimetype.h"
 
 #include "wx/statline.h"
@@ -435,12 +432,7 @@ void wxDebugReportDialog::OnView(wxCommandEvent& )
     wxFileName fn(m_dbgrpt.GetDirectory(), m_files[sel]);
     wxString str;
 
-    const wxString& fullPath = fn.GetFullPath();
-#if wxUSE_FFILE
-    wxFFile file(fullPath);
-#elif wxUSE_FILE
-    wxFile file(fullPath);
-#endif
+    wxFFile file(fn.GetFullPath());
     if ( file.IsOpened() && file.ReadAll(&str) )
     {
         wxDumpPreviewDlg dlg(this, m_files[sel], str);

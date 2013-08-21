@@ -2,6 +2,7 @@
 // Name:        tests/filetype/filetype.cpp
 // Purpose:     Test wxGetFileKind and wxStreamBase::IsSeekable
 // Author:      Mike Wetherell
+// RCS-ID:      $Id$
 // Copyright:   (c) 2005 Mike Wetherell
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
