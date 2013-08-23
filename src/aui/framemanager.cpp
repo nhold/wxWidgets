@@ -1829,7 +1829,7 @@ wxString wxAuiPaneInfo::GetInfo() const
     result += wxString::Format(wxT("row=%d;"), m_dock_row);
     result += wxString::Format(wxT("pos=%d;"), m_dock_pos);
     result += wxString::Format(wxT("prop=%d;"), m_dock_proportion);
-    result += wxString::Format(wxT("page=%d"), m_dock_page);
+    result += wxString::Format(wxT("page=%d;"), m_dock_page);
     result += wxString::Format(wxT("bestw=%d;"), m_best_size.x);
     result += wxString::Format(wxT("besth=%d;"), m_best_size.y);
     result += wxString::Format(wxT("minw=%d;"), m_min_size.x);
