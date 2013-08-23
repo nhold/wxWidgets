@@ -3,7 +3,6 @@
 // Purpose:     Rich text printing classes
 // Author:      Julian Smart
 // Created:     2006-10-23
-// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -165,11 +164,15 @@ public:
     virtual ~wxRichTextPrinting();
 
     /// Preview the file or buffer
+#if wxUSE_FFILE && wxUSE_STREAMS
     bool PreviewFile(const wxString& richTextFile);
+#endif
     bool PreviewBuffer(const wxRichTextBuffer& buffer);
 
     /// Print the file or buffer
+#if wxUSE_FFILE && wxUSE_STREAMS
     bool PrintFile(const wxString& richTextFile, bool showPrintDialog = true);
+#endif
     bool PrintBuffer(const wxRichTextBuffer& buffer, bool showPrintDialog = true);
 
     /// Shows page setup dialog

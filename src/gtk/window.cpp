@@ -2,7 +2,6 @@
 // Name:        src/gtk/window.cpp
 // Purpose:     wxWindowGTK implementation
 // Author:      Robert Roebling
-// Id:          $Id$
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2424,9 +2423,6 @@ wxWindowGTK::~wxWindowGTK()
     // destroy children before destroying this window itself
     DestroyChildren();
 
-    if (m_widget)
-        Show( false );
-
     // delete before the widgets to avoid a crash on solaris
     if ( m_imContext )
     {
@@ -3376,6 +3372,8 @@ void wxWindowGTK::SetFocus()
 
 void wxWindowGTK::SetCanFocus(bool canFocus)
 {
+    wxCHECK_RET(m_widget, "invalid window");
+
     gtk_widget_set_can_focus(m_widget, canFocus);
 
     if ( m_wxwindow && (m_widget != m_wxwindow) )
@@ -4366,6 +4364,13 @@ bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
                   0,                            // button used to activate it
                   gtk_get_current_event_time()
                 );
+
+    // it is possible for gtk_menu_popup() to fail
+    if (!gtk_widget_get_visible(GTK_WIDGET(menu->m_menu)))
+    {
+        menu->m_popupShown = false;
+        return false;
+    }
 
     while (menu->m_popupShown)
     {
