@@ -2520,7 +2520,11 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                         {
                             // Don't ever hide or show a window during hint calculation as this can affect display of windows other than the hint one.
                             if(!m_doingHintCalculation)
-                                ShowWnd(pane.GetWindow(),false);
+                                ShowWnd(pane.GetWindow(),false);                           
+
+                            // We have something inconsistent: 2 active pages in the same notebook
+                            // we just clear the flag to avoid having strange layouts
+                            pane.SetFlag(wxAuiPaneInfo::optionActiveNotebook, false);
                         }
                         // Add a debug warning?
                     }
