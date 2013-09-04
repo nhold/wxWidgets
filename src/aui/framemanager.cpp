@@ -775,7 +775,7 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
     return 0;
 }
 
-size_t wxAuiManager::GetActivePane(wxWindow* focus) const
+int wxAuiManager::GetActivePane(wxWindow* focus) const
 {
     int i, paneCount;
 

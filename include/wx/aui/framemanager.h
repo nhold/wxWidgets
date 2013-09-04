@@ -702,7 +702,7 @@ public:
     void RestoreMaximizedPane();
 
     int SetActivePane(wxWindow* activePane);
-    size_t GetActivePane(wxWindow* focus) const;
+    int GetActivePane(wxWindow* focus) const;
 
     virtual wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p);
     virtual bool CanDockPanel(const wxAuiPaneInfo& p);
