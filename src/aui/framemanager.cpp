@@ -6174,39 +6174,30 @@ void wxAuiManager::OnMotion(wxMouseEvent& evt)
                             mousePos.y=evt.m_y;
                             // If tabs are differently sized then we need to set a 'dead' zone in order to prevent the tab immediately switching around again on next mouse move event
                             if(!HasFlag(wxAUI_MGR_NB_TAB_FIXED_WIDTH))
-                            {
-                                //Better way to do this?
-                                wxAuiPaneInfo* hitPane=NULL;
-                                m_actionPart->m_tab_container->TabHitTest(evt.GetX(), evt.GetY(),&hitPane);
-                                if(hitPane&&hitPane->GetPage()!=paneInfo->GetPage())
+                            {                                
+                                wxAuiPaneInfo*     hitPane   = NULL;
+                                wxAuiTabContainer *container = m_actionPart->m_tab_container;
+                                container->TabHitTest(evt.GetX(), evt.GetY(),&hitPane);
+                                if( hitPane && hitPane->GetPage() != paneInfo->GetPage() )
                                 {
-                                    wxMemoryDC Temp;
-                                    bool closeButton = false;
-                                    if(TabHasCloseButton(GetFlags(),*paneInfo))
-                                    {
-                                        closeButton = true;
+                                    // The dead zone is set to the area of the tab that has just exchanged it's position with the dragged one
+                                    wxRect deadZone = hitPane->GetRect(); 
+                                    // The pane rectangle is the relative position of the tab area in the tab container, so we have to offset it
+                                    deadZone.Offset(container->GetRect().GetTopLeft());
+                                    // We finally reduce it to the zone between the current mouse position and the dragged tab (with a small margin)
+                                    if (container->IsHorizontal()) {
+                                        if (hitPane->GetPage() > paneInfo->GetPage())
+                                            deadZone.SetRight(mousePos.x+5);
+                                        else
+                                            deadZone.SetLeft(mousePos.x-5);
+                                    } else {
+                                        if (hitPane->GetPage() > paneInfo->GetPage())
+                                            deadZone.SetBottom(mousePos.y+5);
+                                        else
+                                            deadZone.SetTop(mousePos.y-5);  
                                     }
-                                    int oldhitextent;
-                                    m_actionPart->m_tab_container->GetArtProvider()->GetTabSize(Temp,paneInfo->GetWindow(), paneInfo->GetCaption(), paneInfo->GetBitmap(),true,closeButton ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_HIDDEN,&oldhitextent);
 
-
-                                    closeButton=false;
-                                    if(TabHasCloseButton(GetFlags(),*paneInfo))
-                                    {
-                                        closeButton = true;
-                                    }
-                                    int newhitextent;
-                                    m_actionPart->m_tab_container->GetArtProvider()->GetTabSize(Temp,hitPane->GetWindow(),hitPane->GetCaption(),hitPane->GetBitmap(),false,closeButton ? wxAUI_BUTTON_STATE_NORMAL : wxAUI_BUTTON_STATE_HIDDEN,&newhitextent);
-
-                                    if(hitPane->GetPage()<paneInfo->GetPage() && newhitextent>oldhitextent)
-                                    {
-                                        m_actionDeadZone = new wxRect(mousePos.x,m_actionPart->rect.y,mousePos.x+(newhitextent-oldhitextent),m_actionPart->rect.height);
-                                    }
-                                    else if(hitPane->GetPage()>paneInfo->GetPage() && newhitextent>oldhitextent)
-                                    {
-                                        int diff = (newhitextent-(newhitextent-oldhitextent));
-                                        m_actionDeadZone = new wxRect(mousePos.x-diff,m_actionPart->rect.y,diff,m_actionPart->rect.height);
-                                    }
+                                    m_actionDeadZone = new wxRect(deadZone);
                                 }
                             }
                         }
