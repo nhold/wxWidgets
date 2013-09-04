@@ -1839,7 +1839,7 @@ wxString wxAuiPaneInfo::GetInfo() const
     result += wxString::Format(wxT("floatx=%d;"), m_floating_pos.x);
     result += wxString::Format(wxT("floaty=%d;"), m_floating_pos.y);
     result += wxString::Format(wxT("floatw=%d;"), m_floating_size.x);
-    result += wxString::Format(wxT("floath=%d"), m_floating_size.y);
+    result += wxString::Format(wxT("floath=%d;"), m_floating_size.y);
     return result;
 }
 wxString wxAuiManager::SavePaneInfo(wxAuiPaneInfo& pane)
