@@ -285,8 +285,8 @@ public:
 
     // get/set if the pane is visible.
     bool IsShown() const { return !HasFlag(optionHidden); }
-    wxAuiPaneInfo& Hide() { return SetFlag(optionHidden, true); }
-    wxAuiPaneInfo& Show(bool show = true) { return SetFlag(optionHidden, !show); }
+    wxAuiPaneInfo& Hide() { SetFlag(wxAuiPaneInfo::optionActiveNotebook,false); return SetFlag(optionHidden, true); }
+    wxAuiPaneInfo& Show(bool show = true) { if (!show) SetFlag(wxAuiPaneInfo::optionActiveNotebook, false); return SetFlag(optionHidden, !show); }
 
     // get/set if the pane is floating.
     // opposite of IsDocked.
