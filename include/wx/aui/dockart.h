@@ -232,6 +232,7 @@ public:
     void SetSelectedFont(const wxFont& selectedFont);
     void SetMeasuringFont(const wxFont& measuringFont);
     void SetRect(const wxRect& rect);
+    wxRect GetRect() const { return m_targetRect; }
 
     void RemoveButton(int id);
     void AddButton(int id, int location, const wxBitmap& normalBitmap = wxNullBitmap, const wxBitmap& disabledBitmap = wxNullBitmap);
