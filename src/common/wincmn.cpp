@@ -1113,6 +1113,12 @@ void wxWindowBase::SendSizeEventToParent(int flags)
         parent->SendSizeEvent(flags);
 }
 
+bool wxWindowBase::CanScroll(int orient) const
+{
+    return (m_windowStyle &
+            (orient == wxHORIZONTAL ? wxHSCROLL : wxVSCROLL)) != 0;
+}
+
 bool wxWindowBase::HasScrollbar(int orient) const
 {
     // if scrolling in the given direction is disabled, we can't have the
@@ -1834,6 +1840,12 @@ wxWindow *wxWindowBase::FindWindow(long id) const
     for ( node = m_children.GetFirst(); node && !res; node = node->GetNext() )
     {
         wxWindowBase *child = node->GetData();
+
+        // As usual, don't recurse into child dialogs, finding a button in a
+        // child dialog when looking in this window would be unexpected.
+        if ( child->IsTopLevel() )
+            continue;
+
         res = child->FindWindow( id );
     }
 
@@ -1850,6 +1862,11 @@ wxWindow *wxWindowBase::FindWindow(const wxString& name) const
     for ( node = m_children.GetFirst(); node && !res; node = node->GetNext() )
     {
         wxWindow *child = node->GetData();
+
+        // As in FindWindow() overload above, never recurse into child dialogs.
+        if ( child->IsTopLevel() )
+            continue;
+
         res = child->FindWindow(name);
     }
 

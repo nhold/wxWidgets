@@ -562,20 +562,33 @@ Major new features in this release
 
 All:
 
+- Adjust dates invalid due to DST consistently under all platforms in wxDateTime.
 - Allow using custom HTTP methods with wxHTTP (Kolya Kosenko).
 - Add wxFileName::SetPermissions() (Catalin Raceanu).
 - Fix build with wxUSE_FFILE==0 (jroemmler).
+- Add wxDEPRECATED_MSG() and use it in a few places.
+- Return the old file descriptor/pointer from wx(F)File::Detach() (troelsk).
 
 All (GUI):
 
 - Fix crash in wxHTML on mal-formed <area> elements (LukasK).
 - Set correct cursor when the mouse is over image map links in wxHTML (LukasK).
 - Add wxPropertyGridPageState::GetColumnFullWidth() (Teodor Petrov).
+- wxRTC: extracted XML utilities into a separate class for potential reuse.
+- wxPropertyGrid: improve composite flags handling (Jens Lody).
+- Don't crash laying out wxGridBagSizer with only hidden elements (briceandre).
+
+wxGTK:
+
+- Fix horizontal mouse wheel scrolling (minoki).
+- Fix wxMenu::GetTitle() before the menu is appended to the bar (David Hart).
 
 wxMSW:
 
 - It is now possible to tab into radio boxes again.
 - Fix launching some types of files under Windows 7 and later (Steven Houchins).
+- Don't use an icon for items inserted without one into wxListCtrl (Chuddah).
+- Handle custom configurations when using MSVC autolinking (tinman).
 
 wxOSX:
 

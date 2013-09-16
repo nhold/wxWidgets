@@ -381,7 +381,7 @@ used by wxFont class. A font can be described either in terms of its elementary
 properties, or it can be derived from one of system fonts or the parent window
 font.
 
-The font property element is "composite" element: unlike majority of
+The font property element is a "composite" element: unlike majority of
 properties, it doesn't have text value but contains several child elements
 instead. These children are handled in the same way as object properties
 and can be one of the following "sub-properties":
@@ -441,6 +441,36 @@ Examples:
 @note You cannot use @c inherit for a font that gets used before the enclosing
       control is created, e.g. if the control gets the font passed as parameter
       for its constructor, or if the control is not derived from wxWindow.
+
+
+@subsection overview_xrcformat_type_imagelist Image List
+
+Defines a wxImageList.
+
+The imagelist property element is a "composite" element: unlike majority of
+properties, it doesn't have text value but contains several child elements
+instead. These children are handled similarly to object properties
+and can be one of the following "sub-properties":
+
+@beginTable
+@hdr3col{property, type, description}
+@row3col{mask, @ref overview_xrcformat_type_bool,
+     If masks should be created for all images (default: 1).}
+@row3col{size, @ref overview_xrcformat_type_size,
+     The size of the images in the list (default: the size of the first bitmap).}
+@row3col{bitmap, @ref overview_xrcformat_type_bitmap,
+     Adds a new image. Unlike normal object properties, @c bitmap may be used more than once
+     to add multiple images to the list. At least one @c bitmap value is required.}
+@endTable
+
+Example:
+@code
+<imagelist>
+    <size>32,32</size>
+    <bitmap stock_id="wxART_QUESTION"/>
+    <bitmap stock_id="wxART_INFORMATION"/>
+</imagelist>
+@endcode
 
 
 @section overview_xrcformat_windows Controls and Windows
@@ -559,19 +589,19 @@ to use it.
 @beginTable
 @hdr3col{property, type, description}
 @row3col{direction, @c wxLEFT|wxRIGHT|wxTOP|wxBOTTOM,
-    The side along which the banner will be positioned.}
+    The side along which the banner will be positioned (default: wxLEFT).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-    Bitmap to use as the banner background.}
+    Bitmap to use as the banner background (default: none).}
 @row3col{title, @ref overview_xrcformat_type_text,
-    Banner title, should be single line.}
+    Banner title, should be single line (default: none).}
 @row3col{message, @ref overview_xrcformat_type_text,
-    Possibly multi-line banner message.}
+    Possibly multi-line banner message (default: none).}
 @row3col{gradient-start, @ref overview_xrcformat_type_colour,
-    Starting colour of the gradient used as banner background. Can't be used if
-    a valid bitmap is specified.}
+    Starting colour of the gradient used as banner background.
+    (Optional. Can't be used if a valid bitmap is specified. If used, both gradient values must be set.)}
 @row3col{gradient-end, @ref overview_xrcformat_type_colour,
-    End colour of the gradient used as banner background. Can't be used if
-    a valid bitmap is specified.}
+    End colour of the gradient used as banner background.
+    (Optional. Can't be used if a valid bitmap is specified. If used, both gradient values must be set.)}
 @endTable
 
 
@@ -655,7 +685,7 @@ Example:
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
     Bitmap to display in the button (optional).}
 @row3col{bitmapposition, @c wxLEFT|wxRIGHT|wxTOP|wxBOTTOM,
-    Position of the bitmap in the button, see wxButton::SetBitmapPosition().}
+    Position of the bitmap in the button, see wxButton::SetBitmapPosition() (default: wxLEFT).}
 @row3col{default, @ref overview_xrcformat_type_bool,
     Should this button be the default button in dialog (default: 0)?}
 @endTable
@@ -734,9 +764,16 @@ Example:
 
 @subsubsection xrc_wxchoicebook wxChoicebook
 
-A choicebook can have one or more child objects of the @c choicebookpage
-pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
-@c notebookpage) and one child object of the @ref xrc_wximagelist class.
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none, built implicitly).}
+@endTable
+
+Additionally, a choicebook can have one or more child objects of the @c
+choicebookpage pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and
+its @c notebookpage).
+
 @c choicebookpage objects have the following properties:
 
 @beginTable
@@ -744,10 +781,10 @@ pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
 @row3col{label, @ref overview_xrcformat_type_text,
      Sheet page's title (required).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Bitmap shown alongside the label (default: none).}
+     Bitmap shown alongside the label (default: none, mutually exclusive with @c image).}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    into the image list.}
+    into the image list (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{selected, @ref overview_xrcformat_type_bool,
      Is the page selected initially (only one page can be selected; default: 0)?}
 @endTable
@@ -766,9 +803,9 @@ concatenated into a single string using a new line character between them
 @hdr3col{property, type, description}
 @row3col{label, @ref overview_xrcformat_type_text,
     First line of text on the button, typically the label of an action that
-    will be made when the button is pressed. }
+    will be made when the button is pressed (required). }
 @row3col{note, @ref overview_xrcformat_type_text,
-    Second line of text describing the action performed when the button is pressed.  }
+    Second line of text describing the action performed when the button is pressed (default: none).  }
 @endTable
 
 
@@ -829,6 +866,16 @@ Example:
 </object>
 @endcode
 
+
+@subsubsection xrc_wxcomboctrl wxComboCtrl
+
+@beginTable
+@hdr3col{property, type, description}
+@row3col{value, @ref overview_xrcformat_type_string,
+     Initial value in the control (default: empty).}
+@endTable
+
+
 @subsubsection xrc_wxdatepickerctrl wxDatePickerCtrl
 
 No additional properties.
@@ -851,6 +898,7 @@ wxDialog may have optional children: either exactly one
 objects. If sizer child is used, it sets
 @ref wxSizer::SetSizeHints() "size hints" too.
 
+
 @subsubsection xrc_wxdirpickerctrl wxDirPickerCtrl
 
 @beginTable
@@ -860,6 +908,34 @@ objects. If sizer child is used, it sets
 @row3col{message, @ref overview_xrcformat_type_text,
     Message shown to the user in wxDirDialog shown by the control (required).}
 @endTable
+
+
+@subsubsection xrc_wxeditablelistbox wxEditableListBox
+
+@beginTable
+@hdr3col{property, type, description}
+@row3col{label, @ref overview_xrcformat_type_text,
+     Label shown above the list (default: empty).}
+@row3col{content, items,
+     Content of the control; this property has any number of @c \<item\> XML
+     elements as its children, with the items text as their text values
+     (default: empty).}
+@endTable
+
+Example:
+@code
+<object class="wxEditableListBox" name="controls_listbox">
+    <size>250,160</size>
+    <label>List of things</label>
+    <content>
+        <item>Milk</item>
+        <item>Pizza</item>
+        <item>Bread</item>
+        <item>Orange juice</item>
+        <item>Paper towels</item>
+    </content>
+</object>
+@endcode
 
 
 @subsubsection xrc_wxfilectrl wxFileCtrl
@@ -872,7 +948,8 @@ objects. If sizer child is used, it sets
     Selects a certain file.}
 @row3col{wildcard, @ref overview_xrcformat_type_string,
     Sets the wildcard, which can contain multiple file types, for example:
-    "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif".}
+    "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+    (default: all files).}
 @endTable
 
 
@@ -886,7 +963,8 @@ objects. If sizer child is used, it sets
     Message shown to the user in wxDirDialog shown by the control (required).}
 @row3col{wildcard, @ref overview_xrcformat_type_string,
     Sets the wildcard, which can contain multiple file types, for example:
-    "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif".}
+    "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+    (default: all files).}
 @endTable
 
 
@@ -976,42 +1054,6 @@ page.
 @endTable
 
 
-@subsubsection xrc_wximagelist wxImageList
-
-The imagelist can be used as a child object for the following classes:
-    - @ref xrc_wxchoicebook
-    - @ref xrc_wxlistbook
-    - @ref xrc_wxlistctrl
-    - @ref xrc_wxnotebook
-    - @ref xrc_wxtreebook
-    - @ref xrc_wxtreectrl
-
-The available properties are:
-
-@beginTable
-@hdr3col{property, type, description}
-@row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Adds a new image by keeping its optional mask bitmap (see below).}
-@row3col{mask, @ref overview_xrcformat_type_bool,
-     If masks should be created for all images (default: true).}
-@row3col{size, @ref overview_xrcformat_type_size,
-     The size of the images in the list (default: the size of the first bitmap).}
-@endTable
-
-Example:
-@code
-<imagelist>
-    <size>32,32</size>
-    <bitmap stock_id="wxART_QUESTION"/>
-    <bitmap stock_id="wxART_INFORMATION"/>
-</imagelist>
-@endcode
-
-In the specific case of the @ref xrc_wxlistctrl, the tag can take the name
-@c \<imagelist-small\> to define the 'small' image list, related to the flag
-@c wxIMAGE_LIST_SMALL (see wxListCtrl documentation).
-
-
 @subsubsection xrc_wxlistbox wxListBox
 
 @beginTable
@@ -1042,9 +1084,16 @@ Example:
 
 @subsubsection xrc_wxlistbook wxListbook
 
-A listbook can have one or more child objects of the @c listbookpage
-pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
-@c notebookpage) and one child object of the @ref xrc_wximagelist class.
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none, built implicitly).}
+@endTable
+
+Additionally, a listbook can have one or more child objects of the @c
+listbookpage pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and
+its @c notebookpage).
+
 @c listbookpage objects have the following properties:
 
 @beginTable
@@ -1052,10 +1101,10 @@ pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
 @row3col{label, @ref overview_xrcformat_type_text,
      Sheet page's title (required).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Bitmap shown alongside the label (default: none).}
+     Bitmap shown alongside the label (default: none, mutually exclusive with @c image).}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    into the image list.}
+    into the image list (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{selected, @ref overview_xrcformat_type_bool,
      Is the page selected initially (only one page can be selected; default: 0)?}
 @endTable
@@ -1065,14 +1114,17 @@ Each @c listbookpage has exactly one non-toplevel window as its child.
 
 @subsubsection xrc_wxlistctrl wxListCtrl
 
-A list control can have one or more child objects of the class @ref xrc_wxlistitem
-and one or more objects of the @ref xrc_wximagelist class. The latter is
-defined either using @c \<imagelist\> tag for the control with @c wxLC_ICON
-style or using @c \<imagelist-small\> tag for the control with @c
-wxLC_SMALL_ICON style.
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     The normal (wxIMAGE_LIST_NORMAL) image list (default: none, built implicitly).}
+@row3col{imagelist-small, @ref overview_xrcformat_type_imagelist,
+     The small (wxIMAGE_LIST_SMALL) image list (default: none, built implicitly).}
+@endTable
 
-Report mode list controls (i.e. created with @c wxLC_REPORT style) can in
-addition have one or more @ref xrc_wxlistcol child elements.
+A list control can have one or more child objects of the @ref xrc_wxlistcol
+class.  Report mode list controls (i.e. created with @c wxLC_REPORT style) can
+in addition have one or more @ref xrc_wxlistcol child objects.
 
 @paragraph xrc_wxlistcol listcol
 
@@ -1112,19 +1164,23 @@ It can have the following properties:
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
     Add a bitmap to the (normal) @ref xrc_wximagelist associated with the
     @ref xrc_wxlistctrl parent and associate it with this item.
-    If the imagelist is not defined it will be created implicitly.}
+    If the imagelist is not defined it will be created implicitly
+    (default: none, mutually exclusive with @c image).}
 @row3col{bitmap-small, @ref overview_xrcformat_type_bitmap,
     Add a bitmap in the 'small' @ref xrc_wximagelist associated with the
     @ref xrc_wxlistctrl parent and associate it with this item.
-    If the 'small' imagelist is not defined it will be created implicitly.}
+    If the 'small' imagelist is not defined it will be created implicitly
+    (default: none, mutually exclusive with @c image-small).}
 @row3col{col, integer,
     The zero-based column index.}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    in the (normal) image list.}
+    in the (normal) image list
+    (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{image-small, integer,
     The zero-based index of the image associated with the item
-    in the 'small' image list.}
+    in the 'small' image list
+    (default: none, mutually exclusive with @c bitmap-small, only if imagelist-small was set).}
 @row3col{data, integer,
     The client data for the item.}
 @row3col{font, @ref overview_xrcformat_type_font,
@@ -1175,6 +1231,8 @@ objects. If sizer child is used, it sets
 @row3col{label, @ref overview_xrcformat_type_text,
      Menu's label (default: empty, but required for menus other
      than popup menus).}
+@row3col{style, @ref overview_xrcformat_type_style,
+    Window style for the menu.}
 @row3col{help, @ref overview_xrcformat_type_text,
      Help shown in statusbar when the menu is selected (only for submenus
      of another wxMenu, default: none).}
@@ -1184,7 +1242,7 @@ objects. If sizer child is used, it sets
 @endTable
 
 Note that unlike most controls, wxMenu does @em not have
-@ref overview_xrcformat_std_props.
+@ref overview_xrcformat_std_props, with the exception of @c style.
 
 A menu object can have one or more child objects of the wxMenuItem or wxMenu
 classes or @c break or @c separator pseudo-classes.
@@ -1245,8 +1303,14 @@ Example:
 
 @subsubsection xrc_wxmenubar wxMenuBar
 
-No properties. Note that unlike most controls, wxMenuBar does @em not have
-@ref overview_xrcformat_std_props.
+@beginTable
+@hdr3col{property, type, description}
+@row3col{style, @ref overview_xrcformat_type_style,
+    Window style for the menu bar.}
+@endTable
+
+Note that unlike most controls, wxMenuBar does @em not have
+@ref overview_xrcformat_std_props, with the exception of @c style.
 
 A menubar can have one or more child objects of the @ref xrc_wxmenu "wxMenu"
 class.
@@ -1254,8 +1318,15 @@ class.
 
 @subsubsection xrc_wxnotebook wxNotebook
 
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none, built implicitly).}
+@endTable
+
 A notebook can have one or more child objects of the @c notebookpage
-pseudo-class and one child object of the @ref xrc_wximagelist class.
+pseudo-class.
+
 @c notebookpage objects have the following properties:
 
 @beginTable
@@ -1263,10 +1334,12 @@ pseudo-class and one child object of the @ref xrc_wximagelist class.
 @row3col{label, @ref overview_xrcformat_type_text,
      Page's title (required).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Bitmap shown alongside the label (default: none).}
+     Bitmap shown alongside the label
+     (default: none, mutually exclusive with @c image).}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    into the image list.}
+    into the image list
+    (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{selected, @ref overview_xrcformat_type_bool,
      Is the page selected initially (only one page can be selected; default: 0)?}
 @endTable
@@ -1626,11 +1699,6 @@ child and the second one for right/bottom child window.
     Comma-separated list of @em fields integers. Each value specifies width
     of one field; the values are interpreted using the same convention used
     by wxStatusBar::SetStatusWidths().}
-@row3col{styles, @ref overview_xrcformat_type_string,
-    Comma-separated list of @em fields flags. Each value specifies status bar
-    field style and can be one of @c wxSB_NORMAL, @c wxSB_FLAT,
-    @c wxSB_RAISED or, since wxWidgets 2.9.5, @c wxSB_SUNKEN. See
-    wxStatusBar::SetStatusStyles() for their description.}
 @endTable
 
 
@@ -1800,9 +1868,16 @@ Example:
 
 @subsubsection xrc_wxtoolbook wxToolbook
 
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none, built implicitly).}
+@endTable
+
 A toolbook can have one or more child objects of the @c toolbookpage
 pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
-@c notebookpage) and one child object of the @ref xrc_wximagelist class.
+@c notebookpage).
+
 @c toolbookpage objects have the following properties:
 
 @beginTable
@@ -1810,10 +1885,12 @@ pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
 @row3col{label, @ref overview_xrcformat_type_text,
      Sheet page's title (required).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Bitmap shown alongside the label (default: none).}
+     Bitmap shown alongside the label
+     (default: none, mutually exclusive with @c image).}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    into the image list.}
+    into the image list
+    (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{selected, @ref overview_xrcformat_type_bool,
      Is the page selected initially (only one page can be selected; default: 0)?}
 @endTable
@@ -1823,16 +1900,25 @@ Each @c toolbookpage has exactly one non-toplevel window as its child.
 
 @subsubsection xrc_wxtreectrl wxTreeCtrl
 
-A treectrl can have one child object of the @ref xrc_wximagelist class.
-
-No additional properties.
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none).}
+@endTable
 
 
 @subsubsection xrc_wxtreebook wxTreebook
 
+@beginTable
+@hdr3col{property, type, description}
+@row3col{imagelist, @ref overview_xrcformat_type_imagelist,
+     Image list to use for the images (default: none, built implicitly).}
+@endTable
+
 A treebook can have one or more child objects of the @c treebookpage
 pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
-@c notebookpage) and one child object of the @ref xrc_wximagelist class.
+@c notebookpage).
+
 @c treebookpage objects have the following properties:
 
 @beginTable
@@ -1842,10 +1928,11 @@ pseudo-class (similarly to @ref xrc_wxnotebook "wxNotebook" and its
 @row3col{label, @ref overview_xrcformat_type_text,
      Sheet page's title (required).}
 @row3col{bitmap, @ref overview_xrcformat_type_bitmap,
-     Bitmap shown alongside the label (default: none).}
+     Bitmap shown alongside the label (default: none, mutually exclusive with @c image).}
 @row3col{image, integer,
     The zero-based index of the image associated with the item
-    into the image list.}
+    into the image list
+    (default: none, mutually exclusive with @c bitmap, only if imagelist was set).}
 @row3col{selected, @ref overview_xrcformat_type_bool,
      Is the page selected initially (only one page can be selected; default: 0)?}
 @row3col{expanded, @ref overview_xrcformat_type_bool,

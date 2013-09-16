@@ -496,6 +496,21 @@ void wxAuiNotebook::Split(size_t pageIndex, int direction)
         m_mgr.SetActivePane(panes[pageIndex].GetWindow());
         
         m_mgr.Update();
+    // find the page containing the focused child
+    wxWindow* win = evt.GetWindow();
+    while ( win )
+    {
+        // pages have the notebook as the parent, so stop when we reach one
+        // (and also stop in the impossible case of no parent at all)
+        wxWindow* const parent = win->GetParent();
+        if ( !parent || parent == this )
+            break;
+
+        win = parent;
+    }
+
+    // change the tab selection to this page
+    int idx = m_tabs.GetIdxFromWindow(win);
         return;
     }
     wxASSERT_MSG(0, wxT("Invalid page index passed to wxAuiNotebook::Split"));
