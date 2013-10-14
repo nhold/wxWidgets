@@ -280,6 +280,7 @@ void wxIOCPThread::ProcessNativeEvents(wxVector<wxEventProcessingData>& events)
                     FileNotifyInformationToString(e));
 
         int nativeFlags = e.Action;
+		
         int flags = Native2WatcherFlags(nativeFlags);
         if (flags & wxFSW_EVENT_WARNING || flags & wxFSW_EVENT_ERROR)
         {
