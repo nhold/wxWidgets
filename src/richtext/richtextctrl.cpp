@@ -54,6 +54,7 @@ wxDEFINE_EVENT( wxEVT_RICHTEXT_RIGHT_CLICK, wxRichTextEvent );
 wxDEFINE_EVENT( wxEVT_RICHTEXT_LEFT_DCLICK, wxRichTextEvent );
 wxDEFINE_EVENT( wxEVT_RICHTEXT_RETURN, wxRichTextEvent );
 wxDEFINE_EVENT( wxEVT_RICHTEXT_CHARACTER, wxRichTextEvent );
+wxDEFINE_EVENT( wxEVT_RICHTEXT_CONSUMING_CHARACTER, wxRichTextEvent );
 wxDEFINE_EVENT( wxEVT_RICHTEXT_DELETE, wxRichTextEvent );
 
 wxDEFINE_EVENT( wxEVT_RICHTEXT_STYLESHEET_REPLACING, wxRichTextEvent );
@@ -240,6 +241,11 @@ bool wxRichTextCtrl::Create( wxWindow* parent, wxWindowID id, const wxString& va
                              const wxValidator& validator, const wxString& name)
 {
     style |= wxVSCROLL;
+    
+    // If read-only, the programmer probably wants to retain dialog keyboard navigation.
+    // If you don't, then pass wxWANTS_CHARS explicitly.
+    if ((style & wxTE_READONLY) == 0)
+        style |= wxWANTS_CHARS;
 
     if (!wxControl::Create(parent, id, pos, size,
                            style|wxFULL_REPAINT_ON_RESIZE,
@@ -890,7 +896,7 @@ void wxRichTextCtrl::OnMoveMouse(wxMouseEvent& event)
         long position2 = 0;
         wxRichTextObject* hitObj2 = NULL, *contextObj2 = NULL;
         int hit2 = GetBuffer().HitTest(dc, context, GetUnscaledPoint(logicalPt), position2, & hitObj2, & contextObj2, 0);
-        if (hit2 != wxRICHTEXT_HITTEST_NONE && !(hit2 & wxRICHTEXT_HITTEST_OUTSIDE) && hitObj2 && hitObj != hitObj2)
+        if (hit2 != wxRICHTEXT_HITTEST_NONE && hitObj2 && hitObj != hitObj2)
         {
             // See if we can find a common ancestor
             if (m_selectionState == wxRichTextCtrlSelectionState_Normal)
@@ -1313,6 +1319,23 @@ void wxRichTextCtrl::OnChar(wxKeyEvent& event)
 #endif
                 {
                     event.Skip();
+                    return;
+                }
+
+                wxRichTextEvent cmdEvent1(
+                    wxEVT_RICHTEXT_CONSUMING_CHARACTER,
+                    GetId());
+                cmdEvent1.SetEventObject(this);
+                cmdEvent1.SetFlags(flags);
+#if wxUSE_UNICODE
+                cmdEvent1.SetCharacter(event.GetUnicodeKey());
+#else
+                cmdEvent1.SetCharacter((wxChar) keycode);
+#endif
+                cmdEvent1.SetPosition(m_caretPosition+1);
+                cmdEvent1.SetContainer(GetFocusObject());
+                if (GetEventHandler()->ProcessEvent(cmdEvent1) && !cmdEvent1.IsAllowed())
+                {
                     return;
                 }
 
@@ -2793,7 +2816,7 @@ bool wxRichTextCtrl::SelectWord(long position)
         }
     }
     if (positionEnd >= para->GetRange().GetEnd())
-        positionEnd = para->GetRange().GetEnd();
+        positionEnd = para->GetRange().GetEnd()-1;
 
     if (positionEnd < positionStart)
         return false;
@@ -3009,6 +3032,12 @@ wxRichTextBox* wxRichTextCtrl::WriteTextBox(const wxRichTextAttr& textAttr)
     textBox->AddParagraph(wxEmptyString);
     textBox->SetParent(NULL);
 
+    // If the box has an invalid foreground colour, its text will mimic any upstream value (see #15224)
+    if (!textBox->GetAttributes().GetTextColour().IsOk())
+    {
+        textBox->GetAttributes().SetTextColour(GetBasicStyle().GetTextColour());
+    }
+
     // The object returned is the one actually inserted into the buffer,
     // while the original one is deleted.
     wxRichTextObject* obj = GetFocusObject()->InsertObjectWithUndo(& GetBuffer(), m_caretPosition+1, textBox, this, wxRICHTEXT_INSERT_WITH_PREVIOUS_PARAGRAPH_STYLE);
@@ -3034,17 +3063,25 @@ wxRichTextTable* wxRichTextCtrl::WriteTable(int rows, int cols, const wxRichText
     wxRichTextTable* table = new wxRichTextTable;
     table->SetAttributes(tableAttr);
     table->SetParent(& GetBuffer()); // set parent temporarily for AddParagraph to use correct style
+    table->SetBasicStyle(GetBasicStyle());
 
     table->CreateTable(rows, cols);
 
     table->SetParent(NULL);
+
+    // If cells have an invalid foreground colour, their text will mimic any upstream value (see #15224)
+    wxRichTextAttr attr = cellAttr;
+    if (!attr.GetTextColour().IsOk())
+    {
+        attr.SetTextColour(GetBasicStyle().GetTextColour());
+    }
 
     int i, j;
     for (j = 0; j < rows; j++)
     {
         for (i = 0; i < cols; i++)
         {
-            table->GetCell(j, i)->GetAttributes() = cellAttr;
+            table->GetCell(j, i)->GetAttributes() = attr;
         }
     }
 

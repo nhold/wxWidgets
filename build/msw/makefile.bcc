@@ -62,15 +62,18 @@ WXZLIB_OBJECTS =  \
 	$(OBJS)\wxzlib_adler32.obj \
 	$(OBJS)\wxzlib_compress.obj \
 	$(OBJS)\wxzlib_crc32.obj \
-	$(OBJS)\wxzlib_gzio.obj \
-	$(OBJS)\wxzlib_uncompr.obj \
 	$(OBJS)\wxzlib_deflate.obj \
-	$(OBJS)\wxzlib_trees.obj \
-	$(OBJS)\wxzlib_zutil.obj \
-	$(OBJS)\wxzlib_inflate.obj \
+	$(OBJS)\wxzlib_gzclose.obj \
+	$(OBJS)\wxzlib_gzlib.obj \
+	$(OBJS)\wxzlib_gzread.obj \
+	$(OBJS)\wxzlib_gzwrite.obj \
 	$(OBJS)\wxzlib_infback.obj \
+	$(OBJS)\wxzlib_inffast.obj \
+	$(OBJS)\wxzlib_inflate.obj \
 	$(OBJS)\wxzlib_inftrees.obj \
-	$(OBJS)\wxzlib_inffast.obj
+	$(OBJS)\wxzlib_trees.obj \
+	$(OBJS)\wxzlib_uncompr.obj \
+	$(OBJS)\wxzlib_zutil.obj
 WXPNG_CFLAGS = $(__RUNTIME_LIBS) -I$(BCCDIR)\include $(__DEBUGINFO) \
 	$(__OPTIMIZEFLAG) $(__THREADSFLAG) -DNDEBUG -I..\..\src\zlib -w-8004 \
 	$(CPPFLAGS) $(CFLAGS)
@@ -409,6 +412,7 @@ MONODLL_OBJECTS =  \
 	$(OBJS)\monodll_tarstrm.obj \
 	$(OBJS)\monodll_textbuf.obj \
 	$(OBJS)\monodll_textfile.obj \
+	$(OBJS)\monodll_threadinfo.obj \
 	$(OBJS)\monodll_time.obj \
 	$(OBJS)\monodll_timercmn.obj \
 	$(OBJS)\monodll_timerimpl.obj \
@@ -559,6 +563,7 @@ MONOLIB_OBJECTS =  \
 	$(OBJS)\monolib_tarstrm.obj \
 	$(OBJS)\monolib_textbuf.obj \
 	$(OBJS)\monolib_textfile.obj \
+	$(OBJS)\monolib_threadinfo.obj \
 	$(OBJS)\monolib_time.obj \
 	$(OBJS)\monolib_timercmn.obj \
 	$(OBJS)\monolib_timerimpl.obj \
@@ -706,6 +711,7 @@ BASEDLL_OBJECTS =  \
 	$(OBJS)\basedll_tarstrm.obj \
 	$(OBJS)\basedll_textbuf.obj \
 	$(OBJS)\basedll_textfile.obj \
+	$(OBJS)\basedll_threadinfo.obj \
 	$(OBJS)\basedll_time.obj \
 	$(OBJS)\basedll_timercmn.obj \
 	$(OBJS)\basedll_timerimpl.obj \
@@ -837,6 +843,7 @@ BASELIB_OBJECTS =  \
 	$(OBJS)\baselib_tarstrm.obj \
 	$(OBJS)\baselib_textbuf.obj \
 	$(OBJS)\baselib_textfile.obj \
+	$(OBJS)\baselib_threadinfo.obj \
 	$(OBJS)\baselib_time.obj \
 	$(OBJS)\baselib_timercmn.obj \
 	$(OBJS)\baselib_timerimpl.obj \
@@ -5537,32 +5544,41 @@ $(OBJS)\wxzlib_compress.obj: ..\..\src\zlib\compress.c
 $(OBJS)\wxzlib_crc32.obj: ..\..\src\zlib\crc32.c
 	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\crc32.c
 
-$(OBJS)\wxzlib_gzio.obj: ..\..\src\zlib\gzio.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\gzio.c
-
-$(OBJS)\wxzlib_uncompr.obj: ..\..\src\zlib\uncompr.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\uncompr.c
-
 $(OBJS)\wxzlib_deflate.obj: ..\..\src\zlib\deflate.c
 	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\deflate.c
 
-$(OBJS)\wxzlib_trees.obj: ..\..\src\zlib\trees.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\trees.c
+$(OBJS)\wxzlib_gzclose.obj: ..\..\src\zlib\gzclose.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\gzclose.c
 
-$(OBJS)\wxzlib_zutil.obj: ..\..\src\zlib\zutil.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\zutil.c
+$(OBJS)\wxzlib_gzlib.obj: ..\..\src\zlib\gzlib.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\gzlib.c
 
-$(OBJS)\wxzlib_inflate.obj: ..\..\src\zlib\inflate.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\inflate.c
+$(OBJS)\wxzlib_gzread.obj: ..\..\src\zlib\gzread.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\gzread.c
+
+$(OBJS)\wxzlib_gzwrite.obj: ..\..\src\zlib\gzwrite.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\gzwrite.c
 
 $(OBJS)\wxzlib_infback.obj: ..\..\src\zlib\infback.c
 	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\infback.c
 
+$(OBJS)\wxzlib_inffast.obj: ..\..\src\zlib\inffast.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\inffast.c
+
+$(OBJS)\wxzlib_inflate.obj: ..\..\src\zlib\inflate.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\inflate.c
+
 $(OBJS)\wxzlib_inftrees.obj: ..\..\src\zlib\inftrees.c
 	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\inftrees.c
 
-$(OBJS)\wxzlib_inffast.obj: ..\..\src\zlib\inffast.c
-	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\inffast.c
+$(OBJS)\wxzlib_trees.obj: ..\..\src\zlib\trees.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\trees.c
+
+$(OBJS)\wxzlib_uncompr.obj: ..\..\src\zlib\uncompr.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\uncompr.c
+
+$(OBJS)\wxzlib_zutil.obj: ..\..\src\zlib\zutil.c
+	$(CC) -q -c -P- -o$@ $(WXZLIB_CFLAGS) ..\..\src\zlib\zutil.c
 
 $(OBJS)\wxpng_png.obj: ..\..\src\png\png.c
 	$(CC) -q -c -P- -o$@ $(WXPNG_CFLAGS) ..\..\src\png\png.c
@@ -6430,6 +6446,9 @@ $(OBJS)\monodll_textbuf.obj: ..\..\src\common\textbuf.cpp
 
 $(OBJS)\monodll_textfile.obj: ..\..\src\common\textfile.cpp
 	$(CXX) -q -c -P -o$@ $(MONODLL_CXXFLAGS) ..\..\src\common\textfile.cpp
+
+$(OBJS)\monodll_threadinfo.obj: ..\..\src\common\threadinfo.cpp
+	$(CXX) -q -c -P -o$@ $(MONODLL_CXXFLAGS) ..\..\src\common\threadinfo.cpp
 
 $(OBJS)\monodll_time.obj: ..\..\src\common\time.cpp
 	$(CXX) -q -c -P -o$@ $(MONODLL_CXXFLAGS) ..\..\src\common\time.cpp
@@ -8896,6 +8915,9 @@ $(OBJS)\monolib_textbuf.obj: ..\..\src\common\textbuf.cpp
 $(OBJS)\monolib_textfile.obj: ..\..\src\common\textfile.cpp
 	$(CXX) -q -c -P -o$@ $(MONOLIB_CXXFLAGS) ..\..\src\common\textfile.cpp
 
+$(OBJS)\monolib_threadinfo.obj: ..\..\src\common\threadinfo.cpp
+	$(CXX) -q -c -P -o$@ $(MONOLIB_CXXFLAGS) ..\..\src\common\threadinfo.cpp
+
 $(OBJS)\monolib_time.obj: ..\..\src\common\time.cpp
 	$(CXX) -q -c -P -o$@ $(MONOLIB_CXXFLAGS) ..\..\src\common\time.cpp
 
@@ -11361,6 +11383,9 @@ $(OBJS)\basedll_textbuf.obj: ..\..\src\common\textbuf.cpp
 $(OBJS)\basedll_textfile.obj: ..\..\src\common\textfile.cpp
 	$(CXX) -q -c -P -o$@ $(BASEDLL_CXXFLAGS) ..\..\src\common\textfile.cpp
 
+$(OBJS)\basedll_threadinfo.obj: ..\..\src\common\threadinfo.cpp
+	$(CXX) -q -c -P -o$@ $(BASEDLL_CXXFLAGS) ..\..\src\common\threadinfo.cpp
+
 $(OBJS)\basedll_time.obj: ..\..\src\common\time.cpp
 	$(CXX) -q -c -P -o$@ $(BASEDLL_CXXFLAGS) ..\..\src\common\time.cpp
 
@@ -11699,6 +11724,9 @@ $(OBJS)\baselib_textbuf.obj: ..\..\src\common\textbuf.cpp
 
 $(OBJS)\baselib_textfile.obj: ..\..\src\common\textfile.cpp
 	$(CXX) -q -c -P -o$@ $(BASELIB_CXXFLAGS) ..\..\src\common\textfile.cpp
+
+$(OBJS)\baselib_threadinfo.obj: ..\..\src\common\threadinfo.cpp
+	$(CXX) -q -c -P -o$@ $(BASELIB_CXXFLAGS) ..\..\src\common\threadinfo.cpp
 
 $(OBJS)\baselib_time.obj: ..\..\src\common\time.cpp
 	$(CXX) -q -c -P -o$@ $(BASELIB_CXXFLAGS) ..\..\src\common\time.cpp

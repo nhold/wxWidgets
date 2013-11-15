@@ -3682,15 +3682,18 @@ WXZLIB_OBJECTS =  &
 	$(OBJS)\wxzlib_adler32.obj &
 	$(OBJS)\wxzlib_compress.obj &
 	$(OBJS)\wxzlib_crc32.obj &
-	$(OBJS)\wxzlib_gzio.obj &
-	$(OBJS)\wxzlib_uncompr.obj &
 	$(OBJS)\wxzlib_deflate.obj &
-	$(OBJS)\wxzlib_trees.obj &
-	$(OBJS)\wxzlib_zutil.obj &
-	$(OBJS)\wxzlib_inflate.obj &
+	$(OBJS)\wxzlib_gzclose.obj &
+	$(OBJS)\wxzlib_gzlib.obj &
+	$(OBJS)\wxzlib_gzread.obj &
+	$(OBJS)\wxzlib_gzwrite.obj &
 	$(OBJS)\wxzlib_infback.obj &
+	$(OBJS)\wxzlib_inffast.obj &
+	$(OBJS)\wxzlib_inflate.obj &
 	$(OBJS)\wxzlib_inftrees.obj &
-	$(OBJS)\wxzlib_inffast.obj
+	$(OBJS)\wxzlib_trees.obj &
+	$(OBJS)\wxzlib_uncompr.obj &
+	$(OBJS)\wxzlib_zutil.obj
 WXPNG_CFLAGS = $(__DEBUGINFO) $(__OPTIMIZEFLAG) $(__THREADSFLAG) &
 	$(__RUNTIME_LIBS) -dNDEBUG -i=..\..\src\zlib -wcd=124 $(CPPFLAGS) $(CFLAGS)
 WXPNG_OBJECTS =  &
@@ -4024,6 +4027,7 @@ MONODLL_OBJECTS =  &
 	$(OBJS)\monodll_tarstrm.obj &
 	$(OBJS)\monodll_textbuf.obj &
 	$(OBJS)\monodll_textfile.obj &
+	$(OBJS)\monodll_threadinfo.obj &
 	$(OBJS)\monodll_time.obj &
 	$(OBJS)\monodll_timercmn.obj &
 	$(OBJS)\monodll_timerimpl.obj &
@@ -4174,6 +4178,7 @@ MONOLIB_OBJECTS =  &
 	$(OBJS)\monolib_tarstrm.obj &
 	$(OBJS)\monolib_textbuf.obj &
 	$(OBJS)\monolib_textfile.obj &
+	$(OBJS)\monolib_threadinfo.obj &
 	$(OBJS)\monolib_time.obj &
 	$(OBJS)\monolib_timercmn.obj &
 	$(OBJS)\monolib_timerimpl.obj &
@@ -4320,6 +4325,7 @@ BASEDLL_OBJECTS =  &
 	$(OBJS)\basedll_tarstrm.obj &
 	$(OBJS)\basedll_textbuf.obj &
 	$(OBJS)\basedll_textfile.obj &
+	$(OBJS)\basedll_threadinfo.obj &
 	$(OBJS)\basedll_time.obj &
 	$(OBJS)\basedll_timercmn.obj &
 	$(OBJS)\basedll_timerimpl.obj &
@@ -4451,6 +4457,7 @@ BASELIB_OBJECTS =  &
 	$(OBJS)\baselib_tarstrm.obj &
 	$(OBJS)\baselib_textbuf.obj &
 	$(OBJS)\baselib_textfile.obj &
+	$(OBJS)\baselib_threadinfo.obj &
 	$(OBJS)\baselib_time.obj &
 	$(OBJS)\baselib_timercmn.obj &
 	$(OBJS)\baselib_timerimpl.obj &
@@ -5980,31 +5987,40 @@ $(OBJS)\wxzlib_compress.obj :  .AUTODEPEND ..\..\src\zlib\compress.c
 $(OBJS)\wxzlib_crc32.obj :  .AUTODEPEND ..\..\src\zlib\crc32.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
-$(OBJS)\wxzlib_gzio.obj :  .AUTODEPEND ..\..\src\zlib\gzio.c
-	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
-
-$(OBJS)\wxzlib_uncompr.obj :  .AUTODEPEND ..\..\src\zlib\uncompr.c
-	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
-
 $(OBJS)\wxzlib_deflate.obj :  .AUTODEPEND ..\..\src\zlib\deflate.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
-$(OBJS)\wxzlib_trees.obj :  .AUTODEPEND ..\..\src\zlib\trees.c
+$(OBJS)\wxzlib_gzclose.obj :  .AUTODEPEND ..\..\src\zlib\gzclose.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
-$(OBJS)\wxzlib_zutil.obj :  .AUTODEPEND ..\..\src\zlib\zutil.c
+$(OBJS)\wxzlib_gzlib.obj :  .AUTODEPEND ..\..\src\zlib\gzlib.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
-$(OBJS)\wxzlib_inflate.obj :  .AUTODEPEND ..\..\src\zlib\inflate.c
+$(OBJS)\wxzlib_gzread.obj :  .AUTODEPEND ..\..\src\zlib\gzread.c
+	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
+
+$(OBJS)\wxzlib_gzwrite.obj :  .AUTODEPEND ..\..\src\zlib\gzwrite.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
 $(OBJS)\wxzlib_infback.obj :  .AUTODEPEND ..\..\src\zlib\infback.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
+$(OBJS)\wxzlib_inffast.obj :  .AUTODEPEND ..\..\src\zlib\inffast.c
+	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
+
+$(OBJS)\wxzlib_inflate.obj :  .AUTODEPEND ..\..\src\zlib\inflate.c
+	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
+
 $(OBJS)\wxzlib_inftrees.obj :  .AUTODEPEND ..\..\src\zlib\inftrees.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
-$(OBJS)\wxzlib_inffast.obj :  .AUTODEPEND ..\..\src\zlib\inffast.c
+$(OBJS)\wxzlib_trees.obj :  .AUTODEPEND ..\..\src\zlib\trees.c
+	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
+
+$(OBJS)\wxzlib_uncompr.obj :  .AUTODEPEND ..\..\src\zlib\uncompr.c
+	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
+
+$(OBJS)\wxzlib_zutil.obj :  .AUTODEPEND ..\..\src\zlib\zutil.c
 	$(CC) -bt=nt -zq -fo=$^@ $(WXZLIB_CFLAGS) $<
 
 $(OBJS)\wxpng_png.obj :  .AUTODEPEND ..\..\src\png\png.c
@@ -6872,6 +6888,9 @@ $(OBJS)\monodll_textbuf.obj :  .AUTODEPEND ..\..\src\common\textbuf.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(MONODLL_CXXFLAGS) $<
 
 $(OBJS)\monodll_textfile.obj :  .AUTODEPEND ..\..\src\common\textfile.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(MONODLL_CXXFLAGS) $<
+
+$(OBJS)\monodll_threadinfo.obj :  .AUTODEPEND ..\..\src\common\threadinfo.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(MONODLL_CXXFLAGS) $<
 
 $(OBJS)\monodll_time.obj :  .AUTODEPEND ..\..\src\common\time.cpp
@@ -9339,6 +9358,9 @@ $(OBJS)\monolib_textbuf.obj :  .AUTODEPEND ..\..\src\common\textbuf.cpp
 $(OBJS)\monolib_textfile.obj :  .AUTODEPEND ..\..\src\common\textfile.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(MONOLIB_CXXFLAGS) $<
 
+$(OBJS)\monolib_threadinfo.obj :  .AUTODEPEND ..\..\src\common\threadinfo.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(MONOLIB_CXXFLAGS) $<
+
 $(OBJS)\monolib_time.obj :  .AUTODEPEND ..\..\src\common\time.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(MONOLIB_CXXFLAGS) $<
 
@@ -11804,6 +11826,9 @@ $(OBJS)\basedll_textbuf.obj :  .AUTODEPEND ..\..\src\common\textbuf.cpp
 $(OBJS)\basedll_textfile.obj :  .AUTODEPEND ..\..\src\common\textfile.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(BASEDLL_CXXFLAGS) $<
 
+$(OBJS)\basedll_threadinfo.obj :  .AUTODEPEND ..\..\src\common\threadinfo.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(BASEDLL_CXXFLAGS) $<
+
 $(OBJS)\basedll_time.obj :  .AUTODEPEND ..\..\src\common\time.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(BASEDLL_CXXFLAGS) $<
 
@@ -12141,6 +12166,9 @@ $(OBJS)\baselib_textbuf.obj :  .AUTODEPEND ..\..\src\common\textbuf.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(BASELIB_CXXFLAGS) $<
 
 $(OBJS)\baselib_textfile.obj :  .AUTODEPEND ..\..\src\common\textfile.cpp
+	$(CXX) -bt=nt -zq -fo=$^@ $(BASELIB_CXXFLAGS) $<
+
+$(OBJS)\baselib_threadinfo.obj :  .AUTODEPEND ..\..\src\common\threadinfo.cpp
 	$(CXX) -bt=nt -zq -fo=$^@ $(BASELIB_CXXFLAGS) $<
 
 $(OBJS)\baselib_time.obj :  .AUTODEPEND ..\..\src\common\time.cpp

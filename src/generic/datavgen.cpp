@@ -119,6 +119,34 @@ wxDataViewColumn* GetExpanderColumnOrFirstOne(wxDataViewCtrl* dataview)
     return expander;
 }
 
+wxTextCtrl *CreateEditorTextCtrl(wxWindow *parent, const wxRect& labelRect, const wxString& value)
+{
+    wxTextCtrl* ctrl = new wxTextCtrl(parent, wxID_ANY, value,
+                                      wxPoint(labelRect.x,labelRect.y),
+                                      wxSize(labelRect.width,labelRect.height),
+                                      wxTE_PROCESS_ENTER);
+
+    // Adjust size of wxTextCtrl editor to fit text, even if it means being
+    // wider than the corresponding column (this is how Explorer behaves).
+    const int fitting = ctrl->GetSizeFromTextSize(ctrl->GetTextExtent(ctrl->GetValue())).x;
+    const int current = ctrl->GetSize().x;
+    const int maxwidth = ctrl->GetParent()->GetSize().x - ctrl->GetPosition().x;
+
+    // Adjust size so that it fits all content. Don't change anything if the
+    // allocated space is already larger than needed and don't extend wxDVC's
+    // boundaries.
+    int width = wxMin(wxMax(current, fitting), maxwidth);
+
+    if ( width != current )
+        ctrl->SetSize(wxSize(width, -1));
+
+    // select the text in the control an place the cursor at the end
+    ctrl->SetInsertionPointEnd();
+    ctrl->SelectAll();
+
+    return ctrl;
+}
+
 } // anonymous namespace
 
 //-----------------------------------------------------------------------------
@@ -229,6 +257,8 @@ protected:
     }
 
 private:
+    void FinishEditing();
+
     bool SendEvent(wxEventType type, unsigned int n)
     {
         wxDataViewCtrl * const owner = GetOwner();
@@ -246,6 +276,8 @@ private:
 
     void OnClick(wxHeaderCtrlEvent& event)
     {
+        FinishEditing();
+
         const unsigned idx = event.GetColumn();
 
         if ( SendEvent(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, idx) )
@@ -290,6 +322,8 @@ private:
 
     void OnResize(wxHeaderCtrlEvent& event)
     {
+        FinishEditing();
+
         wxDataViewCtrl * const owner = GetOwner();
 
         const unsigned col = event.GetColumn();
@@ -299,6 +333,8 @@ private:
 
     void OnEndReorder(wxHeaderCtrlEvent& event)
     {
+        FinishEditing();
+
         wxDataViewCtrl * const owner = GetOwner();
         owner->ColumnMoved(owner->GetColumn(event.GetColumn()),
                         event.GetNewOrder());
@@ -769,6 +805,7 @@ public:
     // Called by wxDataViewCtrl and our own OnRenameTimer() to start edit the
     // specified item in the given column.
     void StartEditing(const wxDataViewItem& item, const wxDataViewColumn* col);
+    void FinishEditing();
 
 private:
     int RecalculateCount() const;
@@ -958,16 +995,7 @@ bool wxDataViewTextRenderer::HasEditorCtrl() const
 wxWindow* wxDataViewTextRenderer::CreateEditorCtrl( wxWindow *parent,
         wxRect labelRect, const wxVariant &value )
 {
-    wxTextCtrl* ctrl = new wxTextCtrl( parent, wxID_ANY, value,
-                                       wxPoint(labelRect.x,labelRect.y),
-                                       wxSize(labelRect.width,labelRect.height),
-                                       wxTE_PROCESS_ENTER );
-
-    // select the text in the control an place the cursor at the end
-    ctrl->SetInsertionPointEnd();
-    ctrl->SelectAll();
-
-    return ctrl;
+    return CreateEditorTextCtrl(parent, labelRect, value);
 }
 
 bool wxDataViewTextRenderer::GetValueFromEditorCtrl( wxWindow *editor, wxVariant &value )
@@ -1021,7 +1049,7 @@ bool wxDataViewBitmapRenderer::GetValue( wxVariant& WXUNUSED(value) ) const
 bool wxDataViewBitmapRenderer::Render( wxRect cell, wxDC *dc, int WXUNUSED(state) )
 {
     if (m_bitmap.IsOk())
-        dc->DrawBitmap( m_bitmap, cell.x, cell.y );
+        dc->DrawBitmap( m_bitmap, cell.x, cell.y, true /* use mask */ );
     else if (m_icon.IsOk())
         dc->DrawIcon( m_icon, cell.x, cell.y );
 
@@ -1239,16 +1267,7 @@ wxWindow* wxDataViewIconTextRenderer::CreateEditorCtrl(wxWindow *parent, wxRect 
         labelRect.width -= w;
     }
 
-    wxTextCtrl* ctrl = new wxTextCtrl( parent, wxID_ANY, text,
-                                       wxPoint(labelRect.x,labelRect.y),
-                                       wxSize(labelRect.width,labelRect.height),
-                                       wxTE_PROCESS_ENTER );
-
-    // select the text in the control an place the cursor at the end
-    ctrl->SetInsertionPointEnd();
-    ctrl->SelectAll();
-
-    return ctrl;
+    return CreateEditorTextCtrl(parent, labelRect, text);
 }
 
 bool wxDataViewIconTextRenderer::GetValueFromEditorCtrl( wxWindow *editor, wxVariant& value )
@@ -2194,6 +2213,20 @@ wxDataViewMainWindow::StartEditing(const wxDataViewItem& item,
     }
 }
 
+void wxDataViewMainWindow::FinishEditing()
+{
+    if ( m_editorCtrl )
+    {
+        m_editorRenderer->FinishEditing();
+    }
+}
+
+void wxDataViewHeaderWindow::FinishEditing()
+{
+    wxDataViewMainWindow *win = static_cast<wxDataViewMainWindow*>(GetOwner()->GetMainWindow());
+    win->FinishEditing();
+}
+
 //-----------------------------------------------------------------------------
 // Helper class for do operation on the tree node
 //-----------------------------------------------------------------------------
@@ -2489,18 +2522,8 @@ bool wxDataViewMainWindow::ItemChanged(const wxDataViewItem & item)
 
 bool wxDataViewMainWindow::ValueChanged( const wxDataViewItem & item, unsigned int model_column )
 {
-    int view_column = -1;
-    unsigned int n_col = m_owner->GetColumnCount();
-    for (unsigned i = 0; i < n_col; i++)
-    {
-        wxDataViewColumn *column = m_owner->GetColumn( i );
-        if (column->GetModelColumn() == model_column)
-        {
-            view_column = (int) i;
-            break;
-        }
-    }
-    if (view_column == -1)
+    int view_column = m_owner->GetModelColumnIndex(model_column);
+    if ( view_column == wxNOT_FOUND )
         return false;
 
     // NOTE: to be valid, we cannot use e.g. INT_MAX - 1
@@ -4464,7 +4487,7 @@ void wxDataViewMainWindow::OnColumnsCountChanged()
             editableCount++;
     }
 
-    m_useCellFocus = (editableCount > 1);
+    m_useCellFocus = (editableCount > 0);
 
     UpdateDisplay();
 }
@@ -4730,6 +4753,14 @@ void wxDataViewCtrl::OnColumnsCountChanged()
 
 void wxDataViewCtrl::DoSetExpanderColumn()
 {
+    wxDataViewColumn* column = GetExpanderColumn();
+    if ( column )
+    {
+        int index = GetColumnIndex(column);
+        if ( index != wxNOT_FOUND )
+            InvalidateColBestWidth(index);
+    }
+
     m_clientArea->UpdateDisplay();
 }
 
@@ -4780,6 +4811,18 @@ int wxDataViewCtrl::GetColumnIndex(const wxDataViewColumn *column) const
     return wxNOT_FOUND;
 }
 
+int wxDataViewCtrl::GetModelColumnIndex( unsigned int model_column ) const
+{
+    const int count = GetColumnCount();
+    for ( int index = 0; index < count; index++ )
+    {
+        wxDataViewColumn* column = GetColumn(index);
+        if ( column->GetModelColumn() == model_column )
+            return index;
+    }
+    return wxNOT_FOUND;
+}
+
 unsigned int wxDataViewCtrl::GetBestColumnWidth(int idx) const
 {
     if ( m_colsBestWidths[idx].width != 0 )
@@ -4797,21 +4840,23 @@ unsigned int wxDataViewCtrl::GetBestColumnWidth(int idx) const
                            wxDataViewMainWindow *clientArea,
                            wxDataViewRenderer *renderer,
                            const wxDataViewModel *model,
-                           unsigned column,
+                           unsigned int model_column,
                            int expanderSize)
             : m_width(0),
               m_dvc(dvc),
               m_clientArea(clientArea),
               m_renderer(renderer),
               m_model(model),
-              m_column(column),
+              m_model_column(model_column),
               m_expanderSize(expanderSize)
 
         {
+            int index = dvc->GetModelColumnIndex( model_column );
+            wxDataViewColumn* column = index == wxNOT_FOUND ? NULL : dvc->GetColumn(index);
             m_isExpanderCol =
                 !clientArea->IsList() &&
                 (column == 0 ||
-                 GetExpanderColumnOrFirstOne(const_cast<wxDataViewCtrl*>(dvc)) == dvc->GetColumnAt(column));
+                 GetExpanderColumnOrFirstOne(const_cast<wxDataViewCtrl*>(dvc)) == column );
         }
 
         void UpdateWithWidth(int width)
@@ -4835,7 +4880,7 @@ unsigned int wxDataViewCtrl::GetBestColumnWidth(int idx) const
                 item = m_clientArea->GetItemByRow(row);
             }
 
-            m_renderer->PrepareForItem(m_model, item, m_column);
+            m_renderer->PrepareForItem(m_model, item, m_model_column);
             m_width = wxMax(m_width, m_renderer->GetSize().x + indent);
         }
 
@@ -4847,7 +4892,7 @@ unsigned int wxDataViewCtrl::GetBestColumnWidth(int idx) const
         wxDataViewMainWindow *m_clientArea;
         wxDataViewRenderer *m_renderer;
         const wxDataViewModel *m_model;
-        unsigned m_column;
+        unsigned m_model_column;
         bool m_isExpanderCol;
         int m_expanderSize;
     };

@@ -2977,15 +2977,45 @@ class wxActivateEvent : public wxEvent
 {
 public:
     /**
+        Specifies the reason for the generation of this event.
+
+        See GetActivationReason().
+
+        @since 3.0
+    */
+    enum Reason
+    {
+        /// Window activated by mouse click.
+        Reason_Mouse,
+        /// Window was activated with some other method than mouse click.
+        Reason_Unknown
+    };
+
+    /**
         Constructor.
     */
     wxActivateEvent(wxEventType eventType = wxEVT_NULL, bool active = true,
-                    int id = 0);
+                    int id = 0, Reason ActivationReason = Reason_Unknown);
 
     /**
         Returns @true if the application or window is being activated, @false otherwise.
     */
     bool GetActive() const;
+
+    /**
+        Allows to check if the window was activated by clicking it with the
+        mouse or in some other way.
+
+        This method is currently only implemented in wxMSW and returns @c
+        Reason_Mouse there if the window was activated by a mouse click and @c
+        Reason_Unknown if it was activated in any other way (e.g. from
+        keyboard or programmatically).
+
+        Under all the other platforms, @c Reason_Unknown is always returned.
+
+        @since 3.0
+    */
+    Reason GetActivationReason() const;
 };
 
 
@@ -4072,7 +4102,8 @@ public:
         A menu is about to be opened. On Windows, this is only sent once for each
         navigation of the menubar (up until all menus have closed).
     @event{EVT_MENU_CLOSE(func)}
-        A menu has been just closed.
+        A menu has been just closed. Notice that this event is currently being
+        sent before the menu selection (@c wxEVT_MENU) event, if any.
     @event{EVT_MENU_HIGHLIGHT(id, func)}
         The menu item with the specified id has been highlighted: used to show
         help prompts in the status bar by wxFrame

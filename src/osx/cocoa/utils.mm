@@ -80,15 +80,29 @@ void wxBell()
         fileList.Add( wxCFStringRef::AsStringWithNormalizationFormC([fileNames objectAtIndex:i]) );
     }
 
-    wxTheApp->MacOpenFiles(fileList);
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacOpenFiles(fileList);
+    else
+        wxTheApp->OSXStoreOpenFiles(fileList);
 }
 
-- (BOOL)application:(NSApplication *)sender printFile:(NSString *)filename
+- (NSApplicationPrintReply)application:(NSApplication *)sender printFiles:(NSArray *)fileNames withSettings:(NSDictionary *)printSettings showPrintPanels:(BOOL)showPrintPanels
 {
     wxUnusedVar(sender);
-    wxCFStringRef cf(wxCFRetain(filename));
-    wxTheApp->MacPrintFile(cf.AsString()) ;
-    return YES;
+    wxArrayString fileList;
+    size_t i;
+    const size_t count = [fileNames count];
+    for (i = 0; i < count; i++)
+    {
+        fileList.Add( wxCFStringRef::AsStringWithNormalizationFormC([fileNames objectAtIndex:i]) );
+    }
+    
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacPrintFiles(fileList);
+    else
+        wxTheApp->OSXStorePrintFiles(fileList);
+    
+    return NSPrintingSuccess;
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag
@@ -105,14 +119,16 @@ void wxBell()
     wxUnusedVar(replyEvent);
     NSString* url = [[event descriptorAtIndex:1] stringValue];
     wxCFStringRef cf(wxCFRetain(url));
-    wxTheApp->MacOpenURL(cf.AsString()) ;
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacOpenURL(cf.AsString()) ;
+    else
+        wxTheApp->OSXStoreOpenURL(cf.AsString());
 }
 
 - (void)handleOpenAppEvent:(NSAppleEventDescriptor *)event
            withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
     wxUnusedVar(replyEvent);
-    wxTheApp->MacNewFile() ;
 }
 
 /*
@@ -239,6 +255,50 @@ void wxBell()
 }
 @end
 
+
+// more on bringing non-bundled apps to the foreground
+// https://devforums.apple.com/thread/203753
+
+#if 0 
+
+// one possible solution is also quoted here
+// from http://stackoverflow.com/questions/7596643/when-calling-transformprocesstype-the-app-menu-doesnt-show-up
+
+@interface wxNSNonBundledAppHelper : NSObject {
+    
+}
+
++ (void)transformToForegroundApplication;
+
+@end
+
+@implementation wxNSNonBundledAppHelper
+
++ (void)transformToForegroundApplication {
+    for (NSRunningApplication * app in [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.finder"]) {
+        [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+        break;
+    }
+    [self performSelector:@selector(transformStep2) withObject:nil afterDelay:0.1];
+}
+
++ (void)transformStep2
+{
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    (void) TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    
+    [self performSelector:@selector(transformStep3) withObject:nil afterDelay:0.1];
+}
+
++ (void)transformStep3
+{
+    [[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+}
+
+@end
+
+#endif
+
 // here we subclass NSApplication, for the purpose of being able to override sendEvent.
 @interface wxNSApplication : NSApplication
 {
@@ -259,6 +319,24 @@ void wxBell()
     firstPass = YES;
     return self;
 }
+
+- (void) transformToForegroundApplication {
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+    
+    if ( UMAGetSystemVersion() < 0x1090 )
+    {
+        [self deactivate];
+        [self activateIgnoringOtherApps:YES];
+    }
+    else
+    {
+        [[NSRunningApplication currentApplication] activateWithOptions:
+            (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+    }
+}
+
+
 
 /* This is needed because otherwise we don't receive any key-up events for command-key
  combinations (an AppKit bug, apparently)			*/
@@ -295,6 +373,20 @@ bool wxApp::DoInitGui()
     if (!sm_isEmbedded)
     {
         [wxNSApplication sharedApplication];
+        
+        if ( OSXIsGUIApplication() )
+        {
+            CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle() ) ;
+            CFStringRef path = CFURLCopyFileSystemPath ( url , kCFURLPOSIXPathStyle ) ;
+            CFRelease( url ) ;
+            wxString app = wxCFStringRef(path).AsString(wxLocale::GetSystemEncoding());
+            
+            // workaround is only needed for non-bundled apps
+            if ( !app.EndsWith(".app") )
+            {
+                [(wxNSApplication*) [wxNSApplication sharedApplication] transformToForegroundApplication];
+            }
+        }
 
         appcontroller = OSXCreateAppController();
         [NSApp setDelegate:appcontroller];
@@ -314,9 +406,23 @@ bool wxApp::DoInitGui()
 bool wxApp::CallOnInit()
 {
     wxMacAutoreleasePool autoreleasepool;
-    // this will only run one cycle to make sure the OS is ready
+    m_onInitResult = false;
+    m_inited = false;
     [NSApp run];
-    return OnInit();
+    m_onInitResult = OnInit();
+    m_inited = true;
+    if ( m_onInitResult )
+    {
+        if ( m_openFiles.GetCount() > 0 )
+            MacOpenFiles(m_openFiles);
+        else if ( m_printFiles.GetCount() > 0 )
+            MacPrintFiles(m_printFiles);
+        else if ( m_getURL.Len() > 0 )
+            MacOpenURL(m_getURL);
+        else
+            MacNewFile();
+    }
+    return m_onInitResult;
 }
 
 void wxApp::DoCleanUp()
