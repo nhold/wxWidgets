@@ -5690,10 +5690,10 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         m_hoverButton = NULL;
         m_frame->ReleaseMouse();
         m_hoverButton = NULL;
-        wxAuiPaneInfo& pane = *m_actionPart->pane;
         
         if (m_actionPart)
         {
+			wxAuiPaneInfo& pane = *m_actionPart->pane;
  
             bool passHitTest=false;
             int buttonid=0;
