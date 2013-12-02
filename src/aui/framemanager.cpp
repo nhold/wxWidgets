@@ -184,50 +184,32 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
 {
-    m_name = c.m_name;
-    m_caption = c.m_caption;
-    m_tooltip = c.m_tooltip;
-    m_window = c.m_window;
-    m_frame = c.m_frame;
-    m_state = c.m_state;
-    m_dock_direction = c.m_dock_direction;
-    m_dock_layer = c.m_dock_layer;
-    m_dock_row = c.m_dock_row;
-    m_dock_pos = c.m_dock_pos;
-    m_dock_page = c.m_dock_page;
-    m_dock_bitmap = c.m_dock_bitmap;
-    m_best_size = c.m_best_size;
-    m_min_size = c.m_min_size;
-    m_max_size = c.m_max_size;
-    m_floating_pos = c.m_floating_pos;
-    m_floating_size = c.m_floating_size;
-    m_dock_proportion = c.m_dock_proportion;
-    m_buttons = c.m_buttons;
-    m_rect = c.m_rect;
+   *this = c;
 }
 
 wxAuiPaneInfo& wxAuiPaneInfo::operator=(const wxAuiPaneInfo& c)
 {
-    m_name = c.m_name;
-    m_caption = c.m_caption;
-    m_tooltip = c.m_tooltip;
-    m_window = c.m_window;
-    m_frame = c.m_frame;
-    m_state = c.m_state;
-    m_dock_direction = c.m_dock_direction;
-    m_dock_layer = c.m_dock_layer;
-    m_dock_row = c.m_dock_row;
-    m_dock_pos = c.m_dock_pos;
-    m_dock_page = c.m_dock_page;
-    m_dock_bitmap = c.m_dock_bitmap;
-    m_best_size = c.m_best_size;
-    m_min_size = c.m_min_size;
-    m_max_size = c.m_max_size;
-    m_floating_pos = c.m_floating_pos;
-    m_floating_size = c.m_floating_size;
+    m_name            = c.m_name;
+    m_caption         = c.m_caption;
+    m_tooltip         = c.m_tooltip;
+    m_icon            = c.m_icon;
+    m_window          = c.m_window;
+    m_frame           = c.m_frame;
+    m_state           = c.m_state;
+    m_dock_direction  = c.m_dock_direction;
+    m_dock_layer      = c.m_dock_layer;
+    m_dock_row        = c.m_dock_row;
+    m_dock_pos        = c.m_dock_pos;
+    m_dock_page       = c.m_dock_page;
+    m_dock_bitmap     = c.m_dock_bitmap;
+    m_best_size       = c.m_best_size;
+    m_min_size        = c.m_min_size;
+    m_max_size        = c.m_max_size;
+    m_floating_pos    = c.m_floating_pos;
+    m_floating_size   = c.m_floating_size;
     m_dock_proportion = c.m_dock_proportion;
-    m_buttons = c.m_buttons;
-    m_rect = c.m_rect;
+    m_buttons         = c.m_buttons;
+    m_rect            = c.m_rect;
     return *this;
 }
 #endif // !SWIG
@@ -1924,13 +1906,15 @@ void wxAuiPaneInfo::LoadInfo(wxString& info)
     m_tooltip.Replace(wxT("\b"), wxT(";"));
     info.Replace(wxT("\a"), wxT("|"));
     info.Replace(wxT("\b"), wxT(";"));
+
+    // sanitize values
+    SetFlag(optionActive, false);
 }
 
 // Load a "pane" with the pane infor settings in panePart
 void wxAuiManager::LoadPaneInfo(wxString panePart, wxAuiPaneInfo &pane)
 {
     pane.LoadInfo(panePart);
-
     return;
 }
 
@@ -3520,10 +3504,8 @@ void wxAuiManager::Update()
 
         // if "active panes" are no longer allowed, clear
         // any optionActive values from the pane states
-        if (!HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE) == 0)
-        {
-            p.SetFlag(wxAuiPaneInfo::optionActive,false);
-        }
+        p.SetFlag(wxAuiPaneInfo::optionActive,false);
+
     }
     // We have to do the hiding and showing of panes before we call LayoutAll
     // As LayoutAll may want to hide frames even though they are technically "visible"
@@ -4848,8 +4830,7 @@ void wxAuiManager::OnFloatingPaneMoved(wxWindow* wnd, wxDirection dir)
     Update();
 
     // If a notebook formed we may have lost our active status so set it again.
-    if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
-        SetActivePane(pane.GetWindow());
+    SetActivePane(pane.GetWindow());
 
     // Allow the updated layout an opportunity to recalculate/update the pane positions.
     DoFrameLayout();
@@ -4884,7 +4865,7 @@ void wxAuiManager::OnFloatingPaneClosed(wxWindow* wnd, wxCloseEvent& WXUNUSED(ev
 
 void wxAuiManager::OnFloatingPaneActivated(wxWindow* wnd)
 {
-    if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE) && GetPane(wnd).IsOk())
+    if (GetPane(wnd).IsOk())
     {
         SetActivePane(wnd);
         Repaint();
@@ -5222,15 +5203,10 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
                 ownerManager->StartPaneDrag(part->pane->GetWindow(), wxPoint(evt.m_x - part->rect.x, evt.m_y - part->rect.y));
                 return;
             }
-
-
-
+            
+            SetActivePane(part->pane->GetWindow());
             if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
-            {
-                // set the caption as active
-                SetActivePane(part->pane->GetWindow());
                 Repaint();
-            }
 
             if (part->dock && part->dock->dock_direction == wxAUI_DOCK_CENTER)
                 return;
@@ -6498,14 +6474,13 @@ void wxAuiManager::OnChildFocus(wxChildFocusEvent& evt)
     // when a child pane has its focus set, we should change the
     // pane's active state to reflect this. (this is only true if
     // active panes are allowed by the owner)
-    if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
+    
+    wxAuiPaneInfo& pane = GetPane(evt.GetWindow());
+    if (pane.IsOk() && !pane.HasFlag(wxAuiPaneInfo::optionActive))
     {
-        wxAuiPaneInfo& pane = GetPane(evt.GetWindow());
-        if (pane.IsOk() && !pane.HasFlag(wxAuiPaneInfo::optionActive))
-        {
-            SetActivePane(evt.GetWindow());
+        SetActivePane(evt.GetWindow());
+        if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
             refresh = true;
-        }
     }
 
     if(refresh)

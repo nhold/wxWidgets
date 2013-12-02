@@ -596,8 +596,11 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
 {
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetFont(m_captionFont);
+    
+    wxAuiManager* mgr = wxAuiManager::GetManager(pane.GetWindow());
+    bool showActive = pane.HasFlag(wxAuiPaneInfo::optionActive) && mgr && mgr->HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE);
 
-    DrawCaptionBackground(dc, rect, pane.HasFlag(wxAuiPaneInfo::optionActive));
+    DrawCaptionBackground(dc, rect, showActive);
 
     int captionOffset = 0;
     if ( pane.GetIcon()->IsOk() )
@@ -607,11 +610,8 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
         captionOffset += pane.GetIcon()->GetWidth() + 3;
     }
 
-    if (pane.HasFlag(wxAuiPaneInfo::optionActive))
-        dc.SetTextForeground(m_activeCaptionTextColour);
-    else
-        dc.SetTextForeground(m_inactiveCaptionTextColour);
 
+    dc.SetTextForeground(showActive ?  m_activeCaptionTextColour : m_inactiveCaptionTextColour);
 
     wxCoord w,h;
     dc.GetTextExtent(wxT("ABCDEFHXfgkj"), &w, &h);
@@ -701,36 +701,24 @@ void wxAuiDefaultDockArt::DrawPaneButton(wxDC& dc, wxWindow* WXUNUSED(window),
     wxBitmap bmp;
     if (!(&pane))
         return;
+
+    wxAuiManager* mgr = wxAuiManager::GetManager(pane.GetWindow());
+    bool showActive = pane.HasFlag(wxAuiPaneInfo::optionActive) && mgr && mgr->HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE);
+
     switch (button)
     {
         default:
         case wxAUI_BUTTON_CLOSE:
-            if (pane.HasFlag(wxAuiPaneInfo::optionActive))
-                bmp = m_activeCloseBitmap;
-            else
-                bmp = m_inactiveCloseBitmap;
+            bmp = showActive ? m_activeCloseBitmap : m_inactiveCloseBitmap;
             break;
         case wxAUI_BUTTON_PIN:
-            if (pane.HasFlag(wxAuiPaneInfo::optionActive))
-                bmp = m_activePinBitmap;
-            else
-                bmp = m_inactivePinBitmap;
+            bmp = showActive ? m_activePinBitmap : m_inactivePinBitmap;
             break;
         case wxAUI_BUTTON_MAXIMIZE_RESTORE:
             if (pane.IsMaximized())
-            {
-                if (pane.HasFlag(wxAuiPaneInfo::optionActive))
-                    bmp = m_activeRestoreBitmap;
-                else
-                    bmp = m_inactiveRestoreBitmap;
-            }
+                bmp = showActive ? m_activeRestoreBitmap : m_inactiveRestoreBitmap;
             else
-            {
-                if (pane.HasFlag(wxAuiPaneInfo::optionActive))
-                    bmp = m_activeMaximizeBitmap;
-                else
-                    bmp = m_inactiveMaximizeBitmap;
-            }
+                bmp = showActive ? m_activeMaximizeBitmap : m_inactiveMaximizeBitmap;
             break;
     }
 
@@ -750,16 +738,10 @@ void wxAuiDefaultDockArt::DrawPaneButton(wxDC& dc, wxWindow* WXUNUSED(window),
 
     if (buttonState == wxAUI_BUTTON_STATE_HOVER || buttonState == wxAUI_BUTTON_STATE_PRESSED)
     {
-        if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
-        {
-            dc.SetBrush(wxBrush(m_activeCaptionColour.ChangeLightness(120)));
-            dc.SetPen(wxPen(m_activeCaptionColour.ChangeLightness(70)));
-        }
-        else
-        {
-            dc.SetBrush(wxBrush(m_inactiveCaptionColour.ChangeLightness(120)));
-            dc.SetPen(wxPen(m_inactiveCaptionColour.ChangeLightness(70)));
-        }
+        wxColour color = showActive ? m_activeCaptionColour : m_inactiveCaptionColour;
+
+        dc.SetBrush(wxBrush(color.ChangeLightness(120)));
+        dc.SetPen(wxPen(color.ChangeLightness(70)));
 
         // draw the background behind the button
         dc.DrawRectangle(rect.x, rect.y, 15, 15);
