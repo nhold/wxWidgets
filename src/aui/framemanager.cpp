@@ -3502,10 +3502,6 @@ void wxAuiManager::Update()
             }
         }
 
-        // if "active panes" are no longer allowed, clear
-        // any optionActive values from the pane states
-        p.SetFlag(wxAuiPaneInfo::optionActive,false);
-
     }
     // We have to do the hiding and showing of panes before we call LayoutAll
     // As LayoutAll may want to hide frames even though they are technically "visible"
