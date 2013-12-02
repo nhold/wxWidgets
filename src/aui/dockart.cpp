@@ -597,8 +597,7 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetFont(m_captionFont);
 
-    DrawCaptionBackground(dc, rect,
-                          (pane.HasFlag(wxAuiPaneInfo::optionActive))?false:true);
+    DrawCaptionBackground(dc, rect, pane.HasFlag(wxAuiPaneInfo::optionActive));
 
     int captionOffset = 0;
     if ( pane.GetIcon()->IsOk() )
@@ -608,7 +607,7 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
         captionOffset += pane.GetIcon()->GetWidth() + 3;
     }
 
-    if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+    if (pane.HasFlag(wxAuiPaneInfo::optionActive))
         dc.SetTextForeground(m_activeCaptionTextColour);
     else
         dc.SetTextForeground(m_inactiveCaptionTextColour);
@@ -706,13 +705,13 @@ void wxAuiDefaultDockArt::DrawPaneButton(wxDC& dc, wxWindow* WXUNUSED(window),
     {
         default:
         case wxAUI_BUTTON_CLOSE:
-            if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+            if (pane.HasFlag(wxAuiPaneInfo::optionActive))
                 bmp = m_activeCloseBitmap;
             else
                 bmp = m_inactiveCloseBitmap;
             break;
         case wxAUI_BUTTON_PIN:
-            if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+            if (pane.HasFlag(wxAuiPaneInfo::optionActive))
                 bmp = m_activePinBitmap;
             else
                 bmp = m_inactivePinBitmap;
@@ -720,14 +719,14 @@ void wxAuiDefaultDockArt::DrawPaneButton(wxDC& dc, wxWindow* WXUNUSED(window),
         case wxAUI_BUTTON_MAXIMIZE_RESTORE:
             if (pane.IsMaximized())
             {
-                if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+                if (pane.HasFlag(wxAuiPaneInfo::optionActive))
                     bmp = m_activeRestoreBitmap;
                 else
                     bmp = m_inactiveRestoreBitmap;
             }
             else
             {
-                if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+                if (pane.HasFlag(wxAuiPaneInfo::optionActive))
                     bmp = m_activeMaximizeBitmap;
                 else
                     bmp = m_inactiveMaximizeBitmap;

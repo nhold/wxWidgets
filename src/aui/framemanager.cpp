@@ -4848,7 +4848,8 @@ void wxAuiManager::OnFloatingPaneMoved(wxWindow* wnd, wxDirection dir)
     Update();
 
     // If a notebook formed we may have lost our active status so set it again.
-    SetActivePane(pane.GetWindow());
+    if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
+        SetActivePane(pane.GetWindow());
 
     // Allow the updated layout an opportunity to recalculate/update the pane positions.
     DoFrameLayout();
