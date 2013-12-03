@@ -603,11 +603,11 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
     DrawCaptionBackground(dc, rect, showActive);
 
     int captionOffset = 0;
-    if ( pane.GetIcon()->IsOk() )
+    if ( pane.GetBitmap().IsOk() )
     {
         DrawIcon(dc, rect, pane);
 
-        captionOffset += pane.GetIcon()->GetWidth() + 3;
+        captionOffset += pane.GetBitmap().GetWidth() + 3;
     }
 
 
@@ -636,8 +636,8 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
 void wxAuiDefaultDockArt::DrawIcon(wxDC& dc, const wxRect& rect, wxAuiPaneInfo& pane)
 {
    // Draw the icon centered vertically
-   dc.DrawBitmap(*pane.GetIcon(),
-                 rect.x+2, rect.y+(rect.height-pane.GetIcon()->GetHeight())/2,
+   dc.DrawBitmap(pane.GetBitmap(),
+                 rect.x+2, rect.y+(rect.height-pane.GetBitmap().GetHeight())/2,
                  true);
 }
 

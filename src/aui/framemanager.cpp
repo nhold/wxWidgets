@@ -123,6 +123,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
 #if WXWIN_COMPATIBILITY_2_8
   name(m_name),
   caption(m_caption),
+  icon(m_dock_bitmap),
   window(m_window),
   frame(m_frame),
   state(m_state),
@@ -166,6 +167,7 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 #if WXWIN_COMPATIBILITY_2_8
 : name(m_name)
 , caption(m_caption)
+, icon(m_dock_bitmap)
 , window(m_window)
 , frame(m_frame)
 , state(m_state)
@@ -192,7 +194,6 @@ wxAuiPaneInfo& wxAuiPaneInfo::operator=(const wxAuiPaneInfo& c)
     m_name            = c.m_name;
     m_caption         = c.m_caption;
     m_tooltip         = c.m_tooltip;
-    m_icon            = c.m_icon;
     m_window          = c.m_window;
     m_frame           = c.m_frame;
     m_state           = c.m_state;
