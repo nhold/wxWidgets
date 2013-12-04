@@ -456,6 +456,10 @@ public:
     bool IsDockFixed() const { return HasFlag(optionDockFixed); }
     wxAuiPaneInfo& SetDockFixed(bool b = true) { return SetFlag(optionDockFixed, b); }
 
+    // Move a pane over another one, creating a notebook if needed.
+    // The pane is set in the page immediatly after the targetted one
+    wxAuiPaneInfo &MoveOver(const wxAuiPaneInfo &target);
+
     // get/set a property flag for this pane, used internally by other get/set functions.
     bool HasFlag(int flag) const
     {

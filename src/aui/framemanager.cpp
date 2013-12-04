@@ -854,6 +854,26 @@ bool wxAuiPaneInfo::IsValid() const
     return !toolbar || toolbar->IsPaneValid(*this);
 }
 
+
+wxAuiPaneInfo &wxAuiPaneInfo::MoveOver(const wxAuiPaneInfo &target)
+{
+if (target.IsValid() && IsValid() && !IsToolbar() && !target.IsToolbar() && IsDockable() && target.IsDocked()) {
+
+    m_dock_direction = target.m_dock_direction;
+    m_dock_layer     = target.m_dock_layer;
+    m_dock_pos       = target.m_dock_pos;
+    m_dock_row       = target.m_dock_row;
+    m_dock_page      = target.m_dock_page+1;
+
+    Dock();
+
+}
+
+return *this;
+}
+
+
+
 // -- wxAuiManager class implementation --
 
 
