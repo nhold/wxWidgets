@@ -910,11 +910,7 @@ void wxAuiTabContainer::SetRect(const wxRect& rect)
 
 bool wxAuiTabContainer::AddPage(wxAuiPaneInfo& info)
 {
-    info.GetWindow()->Connect( wxEVT_KEY_DOWN, wxCharEventHandler(wxAuiTabContainer::OnChildKeyDown) ,NULL,this);
-
-    m_pages.Add(&info);
-
-    return true;
+    return InsertPage(info.GetWindow(), info, info.GetPage());
 }
 
 bool wxAuiTabContainer::InsertPage(wxWindow* page, wxAuiPaneInfo& info, size_t idx)
@@ -923,10 +919,14 @@ bool wxAuiTabContainer::InsertPage(wxWindow* page, wxAuiPaneInfo& info, size_t i
 
     info.SetWindow(page);
 
-    if (idx >= m_pages.GetCount())
-        m_pages.Add(&info);
-    else
+    if (idx >= m_pages.GetCount()) {
+        info.SetPage(m_pages.size());
+        m_pages.Add(&info);        
+    } else {
         m_pages.Insert(&info, idx);
+        for(size_t i=idx; i < m_pages.GetCount(); i++)
+            m_pages[i]->SetPage(i);
+    }
 
     // let the art provider know how many pages we have
     if (m_tab_art)
