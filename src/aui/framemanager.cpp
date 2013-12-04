@@ -123,8 +123,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
 #if WXWIN_COMPATIBILITY_2_8
   name(m_name),
   caption(m_caption),
-  icon(m_dock_bitmap),
-  window(m_window),
+  window(m_window),  
   frame(m_frame),
   state(m_state),
   dock_direction(m_dock_direction),
@@ -139,6 +138,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   dock_proportion(m_dock_proportion),
   buttons(m_buttons),
   rect(m_rect), 
+  icon(m_dock_bitmap),  
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
   m_name(wxT("")),
@@ -167,7 +167,6 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 #if WXWIN_COMPATIBILITY_2_8
 : name(m_name)
 , caption(m_caption)
-, icon(m_dock_bitmap)
 , window(m_window)
 , frame(m_frame)
 , state(m_state)
@@ -183,6 +182,7 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 , dock_proportion(m_dock_proportion)
 , buttons(m_buttons)
 , rect(m_rect)
+, icon(m_dock_bitmap)
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
 {
