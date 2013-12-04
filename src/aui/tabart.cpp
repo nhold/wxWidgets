@@ -386,8 +386,9 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
                                  closeButtonState,
                                  xExtent);
 
-    wxCoord tabHeight = inRect.GetHeight();
-    wxCoord tabWidth = tabSize.x;
+    wxCoord tabHeight; 
+    wxCoord tabWidth; 
+
     if (IsHorizontal()) {
         tabHeight = inRect.GetHeight()-3;
         tabWidth = tabSize.GetWidth();
