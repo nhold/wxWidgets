@@ -2394,7 +2394,7 @@ void wxAuiManager::LayoutAddNotebook(wxAuiTabArt* tabArt,wxAuiTabContainer* note
 {
     wxSizerItem* sizerItem;
 
-    wxSize tabSize = tabArt->GetBestTabSize(m_frame, notebookContainer->GetPages(), wxSize(16,16));
+    wxSize tabSize = tabArt->GetBestTabSize(m_frame, notebookContainer->GetPages(), wxDefaultSize);
 
     if(orient==wxHORIZONTAL)
     {
@@ -2883,7 +2883,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
     unsigned int recalcTabSizeIndex;
     for(recalcTabSizeIndex=0; recalcTabSizeIndex < tabContainerRecalcList.size(); recalcTabSizeIndex++)
     {
-        wxSize tabSize = m_tab_art->GetBestTabSize(m_frame, tabContainerRecalcList[recalcTabSizeIndex]->GetPages(), wxSize(16,16));
+        wxSize tabSize = m_tab_art->GetBestTabSize(m_frame, tabContainerRecalcList[recalcTabSizeIndex]->GetPages(), wxDefaultSize);
         tabContainerRecalcSizers[recalcTabSizeIndex]->SetMinSize(tabSize);
     }
 
