@@ -186,7 +186,7 @@ public:
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Window(wxWindow* w) , wxAuiPaneInfo test(*this); test.m_window = w; wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");this->m_window = w;return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Name(const wxString& n) , m_name = n; return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Caption(const wxString& c) , m_caption = c; return *this; );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& Icon(const wxBitmap& b) , SetIcon(b); return *this; );
+    wxDEPRECATED_INLINE( wxAuiPaneInfo& Icon(const wxBitmap& b) , SetBitmap(b); return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Left() , m_dock_direction = wxAUI_DOCK_LEFT; return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Right() , m_dock_direction = wxAUI_DOCK_RIGHT; return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Top() , m_dock_direction = wxAUI_DOCK_TOP; return *this; );
@@ -381,11 +381,6 @@ public:
     wxString GetToolTip() const { return m_tooltip; }
     wxAuiPaneInfo& SetToolTip(const wxString& t) { m_tooltip = t; return *this; }
 
-
-    // get/set the icon of the pane.
-    const wxBitmap* GetIcon() const { return &m_icon; }
-    wxAuiPaneInfo& SetIcon(const wxBitmap& b) { m_icon = b; return *this; }
-
     // get/set the pane dock position.
     int GetDirection() const { return m_dock_direction; }
     wxAuiPaneInfo& SetDirection(int direction) { m_dock_direction = direction; return *this; }
@@ -417,7 +412,7 @@ public:
     wxAuiPaneInfo& SetPage(int page) { m_dock_page = page; return *this; }
 
     // get/set the bitmap associated with this pane.
-    wxBitmap GetBitmap() const { return m_dock_bitmap; }
+    const wxBitmap &GetBitmap() const { return m_dock_bitmap; }
     wxAuiPaneInfo& SetBitmap(wxBitmap bitmap) { m_dock_bitmap = bitmap; return *this; }
 
     // get/set the proportion of the pane.
@@ -460,6 +455,10 @@ public:
     // when DockFixed is true no sash will be available.
     bool IsDockFixed() const { return HasFlag(optionDockFixed); }
     wxAuiPaneInfo& SetDockFixed(bool b = true) { return SetFlag(optionDockFixed, b); }
+
+    // Move a pane over another one, creating a notebook if needed.
+    // The pane is set in the page immediatly after the targetted one
+    wxAuiPaneInfo &MoveOver(const wxAuiPaneInfo &target);
 
     // get/set a property flag for this pane, used internally by other get/set functions.
     bool HasFlag(int flag) const
@@ -602,13 +601,13 @@ public:
     wxDEPRECATED( int& dock_proportion; )
     wxDEPRECATED( wxAuiPaneButtonArray& buttons; )
     wxDEPRECATED( wxRect& rect; )
+    wxDEPRECATED( wxBitmap &icon; )
 #else // !WXWIN_COMPATIBILITY_2_8
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
 private:
     wxString m_name;        // name of the pane
     wxString m_caption;     // caption displayed on the window
     wxString m_tooltip;     // tooltip displayed when hovering over title/tab of window
-    wxBitmap m_icon;        // icon of the pane, may be invalid
 
     wxWindow* m_window;     // window that is in this pane
     wxFrame* m_frame;       // floating frame window that holds the pane
