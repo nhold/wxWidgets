@@ -2451,10 +2451,12 @@ bool can_create_tab = false;
 if ( pane.GetPosition() == covered_pane.GetPosition() ) {
 
         wxAuiPaneInfo evt_pane(pane); // we use a copy of the pane to forbid accidentally modifying the underlying one from "user space"
+        wxAuiPaneInfo evt_covered_pane(covered_pane);
 
         wxAuiManagerEvent evt(wxEVT_AUI_PANE_CREATE_TAB);
         evt.SetManager(this);
         evt.SetPane(&evt_pane);
+        evt.SetTargetPane(&evt_covered_pane);
         evt.SetCanVeto(true);        
         evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow tabs in wxAuiNotebook and forbid them elsewhere 
 

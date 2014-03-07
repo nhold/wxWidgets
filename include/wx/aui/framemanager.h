@@ -861,6 +861,7 @@ public:
     {
         manager = NULL;
         pane = NULL;
+        target_pane = NULL;
         button = 0;
         veto_flag = false;
         canveto_flag = true;
@@ -871,6 +872,7 @@ public:
     {
         manager = c.manager;
         pane = c.pane;
+        target_pane = c.target_pane;
         button = c.button;
         veto_flag = c.veto_flag;
         canveto_flag = c.canveto_flag;
@@ -881,11 +883,13 @@ public:
 
     void SetManager(wxAuiManager* mgr) { manager = mgr; }
     void SetPane(wxAuiPaneInfo* p) { pane = p; }
+    void SetTargetPane(wxAuiPaneInfo *p) { target_pane = p; }
     void SetButton(int b) { button = b; }
     void SetDC(wxDC* pdc) { dc = pdc; }
 
     wxAuiManager* GetManager() const { return manager; }
     wxAuiPaneInfo* GetPane() const { return pane; }
+    wxAuiPaneInfo* GetTargetPane() const { return target_pane; }
     int GetButton() const { return button; }
     wxDC* GetDC() const { return dc; }
 
@@ -895,9 +899,10 @@ public:
     bool CanVeto() const { return  canveto_flag && veto_flag; }
 
 public:
-    wxAuiManager* manager;
-    wxAuiPaneInfo* pane;
-    int button;
+    wxAuiManager  * manager;
+    wxAuiPaneInfo * pane;
+    wxAuiPaneInfo * target_pane;
+    int  button;
     bool veto_flag;
     bool canveto_flag;
     wxDC* dc;
