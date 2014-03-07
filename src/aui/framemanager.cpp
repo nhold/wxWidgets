@@ -2964,7 +2964,7 @@ wxSizer* wxAuiManager::LayoutAll(wxAuiPaneInfoArray& panes,
     {
         wxAuiDockInfo& dock = docks.Item(i);
 
-        // empty out all panes, as they will be readded below
+        // empty out all panes, as they will be read below
         dock.panes.Empty();
 
         if (dock.fixed)
