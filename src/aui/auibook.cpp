@@ -65,11 +65,6 @@ extern void wxAuiDoInsertDockRow(wxAuiPaneInfoArray&,int,int,int);
 extern void wxAuiDoInsertPane(wxAuiPaneInfoArray&,int,int,int,int);
 extern void wxAuiDoInsertPage(wxAuiPaneInfoArray&,int,int,int,int,int);
 
-            int width = m_rect.width - 2 * border_space;
-            if (width < 0)
-                width = 0;
-                                     m_rect.width - 2 * border_space,
-                                     m_rect.width - 2 * border_space,
 
 BEGIN_EVENT_TABLE(wxAuiNotebook, wxControl)
 EVT_SIZE(wxAuiNotebook::OnSize)
