@@ -109,7 +109,16 @@ void wxBell()
 {
     wxUnusedVar(flag);
     wxUnusedVar(sender);
-    wxTheApp->MacReopenApp() ;
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacReopenApp();
+    // else: It's possible that this function was called as the first thing.
+    //       This can happen when OS X restores running apps when starting a new
+    //       user session. Apps that were hidden (dock only) when the previous
+    //       session terminated are only restored in a limited, resources-saving
+    //       way. When the user clicks the icon, applicationShouldHandleReopen:
+    //       is called, but we didn't call OnInit() yet. In this case, we
+    //       shouldn't call MacReopenApp(), but should proceed with normal
+    //       initialization.
     return NO;
 }
 
@@ -324,15 +333,17 @@ void wxBell()
     ProcessSerialNumber psn = { 0, kCurrentProcess };
     TransformProcessType(&psn, kProcessTransformToForegroundApplication);
     
-    if ( UMAGetSystemVersion() < 0x1090 )
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    if ( UMAGetSystemVersion() >= 0x1090 )
+    {
+        [[NSRunningApplication currentApplication] activateWithOptions:
+         (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
+    }
+    else
+#endif
     {
         [self deactivate];
         [self activateIgnoringOtherApps:YES];
-    }
-    else
-    {
-        [[NSRunningApplication currentApplication] activateWithOptions:
-            (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
     }
 }
 
@@ -408,7 +419,21 @@ bool wxApp::CallOnInit()
     wxMacAutoreleasePool autoreleasepool;
     m_onInitResult = false;
     m_inited = false;
+
+    // Feed the upcoming event loop with a dummy event. Without this,
+    // [NSApp run] below wouldn't return, as we expect it to, if the
+    // application was launched without being activated and would block
+    // until the dock icon was clicked - delaying OnInit() call too.
+    NSEvent *event = [NSEvent otherEventWithType:NSApplicationDefined
+                                    location:NSMakePoint(0.0, 0.0)
+                               modifierFlags:0
+                                   timestamp:0
+                                windowNumber:0
+                                     context:nil
+                                     subtype:0 data1:0 data2:0];
+    [NSApp postEvent:event atStart:FALSE];
     [NSApp run];
+
     m_onInitResult = OnInit();
     m_inited = true;
     if ( m_onInitResult )

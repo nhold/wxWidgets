@@ -154,6 +154,7 @@ builtinWindowClasses =
     ( unknown
     | wxAnimationCtrl
     | wxAuiNotebook
+    | wxAuiToolBar
     | wxBannerWindow
     | wxBitmapButton
     | wxBitmapComboBox
@@ -242,6 +243,7 @@ builtinClassesNames =
 
     | "wxAnimationCtrl"
     | "wxAuiNotebook"
+    | "wxAuiToolBar"
     | "wxBannerWindow"
     | "wxBitmapButton"
     | "wxBitmapComboBox"
@@ -324,6 +326,7 @@ builtinNestedClassesNames =
     | "separator"
     | "break"
     | "space"
+    | "label"
     | "tool"
     | "panewindow"
     | "notebookpage"
@@ -524,6 +527,38 @@ wxAuiNotebook_notebookpage =
         windowNode
     }
 
+
+wxAuiToolBar =
+    element object {
+        attribute class { "wxAuiToolBar" } &
+        stdObjectNodeAttributes &
+        stdWindowProperties &
+        [xrc:p="o"] element bitmapsize        {_, t_size }* &
+        [xrc:p="o"] element margins           {_, t_size }* &
+        [xrc:p="o"] element packing           {_, t_integer }* &
+        [xrc:p="o"] element separation        {_, t_integer }* &
+        [xrc:p="o"] element dontattachtoframe {_, t_bool }* &
+        (
+            windowNode |
+            wxToolBar_tool |
+            wxAuiToolBar_label |
+            element object { attribute class { "separator" }, platform } |
+            element object { attribute class { "space" } &
+                platform &
+                [xrc:p="o"] element width {_, t_integer }* &
+                [xrc:p="o"] element proportion {_, t_integer }*
+            }
+        )*
+    }
+
+wxAuiToolBar_label =
+    element object {
+        attribute class { "label" } &
+            platform &
+            attribute name { t_identifier }? &
+            [xrc:p="important"] element label {_, t_text }* &
+            [xrc:p="o"]         element width {_, t_integer }*
+        }
 
 wxBannerWindow =
     element object {

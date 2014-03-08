@@ -65,6 +65,7 @@ bool wxRichTextSizePage::sm_showAlignmentControls = true;
 bool wxRichTextSizePage::sm_showFloatingAndAlignmentControls = true;
 bool wxRichTextSizePage::sm_enablePositionAndSizeUnits = true;
 bool wxRichTextSizePage::sm_enablePositionAndSizeCheckboxes = true;
+bool wxRichTextSizePage::sm_showMoveObjectControls = true;
 
 /*!
  * wxRichTextSizePage constructors
@@ -117,6 +118,7 @@ wxRichTextSizePage::~wxRichTextSizePage()
     sm_showMinMaxSizeControls = true;
     sm_showMinMaxSizeControls = true;
     sm_enablePositionAndSizeCheckboxes = true;
+    sm_showMoveObjectControls = true;
     
 ////@begin wxRichTextSizePage destruction
 ////@end wxRichTextSizePage destruction
@@ -225,7 +227,7 @@ void wxRichTextSizePage::CreateControls()
     itemBoxSizer6->Add(itemBoxSizer7, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText8 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Floating"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText8->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText8->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer7->Add(itemStaticText8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine9 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -262,7 +264,7 @@ void wxRichTextSizePage::CreateControls()
     m_alignmentSizer->Add(itemBoxSizer17, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText18 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Alignment"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText18->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText18->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer17->Add(itemStaticText18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine19 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -295,7 +297,7 @@ void wxRichTextSizePage::CreateControls()
     m_parentSizer->Add(itemBoxSizer24, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText25 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Size"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText25->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText25->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer24->Add(itemStaticText25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine26 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -335,7 +337,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsWStrings;
     m_unitsWStrings.Add(_("px"));
     m_unitsWStrings.Add(_("cm"));
-    m_unitsWStrings.Add(_("percent"));
+    m_unitsWStrings.Add(_("%"));
     m_unitsW = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_W, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsWStrings, wxCB_READONLY );
     m_unitsW->SetStringSelection(_("px"));
     m_unitsW->SetHelpText(_("Units for the object width."));
@@ -369,7 +371,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsHStrings;
     m_unitsHStrings.Add(_("px"));
     m_unitsHStrings.Add(_("cm"));
-    m_unitsHStrings.Add(_("percent"));
+    m_unitsHStrings.Add(_("%"));
     m_unitsH = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_H, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsHStrings, wxCB_READONLY );
     m_unitsH->SetStringSelection(_("px"));
     m_unitsH->SetHelpText(_("Units for the object height."));
@@ -396,7 +398,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsMinWStrings;
     m_unitsMinWStrings.Add(_("px"));
     m_unitsMinWStrings.Add(_("cm"));
-    m_unitsMinWStrings.Add(_("percent"));
+    m_unitsMinWStrings.Add(_("%"));
     m_unitsMinW = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_MIN_W, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsMinWStrings, wxCB_READONLY );
     m_unitsMinW->SetStringSelection(_("px"));
     m_unitsMinW->SetHelpText(_("Units for the minimum object width."));
@@ -423,7 +425,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsMinHStrings;
     m_unitsMinHStrings.Add(_("px"));
     m_unitsMinHStrings.Add(_("cm"));
-    m_unitsMinHStrings.Add(_("percent"));
+    m_unitsMinHStrings.Add(_("%"));
     m_unitsMinH = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_MIN_H, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsMinHStrings, wxCB_READONLY );
     m_unitsMinH->SetStringSelection(_("px"));
     m_unitsMinH->SetHelpText(_("Units for the minimum object height."));
@@ -450,7 +452,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsMaxWStrings;
     m_unitsMaxWStrings.Add(_("px"));
     m_unitsMaxWStrings.Add(_("cm"));
-    m_unitsMaxWStrings.Add(_("percent"));
+    m_unitsMaxWStrings.Add(_("%"));
     m_unitsMaxW = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_MAX_W, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsMaxWStrings, wxCB_READONLY );
     m_unitsMaxW->SetStringSelection(_("px"));
     m_unitsMaxW->SetHelpText(_("Units for the maximum object width."));
@@ -477,7 +479,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsMaxHStrings;
     m_unitsMaxHStrings.Add(_("px"));
     m_unitsMaxHStrings.Add(_("cm"));
-    m_unitsMaxHStrings.Add(_("percent"));
+    m_unitsMaxHStrings.Add(_("%"));
     m_unitsMaxH = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_UNITS_MAX_H, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsMaxHStrings, wxCB_READONLY );
     m_unitsMaxH->SetStringSelection(_("px"));
     m_unitsMaxH->SetHelpText(_("Units for the maximum object height."));
@@ -492,7 +494,7 @@ void wxRichTextSizePage::CreateControls()
     m_positionControls->Add(itemBoxSizer59, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText60 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Position"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText60->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText60->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer59->Add(itemStaticText60, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine61 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -551,7 +553,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsLeftStrings;
     m_unitsLeftStrings.Add(_("px"));
     m_unitsLeftStrings.Add(_("cm"));
-    m_unitsLeftStrings.Add(_("percent"));
+    m_unitsLeftStrings.Add(_("%"));
     m_unitsLeft = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_LEFT_UNITS, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsLeftStrings, wxCB_READONLY );
     m_unitsLeft->SetStringSelection(_("px"));
     m_unitsLeft->SetHelpText(_("Units for the left position."));
@@ -586,7 +588,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsTopStrings;
     m_unitsTopStrings.Add(_("px"));
     m_unitsTopStrings.Add(_("cm"));
-    m_unitsTopStrings.Add(_("percent"));
+    m_unitsTopStrings.Add(_("%"));
     m_unitsTop = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_TOP_UNITS, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsTopStrings, wxCB_READONLY );
     m_unitsTop->SetStringSelection(_("px"));
     m_unitsTop->SetHelpText(_("Units for the top position."));
@@ -621,7 +623,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsRightStrings;
     m_unitsRightStrings.Add(_("px"));
     m_unitsRightStrings.Add(_("cm"));
-    m_unitsRightStrings.Add(_("percent"));
+    m_unitsRightStrings.Add(_("%"));
     m_unitsRight = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_RIGHT_UNITS, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsRightStrings, wxCB_READONLY );
     m_unitsRight->SetStringSelection(_("px"));
     m_unitsRight->SetHelpText(_("Units for the right position."));
@@ -656,7 +658,7 @@ void wxRichTextSizePage::CreateControls()
     wxArrayString m_unitsBottomStrings;
     m_unitsBottomStrings.Add(_("px"));
     m_unitsBottomStrings.Add(_("cm"));
-    m_unitsBottomStrings.Add(_("percent"));
+    m_unitsBottomStrings.Add(_("%"));
     m_unitsBottom = new wxComboBox( itemRichTextDialogPage1, ID_RICHTEXT_BOTTOM_UNITS, _("px"), wxDefaultPosition, wxSize(60, -1), m_unitsBottomStrings, wxCB_READONLY );
     m_unitsBottom->SetStringSelection(_("px"));
     m_unitsBottom->SetHelpText(_("Units for the bottom position."));
@@ -741,6 +743,9 @@ void wxRichTextSizePage::CreateControls()
 
     if (!sm_showPositionModeControls)
         m_moveObjectParentSizer->Show(m_positionModeSizer, false);
+
+    if (!sm_showMoveObjectControls)
+        m_moveObjectParentSizer->Show(m_moveObjectSizer, false);
 }
 
 wxRichTextAttr* wxRichTextSizePage::GetAttributes()

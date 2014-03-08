@@ -193,7 +193,7 @@ void wxDataViewColumn::UnsetAsSortKey()
     m_sort = false;
 
     if ( m_owner )
-        m_owner->SetSortingColumnIndex(wxNOT_FOUND);
+        m_owner->DontUseColumnForSorting(m_owner->GetColumnIndex(this));
 
     UpdateDisplay();
 }
@@ -203,19 +203,19 @@ void wxDataViewColumn::SetSortOrder(bool ascending)
     if ( !m_owner )
         return;
 
-    // First unset the old sort column if any.
-    int oldSortKey = m_owner->GetSortingColumnIndex();
-    if ( oldSortKey != wxNOT_FOUND )
-    {
-        m_owner->GetColumn(oldSortKey)->UnsetAsSortKey();
-    }
-
-    // Now set this one as the new sort column.
     const int idx = m_owner->GetColumnIndex(this);
-    m_owner->SetSortingColumnIndex(idx);
 
-    m_sort = true;
-    m_sortAscending = ascending;
+    // If this column isn't sorted already, mark it as sorted
+    if ( !m_sort )
+    {
+        wxASSERT(!m_owner->IsColumnSorted(idx));
+
+        // Now set this one as the new sort column.
+        m_owner->UseColumnForSorting(idx);
+        m_sort = true;
+    }
+    
+   m_sortAscending = ascending;
 
     // Call this directly instead of using UpdateDisplay() as we already have
     // the column index, no need to look it up again.
@@ -236,6 +236,30 @@ public:
 
     wxDataViewCtrl *GetOwner() const
         { return static_cast<wxDataViewCtrl *>(GetParent()); }
+
+    // Add/Remove additional column to sorting columns
+    void ToggleSortByColumn(int column)
+    {
+        wxDataViewCtrl * const owner = GetOwner();
+
+        if ( !owner->IsMultiColumnSortAllowed() )
+            return;
+
+        wxDataViewColumn * const col = owner->GetColumn(column);
+        if ( !col->IsSortable() )
+            return;
+
+        if ( owner->IsColumnSorted(column) )
+        {
+            col->UnsetAsSortKey();
+            SendEvent(wxEVT_DATAVIEW_COLUMN_SORTED, column);
+        }
+        else // Do start sortign by it.
+        {
+            col->SetSortOrder(true);
+            SendEvent(wxEVT_DATAVIEW_COLUMN_SORTED, column);
+        }
+    }
 
 protected:
     // implement/override wxHeaderCtrl functions by forwarding them to the main
@@ -301,6 +325,11 @@ private:
         }
         else // not using this column for sorting yet
         {
+            // We will sort by this column only now, so reset all the
+            // previously used ones.
+            owner->ResetAllSortColumns();
+
+            // Sort the column
             col->SetSortOrder(true);
         }
 
@@ -315,9 +344,13 @@ private:
 
     void OnRClick(wxHeaderCtrlEvent& event)
     {
+        // Event wasn't processed somewhere, use default behaviour
         if ( !SendEvent(wxEVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK,
                         event.GetColumn()) )
+        {
             event.Skip();
+            ToggleSortByColumn(event.GetColumn());
+        }
     }
 
     void OnResize(wxHeaderCtrlEvent& event)
@@ -702,9 +735,9 @@ public:
     void OnPaint( wxPaintEvent &event );
     void OnCharHook( wxKeyEvent &event );
     void OnChar( wxKeyEvent &event );
-    void OnVerticalNavigation(int delta, const wxKeyEvent& event);
-    void OnLeftKey();
-    void OnRightKey();
+    void OnVerticalNavigation(const wxKeyEvent& event, int delta);
+    void OnLeftKey(wxKeyEvent& event);
+    void OnRightKey(wxKeyEvent& event);
     void OnMouse( wxMouseEvent &event );
     void OnSetFocus( wxFocusEvent &event );
     void OnKillFocus( wxFocusEvent &event );
@@ -721,7 +754,7 @@ public:
     unsigned GetCurrentRow() const { return m_currentRow; }
     bool HasCurrentRow() { return m_currentRow != (unsigned int)-1; }
     void ChangeCurrentRow( unsigned int row );
-    bool TryAdvanceCurrentColumn(wxDataViewTreeNode *node, bool forward);
+    bool TryAdvanceCurrentColumn(wxDataViewTreeNode *node, wxKeyEvent& event, bool forward);
 
     wxDataViewColumn *GetCurrentColumn() const { return m_currentCol; }
     void ClearCurrentColumn() { m_currentCol = NULL; }
@@ -801,6 +834,9 @@ public:
 #endif // wxUSE_DRAG_AND_DROP
 
     void OnColumnsCountChanged();
+
+    // Adjust last column to window size
+    void UpdateColumnSizes();
 
     // Called by wxDataViewCtrl and our own OnRenameTimer() to start edit the
     // specified item in the given column.
@@ -1195,7 +1231,11 @@ wxDataViewProgressRenderer::Render(wxRect rect, wxDC *dc, int WXUNUSED(state))
 
 wxSize wxDataViewProgressRenderer::GetSize() const
 {
-    return wxSize(40,12);
+    // Return -1 width because a progress bar fits any width; unlike most
+    // renderers, it doesn't have a "good" width for the content. This makes it
+    // grow to the whole column, which is pretty much always the desired
+    // behaviour. Keep the height fixed so that the progress bar isn't too fat.
+    return wxSize(-1, 12);
 }
 
 // ---------------------------------------------------------
@@ -2587,6 +2627,7 @@ void wxDataViewMainWindow::OnInternalIdle()
 
     if (m_dirty)
     {
+        UpdateColumnSizes();
         RecalculateDisplay();
         m_dirty = false;
     }
@@ -3033,10 +3074,10 @@ int wxDataViewMainWindow::GetLineHeight( unsigned int row ) const
 class RowToTreeNodeJob: public DoJob
 {
 public:
-    RowToTreeNodeJob( unsigned int row , int current, wxDataViewTreeNode * node )
+    RowToTreeNodeJob( unsigned int row_ , int current_, wxDataViewTreeNode * node )
     {
-        this->row = row;
-        this->current = current;
+        this->row = row_;
+        this->current = current_;
         ret = NULL;
         parent = node;
     }
@@ -3665,8 +3706,20 @@ void wxDataViewMainWindow::OnCharHook(wxKeyEvent& event)
                 return;
 
             case WXK_RETURN:
+            case WXK_TAB:
                 m_editorRenderer->FinishEditing();
                 return;
+        }
+    }
+    else if ( m_useCellFocus )
+    {
+        if ( event.GetKeyCode() == WXK_TAB )
+        {
+            if ( event.ShiftDown() )
+                OnLeftKey(event);
+            else
+                OnRightKey(event);
+            return;
         }
     }
 
@@ -3793,35 +3846,35 @@ void wxDataViewMainWindow::OnChar( wxKeyEvent &event )
             break;
 
         case WXK_UP:
-            OnVerticalNavigation( -1, event );
+            OnVerticalNavigation(event, -1);
             break;
 
         case WXK_DOWN:
-            OnVerticalNavigation( +1, event );
+            OnVerticalNavigation(event, +1);
             break;
         // Add the process for tree expanding/collapsing
         case WXK_LEFT:
-            OnLeftKey();
+            OnLeftKey(event);
             break;
 
         case WXK_RIGHT:
-            OnRightKey();
+            OnRightKey(event);
             break;
 
         case WXK_END:
-            OnVerticalNavigation( +(int)GetRowCount(), event );
+            OnVerticalNavigation(event, +(int)GetRowCount());
             break;
 
         case WXK_HOME:
-            OnVerticalNavigation( -(int)GetRowCount(), event );
+            OnVerticalNavigation(event, -(int)GetRowCount());
             break;
 
         case WXK_PAGEUP:
-            OnVerticalNavigation( -(pageSize - 1), event );
+            OnVerticalNavigation(event, -(pageSize - 1));
             break;
 
         case WXK_PAGEDOWN:
-            OnVerticalNavigation( +(pageSize - 1), event );
+            OnVerticalNavigation(event, +(pageSize - 1));
             break;
 
         default:
@@ -3829,7 +3882,7 @@ void wxDataViewMainWindow::OnChar( wxKeyEvent &event )
     }
 }
 
-void wxDataViewMainWindow::OnVerticalNavigation(int delta, const wxKeyEvent& event)
+void wxDataViewMainWindow::OnVerticalNavigation(const wxKeyEvent& event, int delta)
 {
     // if there is no selection, we cannot move it anywhere
     if (!HasCurrentRow() || IsEmpty())
@@ -3889,11 +3942,11 @@ void wxDataViewMainWindow::OnVerticalNavigation(int delta, const wxKeyEvent& eve
     GetOwner()->EnsureVisible( m_currentRow, -1 );
 }
 
-void wxDataViewMainWindow::OnLeftKey()
+void wxDataViewMainWindow::OnLeftKey(wxKeyEvent& event)
 {
     if ( IsList() )
     {
-        TryAdvanceCurrentColumn(NULL, /*forward=*/false);
+        TryAdvanceCurrentColumn(NULL, event, /*forward=*/false);
     }
     else
     {
@@ -3901,8 +3954,17 @@ void wxDataViewMainWindow::OnLeftKey()
         if ( !node )
             return;
 
-        if ( TryAdvanceCurrentColumn(node, /*forward=*/false) )
+        if ( TryAdvanceCurrentColumn(node, event, /*forward=*/false) )
             return;
+
+        const bool dontCollapseNodes = event.GetKeyCode() == WXK_TAB;
+        if ( dontCollapseNodes )
+        {
+            m_currentCol = NULL;
+            // allow focus change
+            event.Skip();
+            return;
+        }
 
         // Because TryAdvanceCurrentColumn() return false, we are at the first
         // column or using whole-row selection. In this situation, we can use
@@ -3933,11 +3995,11 @@ void wxDataViewMainWindow::OnLeftKey()
     }
 }
 
-void wxDataViewMainWindow::OnRightKey()
+void wxDataViewMainWindow::OnRightKey(wxKeyEvent& event)
 {
     if ( IsList() )
     {
-        TryAdvanceCurrentColumn(NULL, /*forward=*/true);
+        TryAdvanceCurrentColumn(NULL, event, /*forward=*/true);
     }
     else
     {
@@ -3964,18 +4026,20 @@ void wxDataViewMainWindow::OnRightKey()
         }
         else
         {
-            TryAdvanceCurrentColumn(node, /*forward=*/true);
+            TryAdvanceCurrentColumn(node, event, /*forward=*/true);
         }
     }
 }
 
-bool wxDataViewMainWindow::TryAdvanceCurrentColumn(wxDataViewTreeNode *node, bool forward)
+bool wxDataViewMainWindow::TryAdvanceCurrentColumn(wxDataViewTreeNode *node, wxKeyEvent& event, bool forward)
 {
     if ( GetOwner()->GetColumnCount() == 0 )
         return false;
 
     if ( !m_useCellFocus )
         return false;
+
+    const bool wrapAround = event.GetKeyCode() == WXK_TAB;
 
     if ( node )
     {
@@ -3994,13 +4058,48 @@ bool wxDataViewMainWindow::TryAdvanceCurrentColumn(wxDataViewTreeNode *node, boo
             return true;
         }
         else
-            return false;
+        {
+            if ( !wrapAround )
+                return false;
+        }
     }
 
     int idx = GetOwner()->GetColumnIndex(m_currentCol) + (forward ? +1 : -1);
 
     if ( idx >= (int)GetOwner()->GetColumnCount() )
-        return false;
+    {
+        if ( !wrapAround )
+            return false;
+
+        if ( GetCurrentRow() < GetRowCount() - 1 )
+        {
+            // go to the first column of the next row:
+            idx = 0;
+            OnVerticalNavigation(wxKeyEvent()/*dummy*/, +1);
+        }
+        else
+        {
+            // allow focus change
+            event.Skip();
+            return false;
+        }
+    }
+
+    if ( idx < 0 && wrapAround )
+    {
+        if ( GetCurrentRow() > 0 )
+        {
+            // go to the last column of the previous row:
+            idx = (int)GetOwner()->GetColumnCount() - 1;
+            OnVerticalNavigation(wxKeyEvent()/*dummy*/, -1);
+        }
+        else
+        {
+            // allow focus change
+            event.Skip();
+            return false;
+        }
+    }
 
     GetOwner()->EnsureVisible(m_currentRow, idx);
 
@@ -4412,9 +4511,7 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
             // see #12270.
 
             // adjust the rectangle ourselves to account for the alignment
-            int align = cell->GetAlignment();
-            if ( align == wxDVR_DEFAULT_ALIGNMENT )
-                align = wxALIGN_CENTRE;
+            const int align = cell->GetEffectiveAlignment();
 
             wxRect rectItem = cell_rect;
             const wxSize size = cell->GetSize();
@@ -4492,6 +4589,39 @@ void wxDataViewMainWindow::OnColumnsCountChanged()
     UpdateDisplay();
 }
 
+void wxDataViewMainWindow::UpdateColumnSizes()
+{
+    int colsCount = GetOwner()->GetColumnCount();
+    if ( !colsCount )
+        return;
+
+    wxDataViewCtrl *owner = GetOwner();
+
+    int fullWinWidth = GetSize().x;
+
+    wxDataViewColumn *lastCol = owner->GetColumn(colsCount - 1);
+    int colswidth = GetEndOfLastCol();
+    int lastColX = colswidth - lastCol->GetWidth();
+    if ( lastColX < fullWinWidth )
+    {
+        int desiredWidth = wxMax(fullWinWidth - lastColX, lastCol->GetMinWidth());
+        lastCol->SetWidth(desiredWidth);
+
+        // All columns fit on screen, so we don't need horizontal scrolling.
+        // To prevent flickering scrollbar when resizing the window to be
+        // narrower, force-set the virtual width to 0 here. It will eventually
+        // be corrected at idle time.
+        SetVirtualSize(0, m_virtualSize.y);
+
+        RefreshRect(wxRect(lastColX, 0, fullWinWidth - lastColX, GetSize().y));
+    }
+    else
+    {
+        // else: don't bother, the columns won't fit anyway
+        SetVirtualSize(colswidth, m_virtualSize.y);
+    }
+}
+
 //-----------------------------------------------------------------------------
 // wxDataViewCtrl
 //-----------------------------------------------------------------------------
@@ -4517,13 +4647,12 @@ void wxDataViewCtrl::Init()
     m_cols.DeleteContents(true);
     m_notifier = NULL;
 
-    // No sorting column at start
-    m_sortingColumnIdx = wxNOT_FOUND;
-
     m_headerArea = NULL;
     m_clientArea = NULL;
 
     m_colsDirty = false;
+
+    m_allowMultiColumnSort = false;
 }
 
 bool wxDataViewCtrl::Create(wxWindow *parent,
@@ -4607,6 +4736,9 @@ wxSize wxDataViewCtrl::GetSizeAvailableForScrollTarget(const wxSize& size)
 
 void wxDataViewCtrl::OnSize( wxSizeEvent &WXUNUSED(event) )
 {
+    if ( m_clientArea && GetColumnCount() )
+        m_clientArea->UpdateColumnSizes();
+
     // We need to override OnSize so that our scrolled
     // window a) does call Layout() to use sizers for
     // positioning the controls but b) does not query
@@ -5012,6 +5144,7 @@ bool wxDataViewCtrl::ClearColumns()
 {
     SetExpanderColumn(NULL);
     m_cols.Clear();
+    m_sortingColumnIdxs.clear();
     m_colsBestWidths.clear();
 
     m_clientArea->ClearCurrentColumn();
@@ -5085,8 +5218,25 @@ int wxDataViewCtrl::GetColumnPosition( const wxDataViewColumn *column ) const
 
 wxDataViewColumn *wxDataViewCtrl::GetSortingColumn() const
 {
-    return m_sortingColumnIdx == wxNOT_FOUND ? NULL
-                                            : GetColumn(m_sortingColumnIdx);
+    if ( m_sortingColumnIdxs.empty() )
+        return NULL;
+    
+    return GetColumn(m_sortingColumnIdxs.front());
+}
+
+wxVector<wxDataViewColumn *> wxDataViewCtrl::GetSortingColumns() const
+{
+    wxVector<wxDataViewColumn *> out;
+    
+    for ( wxVector<int>::const_iterator it = m_sortingColumnIdxs.begin(),
+                                       end = m_sortingColumnIdxs.end();
+          it != end;
+          ++it )
+    {
+        out.push_back(GetColumn(*it));
+    }
+
+    return out;
 }
 
 wxDataViewItem wxDataViewCtrl::DoGetCurrentItem() const
@@ -5307,6 +5457,82 @@ void wxDataViewCtrl::EditItem(const wxDataViewItem& item, const wxDataViewColumn
     wxCHECK_RET( column, "no column provided" );
 
     m_clientArea->StartEditing(item, column);
+}
+
+void wxDataViewCtrl::ResetAllSortColumns()
+{
+    // Must make copy, because unsorting will remove it from original vector
+    wxVector<int> const copy(m_sortingColumnIdxs);
+    for ( wxVector<int>::const_iterator it = copy.begin(),
+                                       end = copy.end();
+          it != end;
+          ++it )
+    {
+        GetColumn(*it)->UnsetAsSortKey();
+    }
+
+    wxASSERT( m_sortingColumnIdxs.empty() );
+}
+
+bool wxDataViewCtrl::AllowMultiColumnSort(bool allow)
+{
+    if ( m_allowMultiColumnSort == allow )
+        return true;
+
+    m_allowMultiColumnSort = allow;
+
+    // If disabling, must disable any multiple sort that are active
+    if ( !allow )
+    {
+        ResetAllSortColumns();
+
+        if ( wxDataViewModel *model = GetModel() )
+            model->Resort();
+    }
+
+    return true;
+}
+
+
+bool wxDataViewCtrl::IsColumnSorted(int idx) const
+{
+    for ( wxVector<int>::const_iterator it = m_sortingColumnIdxs.begin(),
+                                       end = m_sortingColumnIdxs.end();
+          it != end;
+          ++it )
+    {
+        if ( *it == idx )
+            return true;
+    }
+
+    return false;
+}
+
+void wxDataViewCtrl::UseColumnForSorting(int idx )
+{
+    m_sortingColumnIdxs.push_back(idx);
+}
+
+void wxDataViewCtrl::DontUseColumnForSorting(int idx)
+{
+    for ( wxVector<int>::iterator it = m_sortingColumnIdxs.begin(),
+                                 end = m_sortingColumnIdxs.end();
+          it != end;
+          ++it )
+    {
+        if ( *it == idx )
+        {
+            m_sortingColumnIdxs.erase(it);
+            return;
+        }
+    }
+
+    wxFAIL_MSG( "Column is not used for sorting" );
+}
+
+void wxDataViewCtrl::ToggleSortByColumn(int column)
+{
+    m_headerArea->ToggleSortByColumn(column);
 }
 
 #endif // !wxUSE_GENERICDATAVIEWCTRL

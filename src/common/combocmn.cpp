@@ -1354,9 +1354,11 @@ void wxComboCtrlBase::PositionTextCtrl( int textCtrlXAdjust, int textCtrlYAdjust
     else
     {
         // If it has border, have textctrl fill the entire text field.
+        int w = m_tcArea.width - m_widthCustomPaint;
+        if (w < 0) w = 0;
         m_text->SetSize( m_tcArea.x + m_widthCustomPaint,
                          m_tcArea.y,
-                         m_tcArea.width - m_widthCustomPaint,
+                         w,
                          m_tcArea.height );
     }
 }
@@ -1391,7 +1393,10 @@ wxSize wxComboCtrlBase::DoGetSizeFromTextSize(int xlen, int ylen) const
     else
     {
         wxComboBox* cb = new wxComboBox;
+#ifndef __WXGTK3__
+        // GTK3 returns zero for the preferred size of a hidden widget
         cb->Hide();
+#endif
         cb->Create(const_cast<wxComboCtrlBase*>(this), wxID_ANY);
         if ( m_font.IsOk() )
             cb->SetFont(m_font);
@@ -2070,19 +2075,16 @@ void wxComboCtrlBase::OnCharEvent(wxKeyEvent& event)
 
 void wxComboCtrlBase::OnFocusEvent( wxFocusEvent& event )
 {
-    // On Mac, setting focus here leads to infinite recursion and eventually
-    // a crash due to the SetFocus call producing another event.
-    // Handle Mac in OnIdleEvent using m_resetFocus.
+    // On Mac, setting focus here led to infinite recursion so
+    // m_resetFocus is used as a guard
     
     if ( event.GetEventType() == wxEVT_SET_FOCUS )
     {
-        if ( GetTextCtrl() && !GetTextCtrl()->HasFocus() )
+        if ( !m_resetFocus && GetTextCtrl() && !GetTextCtrl()->HasFocus() )
         {
-#ifdef __WXMAC__
             m_resetFocus = true;
-#else
             GetTextCtrl()->SetFocus();
-#endif
+            m_resetFocus = false;
         }
     }
     
@@ -2438,10 +2440,28 @@ void wxComboCtrlBase::ShowPopup()
     }
 }
 
+
+#ifdef __WXMAC__
+bool wxComboCtrlBase::AnimateShow( const wxRect& rect, int WXUNUSED(flags) )
+{
+    // Overridden AnimateShow() will call Raise() and ShowWithEffect() so do
+    // here to avoid duplication. Raise and Show are needed for some contained
+    // control's scrollbars, selection highlights, hit-test accuracy and popup
+    // close via left mousedown when the mouse is not over the parent app.
+    if ( GetPopupWindow() )
+    {
+        GetPopupWindow()->SetSize(rect);
+        GetPopupWindow()->Raise();
+        GetPopupWindow()->Show();
+    }
+    return true;
+}
+#else
 bool wxComboCtrlBase::AnimateShow( const wxRect& WXUNUSED(rect), int WXUNUSED(flags) )
 {
     return true;
 }
+#endif
 
 void wxComboCtrlBase::DoShowPopup( const wxRect& rect, int WXUNUSED(flags) )
 {

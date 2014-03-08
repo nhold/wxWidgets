@@ -526,6 +526,15 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
             checkInitially = true;
     }
 
+    // Also handle the case of check menu items that had been checked before
+    // being attached to the menu: we don't need to actually call Check() on
+    // them, so we don't use checkInitially in this case, but we do need to
+    // make them checked at Windows level too. Notice that we shouldn't ask
+    // Windows for the checked state here, as wxMenuItem::IsChecked() does, as
+    // the item is not attached yet, so explicitly call the base class version.
+    if ( pItem->IsCheck() && pItem->wxMenuItemBase::IsChecked() )
+        flags |= MF_CHECKED;
+
     // adjust position to account for the title of a popup menu, if any
     if ( !GetMenuBar() && !m_title.empty() )
         pos += 2; // for the title itself and its separator
@@ -609,6 +618,12 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
                 {
                     mii.fMask |= MIIM_ID;
                     mii.wID = id;
+                }
+
+                if ( flags & MF_CHECKED )
+                {
+                    mii.fMask |= MIIM_STATE;
+                    mii.fState = MFS_CHECKED;
                 }
 
                 mii.dwItemData = reinterpret_cast<ULONG_PTR>(pItem);
@@ -793,9 +808,6 @@ wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
         node = node->GetNext();
     }
 
-    // DoRemove() (unlike Remove) can only be called for an existing item!
-    wxCHECK_MSG( node, NULL, wxT("bug in wxMenu::Remove logic") );
-
 #if wxUSE_ACCEL
     // remove the corresponding accel from the accel table
     int n = FindAccel(item->GetId());
@@ -850,7 +862,7 @@ size_t wxMenu::CopyAccels(wxAcceleratorEntry *accels) const
 wxAcceleratorTable *wxMenu::CreateAccelTable() const
 {
     const size_t count = m_accels.size();
-    wxScopedArray<wxAcceleratorEntry> accels(new wxAcceleratorEntry[count]);
+    wxScopedArray<wxAcceleratorEntry> accels(count);
     CopyAccels(accels.get());
 
     return new wxAcceleratorTable(count, accels.get());
@@ -1367,10 +1379,6 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
         (GetHmenu() != 0);
 #endif
 
-    int mswpos = (!isAttached || (pos == m_menus.GetCount()))
-        ?   -1 // append the menu
-        :   MSWPositionForWxMenu(GetMenu(pos),pos);
-
     if ( !wxMenuBarBase::Insert(pos, menu, title) )
         return false;
 
@@ -1398,9 +1406,33 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
             wxLogLastError(wxT("TB_INSERTBUTTON"));
             return false;
         }
-        wxUnusedVar(mswpos);
 #else
-        if ( !::InsertMenu(GetHmenu(), mswpos,
+        // We have a problem with the index if there is an extra "Window" menu
+        // in this menu bar, which is added by wxMDIParentFrame to it directly
+        // using Windows API (so that it remains invisible to the user code),
+        // but which does affect the indices of the items we insert after it.
+        // So we check if any of the menus before the insertion position is a
+        // foreign one and adjust the insertion index accordingly.
+        int mswExtra = 0;
+
+        // Skip all this if the total number of menus matches (notice that the
+        // internal menu count has already been incremented by wxMenuBarBase::
+        // Insert() call above, hence -1).
+        int mswCount = ::GetMenuItemCount(GetHmenu());
+        if ( mswCount != -1 &&
+                static_cast<unsigned>(mswCount) != GetMenuCount() - 1 )
+        {
+            wxMenuList::compatibility_iterator node = m_menus.GetFirst();
+            for ( size_t n = 0; n < pos; n++ )
+            {
+                if ( ::GetSubMenu(GetHmenu(), n) != GetHmenuOf(node->GetData()) )
+                    mswExtra++;
+                else
+                    node = node->GetNext();
+            }
+        }
+
+        if ( !::InsertMenu(GetHmenu(), pos + mswExtra,
                            MF_BYPOSITION | MF_POPUP | MF_STRING,
                            (UINT_PTR)GetHmenuOf(menu), title.t_str()) )
         {

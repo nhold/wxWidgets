@@ -121,7 +121,7 @@ static const int VIEWPORT_EXTENT = 134217727;
 // convert degrees to radians
 static inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
-// call AlphaBlend() to blit contents of hdcSrc to hdcDst using alpha
+// call AlphaBlend() to blit contents of hdcSrc to dcDst using alpha
 //
 // NB: bmpSrc is the bitmap selected in hdcSrc, it is not really needed
 //     to pass it to this function but as we already have it at the point
@@ -129,12 +129,12 @@ static inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 //
 // return true if we could draw the bitmap in one way or the other, false
 // otherwise
-static bool AlphaBlt(HDC hdcDst,
+static bool AlphaBlt(wxMSWDCImpl* dcSrc,
                      int x, int y, int dstWidth, int dstHeight,
                      int srcX, int srcY,
                      int srcWidth, int srcHeight,
                      HDC hdcSrc,
-                     const wxBitmap& bmp);
+                     const wxBitmap& bmpSrc);
 
 #ifdef wxHAS_RAW_BITMAP
 
@@ -694,10 +694,12 @@ void wxMSWDCImpl::Clear()
         if (!m_selectedBitmap.IsOk())
             return;
 
-        rect.left = -m_deviceOriginX; rect.top = -m_deviceOriginY;
-        rect.right = m_selectedBitmap.GetWidth()-m_deviceOriginX;
-        rect.bottom = m_selectedBitmap.GetHeight()-m_deviceOriginY;
+        rect.left = rect.top = 0;
+        rect.right = m_selectedBitmap.GetWidth();
+        rect.bottom = m_selectedBitmap.GetHeight();
     }
+
+    ::OffsetRect(&rect, -m_deviceOriginX, -m_deviceOriginY);
 
 #ifndef __WXWINCE__
     (void) ::SetMapMode(GetHdc(), MM_TEXT);
@@ -1271,11 +1273,26 @@ void wxMSWDCImpl::DoDrawIcon(const wxIcon& icon, wxCoord x, wxCoord y)
 
     wxCHECK_RET( icon.IsOk(), wxT("invalid icon in DrawIcon") );
 
+    // Check if we are printing: notice that it's not enough to just check for
+    // DT_RASPRINTER as this is also the kind of print preview HDC, but its
+    // type is OBJ_ENHMETADC while the type of the "real" printer DC is OBJ_DC.
+    if ( ::GetDeviceCaps(GetHdc(), TECHNOLOGY) == DT_RASPRINTER &&
+            ::GetObjectType(GetHdc()) == OBJ_DC )
+    {
+        // DrawIcon API doesn't work for printer DCs (printer DC is write-only
+        // and DrawIcon requires DC supporting SRCINVERT ROP).
+        // We need to convert icon to bitmap and use alternative API calls.
+        wxBitmap bmp(icon);
+        DoDrawBitmap(bmp, x, y, !bmp.HasAlpha() /* use mask */);
+    }
+    else
+    {
 #ifdef __WIN32__
-    ::DrawIconEx(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), GetHiconOf(icon), icon.GetWidth(), icon.GetHeight(), 0, NULL, DI_NORMAL);
+        ::DrawIconEx(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), GetHiconOf(icon), icon.GetWidth(), icon.GetHeight(), 0, NULL, DI_NORMAL);
 #else
-    ::DrawIcon(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), GetHiconOf(icon));
+        ::DrawIcon(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), GetHiconOf(icon));
 #endif
+    }
 
     CalcBoundingBox(x, y);
     CalcBoundingBox(x + icon.GetWidth(), y + icon.GetHeight());
@@ -1301,8 +1318,12 @@ void wxMSWDCImpl::DoDrawBitmap( const wxBitmap &bmp, wxCoord x, wxCoord y, bool 
         MemoryHDC hdcMem;
         SelectInHDC select(hdcMem, GetHbitmapOf(bmp));
 
-        if ( AlphaBlt(GetHdc(), x, y, width, height, 0, 0, width, height, hdcMem, bmp) )
+        if ( AlphaBlt(this, x, y, width, height, 0, 0, width, height, hdcMem, bmp) )
+        {
+            CalcBoundingBox(x, y);
+            CalcBoundingBox(x + bmp.GetWidth(), y + bmp.GetHeight());
             return;
+        }
     }
 
     SET_STRETCH_BLT_MODE(GetHdc());
@@ -1409,6 +1430,9 @@ void wxMSWDCImpl::DoDrawBitmap( const wxBitmap &bmp, wxCoord x, wxCoord y, bool 
         ::SelectObject( memdc, hOldBitmap );
         ::DeleteDC( memdc );
     }
+
+    CalcBoundingBox(x, y);
+    CalcBoundingBox(x + bmp.GetWidth(), y + bmp.GetHeight());
 }
 
 void wxMSWDCImpl::DoDrawText(const wxString& text, wxCoord x, wxCoord y)
@@ -1427,6 +1451,11 @@ void wxMSWDCImpl::DoDrawText(const wxString& text, wxCoord x, wxCoord y)
 
     WXMICROWIN_CHECK_HDC
 
+    // prepare for drawing the text
+    wxTextColoursChanger textCol(GetHdc(), *this);
+
+    wxBkModeChanger bkMode(GetHdc(), m_backgroundMode);
+
     DrawAnyText(text, x, y);
 
     // update the bounding box
@@ -1439,13 +1468,6 @@ void wxMSWDCImpl::DoDrawText(const wxString& text, wxCoord x, wxCoord y)
 
 void wxMSWDCImpl::DrawAnyText(const wxString& text, wxCoord x, wxCoord y)
 {
-    WXMICROWIN_CHECK_HDC
-
-    // prepare for drawing the text
-    wxTextColoursChanger textCol(GetHdc(), *this);
-
-    wxBkModeChanger bkMode(GetHdc(), m_backgroundMode);
-
     if ( ::ExtTextOut(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), 0, NULL,
                    text.c_str(), text.length(), NULL) == 0 )
     {
@@ -1466,59 +1488,74 @@ void wxMSWDCImpl::DoDrawRotatedText(const wxString& text,
     if ( (angle == 0.0) && m_font.IsOk() )
     {
         DoDrawText(text, x, y);
+
+        // Bounding box already updated by DoDrawText(), no need to do it again.
+        return;
     }
+
 #ifndef __WXMICROWIN__
-    else
+    // NB: don't take DEFAULT_GUI_FONT (a.k.a. wxSYS_DEFAULT_GUI_FONT)
+    //     because it's not TrueType and so can't have non zero
+    //     orientation/escapement under Win9x
+    wxFont font = m_font.IsOk() ? m_font : *wxSWISS_FONT;
+    LOGFONT lf;
+    if ( ::GetObject(GetHfontOf(font), sizeof(lf), &lf) == 0 )
     {
-        // NB: don't take DEFAULT_GUI_FONT (a.k.a. wxSYS_DEFAULT_GUI_FONT)
-        //     because it's not TrueType and so can't have non zero
-        //     orientation/escapement under Win9x
-        wxFont font = m_font.IsOk() ? m_font : *wxSWISS_FONT;
-        HFONT hfont = (HFONT)font.GetResourceHandle();
-        LOGFONT lf;
-        if ( ::GetObject(hfont, sizeof(lf), &lf) == 0 )
-        {
-            wxLogLastError(wxT("GetObject(hfont)"));
-        }
-
-        // GDI wants the angle in tenth of degree
-        long angle10 = (long)(angle * 10);
-        lf.lfEscapement = angle10;
-        lf. lfOrientation = angle10;
-
-        hfont = ::CreateFontIndirect(&lf);
-        if ( !hfont )
-        {
-            wxLogLastError(wxT("CreateFont"));
-        }
-        else
-        {
-            HFONT hfontOld = (HFONT)::SelectObject(GetHdc(), hfont);
-
-            DrawAnyText(text, x, y);
-
-            (void)::SelectObject(GetHdc(), hfontOld);
-            (void)::DeleteObject(hfont);
-        }
-
-        // call the bounding box by adding all four vertices of the rectangle
-        // containing the text to it (simpler and probably not slower than
-        // determining which of them is really topmost/leftmost/...)
-        wxCoord w, h;
-        GetOwner()->GetTextExtent(text, &w, &h);
-
-        double rad = DegToRad(angle);
-
-        // "upper left" and "upper right"
-        CalcBoundingBox(x, y);
-        CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
-
-        // "bottom left" and "bottom right"
-        x += (wxCoord)(h*sin(rad));
-        y += (wxCoord)(h*cos(rad));
-        CalcBoundingBox(x, y);
-        CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
+        wxLogLastError(wxT("GetObject(hfont)"));
     }
+
+    // GDI wants the angle in tenth of degree
+    long angle10 = (long)(angle * 10);
+    lf.lfEscapement = angle10;
+    lf.lfOrientation = angle10;
+
+    AutoHFONT hfont(lf);
+    if ( !hfont )
+    {
+        wxLogLastError(wxT("CreateFont"));
+        return;
+    }
+
+    SelectInHDC selRotatedFont(GetHdc(), hfont);
+
+    // Get extent of whole text.
+    wxCoord w, h, heightLine;
+    GetOwner()->GetMultiLineTextExtent(text, &w, &h, &heightLine);
+
+    // Prepare for drawing the text
+    wxTextColoursChanger textCol(GetHdc(), *this);
+    wxBkModeChanger bkMode(GetHdc(), m_backgroundMode);
+
+    // Compute the shift for the origin of the next line.
+    const double rad = DegToRad(angle);
+    const double dx = heightLine * sin(rad);
+    const double dy = heightLine * cos(rad);
+
+    // Draw all text line by line
+    const wxArrayString lines = wxSplit(text, '\n', '\0');
+    for ( size_t lineNum = 0; lineNum < lines.size(); lineNum++ )
+    {
+        // Calculate origin for each line to avoid accumulation of
+        // rounding errors.
+        DrawAnyText(lines[lineNum],
+                    x + wxRound(lineNum*dx),
+                    y + wxRound(lineNum*dy));
+    }
+
+
+    // call the bounding box by adding all four vertices of the rectangle
+    // containing the text to it (simpler and probably not slower than
+    // determining which of them is really topmost/leftmost/...)
+
+    // "upper left" and "upper right"
+    CalcBoundingBox(x, y);
+    CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
+
+    // "bottom left" and "bottom right"
+    x += (wxCoord)(h*sin(rad));
+    y += (wxCoord)(h*cos(rad));
+    CalcBoundingBox(x, y);
+    CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
 #endif
 }
 
@@ -2169,7 +2206,7 @@ bool wxMSWDCImpl::DoStretchBlit(wxCoord xdest, wxCoord ydest,
         return false;
     }
 
-    const HDC hdcSrc = GetHdcOf(*implSrc);
+    HDC hdcSrc = GetHdcOf(*implSrc);
 
     // if either the source or destination has alpha channel, we must use
     // AlphaBlt() as other function don't handle it correctly
@@ -2177,9 +2214,13 @@ bool wxMSWDCImpl::DoStretchBlit(wxCoord xdest, wxCoord ydest,
     if ( bmpSrc.IsOk() && (bmpSrc.HasAlpha() ||
             (m_selectedBitmap.IsOk() && m_selectedBitmap.HasAlpha())) )
     {
-        if ( AlphaBlt(GetHdc(), xdest, ydest, dstWidth, dstHeight,
+        if ( AlphaBlt(this, xdest, ydest, dstWidth, dstHeight,
                       xsrc, ysrc, srcWidth, srcHeight, hdcSrc, bmpSrc) )
+        {
+            CalcBoundingBox(xdest, ydest);
+            CalcBoundingBox(xdest + dstWidth, ydest + dstHeight);
             return true;
+        }
     }
 
     wxMask *mask = NULL;
@@ -2224,6 +2265,16 @@ bool wxMSWDCImpl::DoStretchBlit(wxCoord xdest, wxCoord ydest,
         default:
            wxFAIL_MSG( wxT("unsupported logical function") );
            return false;
+    }
+
+    // Most of the operations involve the source or the pattern, but a few of
+    // them (and only those few, no other are possible) only use destination
+    // HDC. For them we must not give a valid source HDC to MaskBlt() as it
+    // still uses it, somehow, and the result is garbage.
+    if ( dwRop == BLACKNESS || dwRop == WHITENESS ||
+            dwRop == DSTINVERT || dwRop == DSTCOPY )
+    {
+        hdcSrc = NULL;
     }
 
     bool success = false;
@@ -2446,6 +2497,12 @@ bool wxMSWDCImpl::DoStretchBlit(wxCoord xdest, wxCoord ydest,
         }
     }
 
+    if ( success )
+    {
+        CalcBoundingBox(xdest, ydest);
+        CalcBoundingBox(xdest + dstWidth, ydest + dstHeight);
+    }
+
     return success;
 }
 
@@ -2640,15 +2697,16 @@ IMPLEMENT_DYNAMIC_CLASS(wxDCModule, wxModule)
 // alpha channel support
 // ----------------------------------------------------------------------------
 
-static bool AlphaBlt(HDC hdcDst,
+static bool AlphaBlt(wxMSWDCImpl* dcDst,
                      int x, int y, int dstWidth, int dstHeight,
                      int srcX, int srcY,
                      int srcWidth, int srcHeight,
                      HDC hdcSrc,
-                     const wxBitmap& bmp)
+                     const wxBitmap& bmpSrc)
 {
-    wxASSERT_MSG( bmp.IsOk() && bmp.HasAlpha(), wxT("AlphaBlt(): invalid bitmap") );
-    wxASSERT_MSG( hdcDst && hdcSrc, wxT("AlphaBlt(): invalid HDC") );
+    wxASSERT_MSG( bmpSrc.IsOk() && bmpSrc.HasAlpha(),
+                    wxT("AlphaBlt(): invalid bitmap") );
+    wxASSERT_MSG( dcDst && hdcSrc, wxT("AlphaBlt(): invalid HDC") );
 
     // do we have AlphaBlend() and company in the headers?
 #if defined(AC_SRC_OVER) && wxUSE_DYNLIB_CLASS
@@ -2667,10 +2725,64 @@ static bool AlphaBlt(HDC hdcDst,
         bf.SourceConstantAlpha = 0xff;
         bf.AlphaFormat = AC_SRC_ALPHA;
 
-        if ( pfnAlphaBlend(hdcDst, x, y, dstWidth, dstHeight,
+        if ( pfnAlphaBlend(GetHdcOf(*dcDst), x, y, dstWidth, dstHeight,
                            hdcSrc, srcX, srcY, srcWidth, srcHeight,
                            bf) )
         {
+            // There is an extra complication with drawing bitmaps with alpha
+            // on bitmaps without alpha: AlphaBlt() modifies the alpha
+            // component of the destination bitmap even if it hadn't had it
+            // before which is not only unexpected but corrupts the bitmap as
+            // all its pixels outside of the (x, y, dstWidth, dstHeight) area
+            // are now fully transparent: they already had 0 value of alpha
+            // before but it didn't count as long as all other pixels had 0
+            // alpha as well, but now that some of them are not transparent any
+            // more, the rest of pixels with 0 alpha is transparent. So undo
+            // this to avoid "losing" the existing bitmap contents outside of
+            // the area affected by AlphaBlt(), see #14403.
+            const wxBitmap& bmpDst = dcDst->GetSelectedBitmap();
+            if ( bmpDst.IsOk() && !bmpDst.HasAlpha() && bmpDst.GetDepth() == 32 )
+            {
+                // We need to deselect the bitmap from the memory DC it is
+                // currently selected into before modifying it.
+                wxBitmap bmpOld = bmpDst;
+                dcDst->DoSelect(wxNullBitmap);
+
+                // Notice the extra block: we must destroy wxAlphaPixelData
+                // before selecting the bitmap into the DC again.
+                {
+                    wxAlphaPixelData data(bmpOld);
+                    if ( data )
+                    {
+                        wxAlphaPixelData::Iterator p(data);
+                        for ( int y = 0; y < bmpOld.GetHeight(); y++ )
+                        {
+                            wxAlphaPixelData::Iterator rowStart = p;
+
+                            for ( int x = 0; x < bmpOld.GetWidth(); x++ )
+                            {
+                                // We choose to use wxALPHA_TRANSPARENT instead
+                                // of perhaps more logical wxALPHA_OPAQUE here
+                                // to ensure that the bitmap remains the same
+                                // as before, i.e. without any alpha at all.
+                                p.Alpha() = wxALPHA_TRANSPARENT;
+                                ++p;
+                            }
+
+                            p = rowStart;
+                            p.OffsetY(data, 1);
+                        }
+                    }
+                }
+
+                // Using wxAlphaPixelData sets the internal "has alpha" flag
+                // which is usually what we need, but in this particular case
+                // we use it to get rid of alpha, not set it, so reset it back.
+                bmpOld.ResetAlpha();
+
+                dcDst->DoSelect(bmpOld);
+            }
+
             // skip wxAlphaBlend() call below
             return true;
         }
@@ -2684,13 +2796,14 @@ static bool AlphaBlt(HDC hdcDst,
     // AlphaBlend() unavailable of failed: use our own (probably much slower)
     // implementation
 #ifdef wxHAS_RAW_BITMAP
-    wxAlphaBlend(hdcDst, x, y, dstWidth, dstHeight, srcX, srcY, srcWidth, srcHeight, bmp);
+    wxAlphaBlend(GetHdcOf(*dcDst), x, y, dstWidth, dstHeight,
+                 srcX, srcY, srcWidth, srcHeight, bmpSrc);
 
     return true;
 #else // !wxHAS_RAW_BITMAP
     // no wxAlphaBlend() neither, fall back to using simple BitBlt() (we lose
     // alpha but at least something will be shown like this)
-    wxUnusedVar(bmp);
+    wxUnusedVar(bmpSrc);
     return false;
 #endif // wxHAS_RAW_BITMAP/!wxHAS_RAW_BITMAP
 }
@@ -2815,6 +2928,8 @@ void wxMSWDCImpl::DoGradientFillLinear (const wxRect& rect,
              ) )
         {
             // skip call of the base class version below
+            CalcBoundingBox(rect.GetLeft(), rect.GetBottom());
+            CalcBoundingBox(rect.GetRight(), rect.GetTop());
             return;
         }
 

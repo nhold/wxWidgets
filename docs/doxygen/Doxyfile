@@ -6,7 +6,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = wxWidgets
-PROJECT_NUMBER         = 3.0.0
+PROJECT_NUMBER         = 3.1.0
 PROJECT_BRIEF          =
 PROJECT_LOGO           = logo.png
 OUTPUT_DIRECTORY       = out
@@ -230,7 +230,7 @@ ALIASES += buildwith{2}="<b>Build Note:</b> You may need to build the wxWidgets 
 #---------------------------------------------------------------------------
 
 EXTRACT_ALL            = YES # Default: NO
-EXTRACT_PRIVATE        = NO
+EXTRACT_PRIVATE        = YES # Default: NO
 EXTRACT_PACKAGE        = NO
 EXTRACT_STATIC         = YES # Default: NO
 EXTRACT_LOCAL_CLASSES  = YES
@@ -364,7 +364,7 @@ SERVER_BASED_SEARCH    = $(SERVER_BASED_SEARCH)
 #---------------------------------------------------------------------------
 
 GENERATE_DOCSET        = $(GENERATE_DOCSET)
-DOCSET_FEEDNAME        = "wxWidgets 3.0"
+DOCSET_FEEDNAME        = "wxWidgets 3.1"
 DOCSET_BUNDLE_ID       = org.wxwidgets.doxygen.wx29
 DOCSET_PUBLISHER_ID    = org.wxwidgets.doxygen
 DOCSET_PUBLISHER_NAME  = wxWidgets Team

@@ -857,11 +857,6 @@ wxDocument *wxDocTemplate::CreateDocument(const wxString& path, long flags)
 bool
 wxDocTemplate::InitDocument(wxDocument* doc, const wxString& path, long flags)
 {
-    // Normally, if wxDocument::OnCreate() fails, it happens because the view
-    // initialization fails and then the document is destroyed due to the
-    // destruction of its last view. But take into account the (currently
-    // unrealized, AFAICS) possibility of other failures as well and ensure
-    // that the document is always destroyed if it can't be initialized.
     wxTRY
     {
         doc->SetFilename(path);
@@ -869,7 +864,19 @@ wxDocTemplate::InitDocument(wxDocument* doc, const wxString& path, long flags)
         GetDocumentManager()->AddDocument(doc);
         doc->SetCommandProcessor(doc->OnCreateCommandProcessor());
 
-        return doc->OnCreate(path, flags);
+        if ( doc->OnCreate(path, flags) )
+            return true;
+
+        // The document may be already destroyed, this happens if its view
+        // creation fails as then the view being created is destroyed
+        // triggering the destruction of the document as this first view is
+        // also the last one. However if OnCreate() fails for any reason other
+        // than view creation failure, the document is still alive and we need
+        // to clean it up ourselves to avoid having a zombie document.
+        if ( GetDocumentManager()->GetDocuments().Member(doc) )
+            doc->DeleteAllViews();
+
+        return false;
     }
     wxCATCH_ALL(
         if ( GetDocumentManager()->GetDocuments().Member(doc) )
@@ -1810,7 +1817,7 @@ wxDocTemplate *wxDocManager::SelectDocumentType(wxDocTemplate **templates,
                                                 int noTemplates, bool sort)
 {
     wxArrayString strings;
-    wxScopedArray<wxDocTemplate *> data(new wxDocTemplate *[noTemplates]);
+    wxScopedArray<wxDocTemplate *> data(noTemplates);
     int i;
     int n = 0;
 
@@ -1888,7 +1895,7 @@ wxDocTemplate *wxDocManager::SelectViewType(wxDocTemplate **templates,
                                             int noTemplates, bool sort)
 {
     wxArrayString strings;
-    wxScopedArray<wxDocTemplate *> data(new wxDocTemplate *[noTemplates]);
+    wxScopedArray<wxDocTemplate *> data(noTemplates);
     int i;
     int n = 0;
 

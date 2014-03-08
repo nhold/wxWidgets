@@ -1262,8 +1262,6 @@ wxIdRangeManager::~wxIdRangeManager()
         delete *i;
     }
     m_IdRanges.clear();
-
-    delete ms_instance;
 }
 
 void wxIdRangeManager::AddRange(const wxXmlNode* node)
@@ -2007,6 +2005,13 @@ bool wxXmlResourceHandlerImpl::IsOfClass(wxXmlNode *node, const wxString& classn
 }
 
 
+bool wxXmlResourceHandlerImpl::IsObjectNode(const wxXmlNode *node) const
+{
+    return node &&
+            node->GetType() == wxXML_ELEMENT_NODE &&
+                (node->GetName() == wxS("object") ||
+                    node->GetName() == wxS("object_ref"));
+}
 
 wxString wxXmlResourceHandlerImpl::GetNodeContent(const wxXmlNode *node)
 {
@@ -2022,6 +2027,21 @@ wxString wxXmlResourceHandlerImpl::GetNodeContent(const wxXmlNode *node)
         n = n->GetNext();
     }
     return wxEmptyString;
+}
+
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeParent(const wxXmlNode *node) const
+{
+    return node ? node->GetParent() : NULL;
+}
+
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeNext(const wxXmlNode *node) const
+{
+    return node ? node->GetNext() : NULL;
+}
+
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeChildren(const wxXmlNode *node) const
+{
+    return node ? node->GetChildren() : NULL;
 }
 
 
@@ -2219,15 +2239,15 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
         isize = GetLong(wxT("size"), -1);
 
     // style
-    int istyle = wxNORMAL;
+    wxFontStyle istyle = wxFONTSTYLE_NORMAL;
     bool hasStyle = HasParam(wxT("style"));
     if (hasStyle)
     {
         wxString style = GetParamValue(wxT("style"));
         if (style == wxT("italic"))
-            istyle = wxITALIC;
+            istyle = wxFONTSTYLE_ITALIC;
         else if (style == wxT("slant"))
-            istyle = wxSLANT;
+            istyle = wxFONTSTYLE_SLANT;
         else if (style != wxT("normal"))
         {
             ReportParamError
@@ -2239,15 +2259,15 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     }
 
     // weight
-    int iweight = wxNORMAL;
+    wxFontWeight iweight = wxFONTWEIGHT_NORMAL;
     bool hasWeight = HasParam(wxT("weight"));
     if (hasWeight)
     {
         wxString weight = GetParamValue(wxT("weight"));
         if (weight == wxT("bold"))
-            iweight = wxBOLD;
+            iweight = wxFONTWEIGHT_BOLD;
         else if (weight == wxT("light"))
-            iweight = wxLIGHT;
+            iweight = wxFONTWEIGHT_LIGHT;
         else if (weight != wxT("normal"))
         {
             ReportParamError
@@ -2263,17 +2283,17 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     bool underlined = hasUnderlined ? GetBool(wxT("underlined"), false) : false;
 
     // family and facename
-    int ifamily = wxDEFAULT;
+    wxFontFamily ifamily = wxFONTFAMILY_DEFAULT;
     bool hasFamily = HasParam(wxT("family"));
     if (hasFamily)
     {
         wxString family = GetParamValue(wxT("family"));
-             if (family == wxT("decorative")) ifamily = wxDECORATIVE;
-        else if (family == wxT("roman")) ifamily = wxROMAN;
-        else if (family == wxT("script")) ifamily = wxSCRIPT;
-        else if (family == wxT("swiss")) ifamily = wxSWISS;
-        else if (family == wxT("modern")) ifamily = wxMODERN;
-        else if (family == wxT("teletype")) ifamily = wxTELETYPE;
+        if (family == wxT("decorative")) ifamily = wxFONTFAMILY_DECORATIVE;
+        else if (family == wxT("roman")) ifamily = wxFONTFAMILY_ROMAN;
+        else if (family == wxT("script")) ifamily = wxFONTFAMILY_SCRIPT;
+        else if (family == wxT("swiss")) ifamily = wxFONTFAMILY_SWISS;
+        else if (family == wxT("modern")) ifamily = wxFONTFAMILY_MODERN;
+        else if (family == wxT("teletype")) ifamily = wxFONTFAMILY_TELETYPE;
         else
         {
             ReportParamError
@@ -2418,8 +2438,6 @@ void wxXmlResourceHandlerImpl::SetupWindow(wxWindow *wnd)
         wnd->Enable(false);
     if (GetBool(wxT("focused"), 0) == 1)
         wnd->SetFocus();
-    if (GetBool(wxT("hidden"), 0) == 1)
-        wnd->Show(false);
 #if wxUSE_TOOLTIPS
     if (HasParam(wxT("tooltip")))
         wnd->SetToolTip(GetText(wxT("tooltip")));

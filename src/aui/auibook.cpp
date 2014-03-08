@@ -65,6 +65,11 @@ extern void wxAuiDoInsertDockRow(wxAuiPaneInfoArray&,int,int,int);
 extern void wxAuiDoInsertPane(wxAuiPaneInfoArray&,int,int,int,int);
 extern void wxAuiDoInsertPage(wxAuiPaneInfoArray&,int,int,int,int,int);
 
+            int width = m_rect.width - 2 * border_space;
+            if (width < 0)
+                width = 0;
+                                     m_rect.width - 2 * border_space,
+                                     m_rect.width - 2 * border_space,
 
 BEGIN_EVENT_TABLE(wxAuiNotebook, wxControl)
 EVT_SIZE(wxAuiNotebook::OnSize)
@@ -90,7 +95,7 @@ void wxAuiNotebook::Init(long style)
     
     m_normalFont = *wxNORMAL_FONT;
     m_selectedFont = *wxNORMAL_FONT;
-    m_selectedFont.SetWeight(wxBOLD);
+    m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     
     SetArtProvider(new wxAuiDefaultTabArt);
     
@@ -528,7 +533,7 @@ bool wxAuiNotebook::SetFont(const wxFont& font)
     
     wxFont normalFont(font);
     wxFont selectedFont(normalFont);
-    selectedFont.SetWeight(wxBOLD);
+    selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     
     SetNormalFont(normalFont);
     SetSelectedFont(selectedFont);

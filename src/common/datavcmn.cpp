@@ -1790,6 +1790,11 @@ void wxDataViewListStore::DeleteAllItems()
     Reset( 0 );
 }
 
+void wxDataViewListStore::ClearColumns()
+{
+    m_cols.clear();
+}
+
 void wxDataViewListStore::SetItemData( const wxDataViewItem& item, wxUIntPtr data )
 {
     wxDataViewListStoreLine* line = m_data[GetRow(item)];
@@ -1880,17 +1885,23 @@ bool wxDataViewListCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *colum
 
 bool wxDataViewListCtrl::PrependColumn( wxDataViewColumn *col )
 {
-    return PrependColumn( col, "string" );
+    return PrependColumn( col, col->GetRenderer()->GetVariantType() );
 }
 
 bool wxDataViewListCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *col )
 {
-    return InsertColumn( pos, col, "string" );
+    return InsertColumn( pos, col, col->GetRenderer()->GetVariantType() );
 }
 
 bool wxDataViewListCtrl::AppendColumn( wxDataViewColumn *col )
 {
-    return AppendColumn( col, "string" );
+    return AppendColumn( col, col->GetRenderer()->GetVariantType() );
+}
+
+bool wxDataViewListCtrl::ClearColumns()
+{
+    GetStore()->ClearColumns();
+    return wxDataViewCtrl::ClearColumns();
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendTextColumn( const wxString &label,
@@ -1916,9 +1927,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendToggleColumn( const wxString &label,
         new wxDataViewToggleRenderer( wxT("bool"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendProgressColumn( const wxString &label,
@@ -1930,9 +1939,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendProgressColumn( const wxString &labe
         new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendIconTextColumn( const wxString &label,
@@ -1944,9 +1951,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendIconTextColumn( const wxString &labe
         new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 void wxDataViewListCtrl::OnSize( wxSizeEvent &event )

@@ -233,8 +233,8 @@ private:
     {
     public:
         // Ctor takes ownership of the pointers.
-        SystemDataEntry(FORMATETC *pformatetc, STGMEDIUM *pmedium)
-            : pformatetc(pformatetc), pmedium(pmedium)
+        SystemDataEntry(FORMATETC *pformatetc_, STGMEDIUM *pmedium_)
+            : pformatetc(pformatetc_), pmedium(pmedium_)
         {
         }
 
@@ -894,7 +894,7 @@ STDMETHODIMP wxIDataObject::EnumFormatEtc(DWORD dwDir,
         nFormatCount = wx_truncate_cast(ULONG, ourFormatCount + sysFormatCount);
 
     // fill format array with formats ...
-    wxScopedArray<wxDataFormat> formats(new wxDataFormat[nFormatCount]);
+    wxScopedArray<wxDataFormat> formats(nFormatCount);
 
     // ... from content data (supported formats)
     m_pDataObject->GetAllFormats(formats.get(), dir);

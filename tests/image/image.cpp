@@ -147,8 +147,8 @@ void ImageTestCase::LoadFromSocketStream()
         wxBitmapType type;
     } testData[] =
     {
-        { "http://www.wxwidgets.org/logo9.jpg", wxBITMAP_TYPE_JPEG },
-        { "http://www.wxwidgets.org/favicon.ico", wxBITMAP_TYPE_ICO }
+        { "http://www.wxwidgets.org/assets/img/header-logo.png", wxBITMAP_TYPE_PNG },
+        { "http://www.wxwidgets.org/assets/ico/favicon-1.ico", wxBITMAP_TYPE_ICO }
     };
 
     for (unsigned int i=0; i<WXSIZEOF(testData); i++)
@@ -1346,7 +1346,14 @@ void ImageTestCase::BMPFlippingAndRLECompression()
 }
 
 
+// The 0 below can be replaced with 1 to generate, instead of comparing with,
+// the test files.
 #define ASSERT_IMAGE_EQUAL_TO_FILE(image, file) \
+    if ( 0 ) \
+    { \
+        CPPUNIT_ASSERT_MESSAGE( "Failed to save " file, image.SaveFile(file) ); \
+    } \
+    else \
     { \
         wxImage imageFromFile(file); \
         CPPUNIT_ASSERT_MESSAGE( "Failed to load " file, imageFromFile.IsOk() ); \

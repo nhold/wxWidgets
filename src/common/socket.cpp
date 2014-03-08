@@ -38,6 +38,7 @@
 
 #include "wx/apptrait.h"
 #include "wx/sckaddr.h"
+#include "wx/scopeguard.h"
 #include "wx/stopwatch.h"
 #include "wx/thread.h"
 #include "wx/evtloop.h"
@@ -527,6 +528,8 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     WX_SOCKLEN_T fromlen = sizeof(from);
     const wxSOCKET_T fd = accept(m_fd, &from.addr, &fromlen);
 
+    wxScopeGuard closeSocket = wxMakeGuard(close, fd);
+
     // accepting is similar to reading in the sense that it resets "ready for
     // read" flag on the socket
     ReenableEvents(wxSOCKET_INPUT_FLAG);
@@ -542,6 +545,8 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     if ( !sock )
         return NULL;
 
+    // Ownership of the socket now passes to wxSocketImpl object.
+    closeSocket.Dismiss();
     sock->m_fd = fd;
     sock->m_peer = wxSockAddressImpl(from.addr, fromlen);
 
@@ -1357,7 +1362,25 @@ wxSocketEventFlags wxSocketImpl::Select(wxSocketEventFlags flags,
 
     wxSocketEventFlags detected = 0;
     if ( preadfds && wxFD_ISSET(m_fd, preadfds) )
-        detected |= wxSOCKET_INPUT_FLAG;
+    {
+        // check for the case of a server socket waiting for connection
+        if ( m_server && (flags & wxSOCKET_CONNECTION_FLAG) )
+        {
+            int error;
+            SOCKOPTLEN_T len = sizeof(error);
+            m_establishing = false;
+            getsockopt(m_fd, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+
+            if ( error )
+                detected = wxSOCKET_LOST_FLAG;
+            else
+                detected |= wxSOCKET_CONNECTION_FLAG;
+        }
+        else // not called to get non-blocking accept() status
+        {
+            detected |= wxSOCKET_INPUT_FLAG;
+        }
+    }
 
     if ( pwritefds && wxFD_ISSET(m_fd, pwritefds) )
     {

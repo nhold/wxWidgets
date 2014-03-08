@@ -542,6 +542,9 @@ public:
         Draws the text rotated by @a angle degrees 
         (positive angles are counterclockwise; the full angle is 360 degrees).
 
+        Notice that, as with DrawText(), the @a text can contain multiple lines
+        separated by the new line (@c '\\n') characters.
+
         @note Under Win9x only TrueType fonts can be drawn by this function. In
               particular, a font different from @c wxNORMAL_FONT should be used
               as the latter is not a TrueType font. @c wxSWISS_FONT is an
@@ -929,7 +932,7 @@ public:
     //@{
 
     /**
-        Returns the current background mode: @c wxSOLID or @c wxTRANSPARENT.
+        Returns the current background mode: @c wxPENSTYLE_SOLID or @c wxPENSTYLE_TRANSPARENT.
 
         @see SetBackgroundMode()
     */
@@ -969,7 +972,7 @@ public:
     const wxColour& GetTextForeground() const;
 
     /**
-        @a mode may be one of @c wxSOLID and @c wxTRANSPARENT. 
+        @a mode may be one of @c wxPENSTYLE_SOLID and @c wxPENSTYLE_TRANSPARENT.
         
         This setting determines whether text will be drawn with a background 
         colour or not.

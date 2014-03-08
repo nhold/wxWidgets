@@ -2211,7 +2211,7 @@ public:
     */
     wxRichTextDrawingContext(wxRichTextBuffer* buffer);
 
-    void Init() { m_buffer = NULL; m_enableVirtualAttributes = true; }
+    void Init() { m_buffer = NULL; m_enableVirtualAttributes = true; m_enableImages = true; m_layingOut = false; }
 
     /**
         Does this object have virtual attributes?
@@ -2269,8 +2269,34 @@ public:
 
     bool GetVirtualAttributesEnabled() const { return m_enableVirtualAttributes; }
 
+    /**
+        Enable or disable images
+    */
+
+    void EnableImages(bool b) { m_enableImages = b; }
+
+    /**
+        Returns @true if images are enabled.
+    */
+
+    bool GetImagesEnabled() const { return m_enableImages; }
+
+    /**
+        Set laying out flag
+    */
+
+    void SetLayingOut(bool b) { m_layingOut = b; }
+
+    /**
+        Returns @true if laying out.
+    */
+
+    bool GetLayingOut() const { return m_layingOut; }
+
     wxRichTextBuffer*   m_buffer;
     bool                m_enableVirtualAttributes;
+    bool                m_enableImages;
+    bool                m_layingOut;
 };
 
 /**
@@ -2746,16 +2772,6 @@ public:
     */
     bool IsShown() const { return m_show; }
 
-    /**
-        Returns the object's unique identifier, if any.
-    */
-    const wxString& GetId() const { return m_id; }
-
-    /**
-        Sets the object's unique identifier.
-    */
-    void SetId(const wxString& id) { m_id = id; }
-
 // Operations
 
     /**
@@ -2854,7 +2870,6 @@ protected:
     int                     m_descent; // Descent for this object (if any)
     int                     m_refCount;
     bool                    m_show;
-    wxString                m_id;
     wxRichTextObject*       m_parent;
 
     // The range of this object (start position to end position)
@@ -4281,6 +4296,8 @@ public:
     virtual ~wxRichTextParagraph();
     wxRichTextParagraph(const wxRichTextParagraph& obj): wxRichTextCompositeObject() { Copy(obj); }
 
+    void Init();
+
 // Overridables
 
     virtual bool Draw(wxDC& dc, wxRichTextDrawingContext& context, const wxRichTextRange& range, const wxRichTextSelection& selection, const wxRect& rect, int descent, int style);
@@ -4414,10 +4431,23 @@ public:
     */
     void LayoutFloat(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style, wxRichTextFloatCollector* floatCollector);
 
+    /**
+        Whether the paragraph is impacted by floating objects from above.
+    */
+    int GetImpactedByFloatingObjects() const { return m_impactedByFloatingObjects; }
+
+    /**
+        Sets whether the paragraph is impacted by floating objects from above.
+    */
+    void SetImpactedByFloatingObjects(int i) { m_impactedByFloatingObjects = i; }
+
 protected:
 
     // The lines that make up the wrapped paragraph
-    wxRichTextLineList m_cachedLines;
+    wxRichTextLineList  m_cachedLines;
+
+    // Whether the paragraph is impacted by floating objects from above
+    int                 m_impactedByFloatingObjects;
 
     // Default tabstops
     static wxArrayInt  sm_defaultTabs;
@@ -4821,7 +4851,7 @@ public:
     /**
         Creates a cached image at the required size.
     */
-    virtual bool LoadImageCache(wxDC& dc, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+    virtual bool LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
 
     /**
         Gets the original image size.
@@ -5704,7 +5734,7 @@ public:
     /**
         Returns the column span. The default is 1.
     */
-    int GetColSpan() const { return m_colSpan; }
+    int GetColSpan() const;
 
     /**
         Sets the column span.
@@ -5714,7 +5744,7 @@ public:
     /**
         Returns the row span. The default is 1.
     */
-    int GetRowSpan() const { return m_rowSpan; }
+    int GetRowSpan() const;
 
     /**
         Sets the row span.
@@ -5728,8 +5758,6 @@ public:
     void Copy(const wxRichTextCell& obj);
 
 protected:
-    int m_colSpan;
-    int m_rowSpan;
 };
 
 /**
@@ -6163,7 +6191,9 @@ public:
         Updates the control appearance, optimizing if possible given information from the call to Layout.
     */
     void UpdateAppearance(long caretPosition, bool sendUpdateEvent = false,
-                            wxArrayInt* optimizationLineCharPositions = NULL, wxArrayInt* optimizationLineYPositions = NULL, bool isDoCmd = true);
+                          const wxRect& oldFloatRect = wxRect(),
+                          wxArrayInt* optimizationLineCharPositions = NULL, wxArrayInt* optimizationLineYPositions = NULL,
+                          bool isDoCmd = true);
 
     /**
         Replaces the buffer paragraphs with the given fragment.
@@ -6216,7 +6246,8 @@ public:
     /**
         Calculate arrays for refresh optimization.
     */
-    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions);
+    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions,
+                                       wxRect& oldFloatRect);
 
     /**
         Sets the position used for e.g. insertion.

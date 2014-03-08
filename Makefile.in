@@ -74,9 +74,10 @@ wx_top_builddir = @wx_top_builddir@
 ### Variables: ###
 
 DESTDIR = 
-WX_RELEASE = 3.0
-WX_RELEASE_NODOT = 30
+WX_RELEASE = 3.1
+WX_RELEASE_NODOT = 31
 WX_VERSION = $(WX_RELEASE).0
+WX_VERSION_NODOT = $(WX_RELEASE_NODOT)0
 LIBDIRNAME = $(wx_top_builddir)/lib
 WXREGEX_CFLAGS = -DNDEBUG -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) $(____SHARED) \
 	$(CPPFLAGS) $(CFLAGS)
@@ -1883,6 +1884,7 @@ AUIDLL_OBJECTS =  \
 	auidll_tabmdi.o \
 	auidll_tabart.o \
 	auidll_xh_auinotbk.o \
+	auidll_xh_auitoolb.o \
 	$(__AUI_GTK_SRC_OBJECTS_2)
 AUIDLL_ODEP =  $(_____pch_wxprec_auidll_wx_wxprec_h_gch___depname)
 AUILIB_CXXFLAGS = $(__auilib_PCH_INC) -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
@@ -1899,6 +1901,7 @@ AUILIB_OBJECTS =  \
 	auilib_tabmdi.o \
 	auilib_tabart.o \
 	auilib_xh_auinotbk.o \
+	auilib_xh_auitoolb.o \
 	$(__AUI_GTK_SRC_OBJECTS_3)
 AUILIB_ODEP =  $(_____pch_wxprec_auilib_wx_wxprec_h_gch___depname)
 RIBBONDLL_CXXFLAGS = $(__ribbondll_PCH_INC) -D__WX$(TOOLKIT)__ \
@@ -2100,10 +2103,10 @@ LOCALE_MSW_LINGUAS =  it
 @COND_WXUNIV_1@WXUNIVNAME = univ
 @COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIX = wx_base$(WXBASEPORT)
 @COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIX = \
-@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)
+@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_VERSION_NODOT)
 @COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIXGUI = wx_$(PORTNAME)$(WXUNIVNAME)
 @COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIXGUI = \
-@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)
+@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_VERSION_NODOT)
 @COND_PLATFORM_WIN32_0@WXDLLVERSIONTAG = -$(WX_RELEASE)
 @COND_PLATFORM_WIN32_1@WXDLLVERSIONTAG = 
 COND_wxUSE_REGEX_builtin___wxregex___depname = \
@@ -2165,8 +2168,8 @@ COND_USE_STC_1___wxscintilla___depname = \
 @COND_MONOLITHIC_1@	$(EXTRALIBS_XML) $(EXTRALIBS_GUI)
 @COND_MONOLITHIC_0@EXTRALIBS_FOR_GUI = $(EXTRALIBS_GUI)
 @COND_MONOLITHIC_1@EXTRALIBS_FOR_GUI = 
-@COND_PLATFORM_UNIX_0@PLUGIN_VERSION0 = $(WX_RELEASE_NODOT)
-@COND_PLATFORM_UNIX_1@PLUGIN_VERSION0 = $(WX_RELEASE)
+@COND_PLATFORM_UNIX_0@PLUGIN_VERSION0 = $(WX_VERSION_NODOT)
+@COND_PLATFORM_UNIX_1@PLUGIN_VERSION0 = $(WX_VERSION)
 @COND_PLATFORM_UNIX_0@PLUGVERDELIM = 
 @COND_PLATFORM_UNIX_1@PLUGVERDELIM = -
 @COND_TOOLKIT_WINCE@BASE_WINCE_SRC = src/msw/wince/time.cpp
@@ -4090,7 +4093,6 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/generic/accel.h \
 	wx/generic/buttonbar.h \
 	wx/generic/choicdgg.h \
-	wx/generic/colrdlgg.h \
 	wx/generic/combo.h \
 	wx/generic/custombgwin.h \
 	wx/generic/dcpsg.h \
@@ -4380,6 +4382,7 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	wx/aui/aui.h \
 	wx/aui/tabart.h \
 	wx/xrc/xh_auinotbk.h \
+	wx/xrc/xh_auitoolb.h \
 	$(AUI_GTK_HDR) \
 	wx/propgrid/advprops.h \
 	wx/propgrid/editors.h \
@@ -4706,6 +4709,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS =  \
 	monodll_tabmdi.o \
 	monodll_tabart.o \
 	monodll_xh_auinotbk.o \
+	monodll_xh_auitoolb.o \
 	$(__AUI_GTK_SRC_OBJECTS) \
 	monodll_advprops.o \
 	monodll_editors.o \
@@ -6954,6 +6958,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS_1 =  \
 	monolib_tabmdi.o \
 	monolib_tabart.o \
 	monolib_xh_auinotbk.o \
+	monolib_xh_auitoolb.o \
 	$(__AUI_GTK_SRC_OBJECTS_1) \
 	monolib_advprops.o \
 	monolib_editors.o \
@@ -18755,6 +18760,9 @@ monodll_tabart.o: $(srcdir)/src/aui/tabart.cpp $(MONODLL_ODEP)
 monodll_xh_auinotbk.o: $(srcdir)/src/xrc/xh_auinotbk.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/xrc/xh_auinotbk.cpp
 
+monodll_xh_auitoolb.o: $(srcdir)/src/xrc/xh_auitoolb.cpp $(MONODLL_ODEP)
+	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/xrc/xh_auitoolb.cpp
+
 monodll_tabartgtk.o: $(srcdir)/src/aui/tabartgtk.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $(srcdir)/src/aui/tabartgtk.cpp
 
@@ -24622,6 +24630,9 @@ monolib_tabart.o: $(srcdir)/src/aui/tabart.cpp $(MONOLIB_ODEP)
 
 monolib_xh_auinotbk.o: $(srcdir)/src/xrc/xh_auinotbk.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/xrc/xh_auinotbk.cpp
+
+monolib_xh_auitoolb.o: $(srcdir)/src/xrc/xh_auitoolb.cpp $(MONOLIB_ODEP)
+	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/xrc/xh_auitoolb.cpp
 
 monolib_tabartgtk.o: $(srcdir)/src/aui/tabartgtk.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $(srcdir)/src/aui/tabartgtk.cpp
@@ -40205,6 +40216,9 @@ auidll_tabart.o: $(srcdir)/src/aui/tabart.cpp $(AUIDLL_ODEP)
 auidll_xh_auinotbk.o: $(srcdir)/src/xrc/xh_auinotbk.cpp $(AUIDLL_ODEP)
 	$(CXXC) -c -o $@ $(AUIDLL_CXXFLAGS) $(srcdir)/src/xrc/xh_auinotbk.cpp
 
+auidll_xh_auitoolb.o: $(srcdir)/src/xrc/xh_auitoolb.cpp $(AUIDLL_ODEP)
+	$(CXXC) -c -o $@ $(AUIDLL_CXXFLAGS) $(srcdir)/src/xrc/xh_auitoolb.cpp
+
 auidll_tabartgtk.o: $(srcdir)/src/aui/tabartgtk.cpp $(AUIDLL_ODEP)
 	$(CXXC) -c -o $@ $(AUIDLL_CXXFLAGS) $(srcdir)/src/aui/tabartgtk.cpp
 
@@ -40231,6 +40245,9 @@ auilib_tabart.o: $(srcdir)/src/aui/tabart.cpp $(AUILIB_ODEP)
 
 auilib_xh_auinotbk.o: $(srcdir)/src/xrc/xh_auinotbk.cpp $(AUILIB_ODEP)
 	$(CXXC) -c -o $@ $(AUILIB_CXXFLAGS) $(srcdir)/src/xrc/xh_auinotbk.cpp
+
+auilib_xh_auitoolb.o: $(srcdir)/src/xrc/xh_auitoolb.cpp $(AUILIB_ODEP)
+	$(CXXC) -c -o $@ $(AUILIB_CXXFLAGS) $(srcdir)/src/xrc/xh_auitoolb.cpp
 
 auilib_tabartgtk.o: $(srcdir)/src/aui/tabartgtk.cpp $(AUILIB_ODEP)
 	$(CXXC) -c -o $@ $(AUILIB_CXXFLAGS) $(srcdir)/src/aui/tabartgtk.cpp

@@ -447,6 +447,21 @@ WX_NSImage  wxOSXGetNSImageFromCGImage( CGImageRef image, double scaleFactor )
     return( newImage );
 }
 
+WX_NSImage WXDLLIMPEXP_CORE wxOSXGetNSImageFromIconRef( WXHICON iconref )
+{
+    NSImage  *newImage = [[NSImage alloc] initWithIconRef:iconref];
+    [newImage autorelease];
+    return( newImage );
+}
+
+CGImageRef WXDLLIMPEXP_CORE wxOSXGetCGImageFromNSImage( WX_NSImage nsimage, CGRect* r, CGContextRef cg)
+{
+    NSRect nsRect = NSRectFromCGRect(*r);
+    return [nsimage CGImageForProposedRect:&nsRect
+                                   context:[NSGraphicsContext graphicsContextWithGraphicsPort:cg flipped:YES]
+                                            hints:nil];
+}
+
 CGContextRef WXDLLIMPEXP_CORE wxOSXCreateBitmapContextFromNSImage( WX_NSImage nsimage)
 {
     // based on http://www.mail-archive.com/cocoa-dev@lists.apple.com/msg18065.html
@@ -461,13 +476,14 @@ CGContextRef WXDLLIMPEXP_CORE wxOSXCreateBitmapContextFromNSImage( WX_NSImage ns
         hbitmap = CGBitmapContextCreate(NULL, imageSize.width*scale, imageSize.height*scale, 8, 0, wxMacGetGenericRGBColorSpace(), kCGImageAlphaPremultipliedFirst);
         CGContextScaleCTM( hbitmap, scale, scale );
     
+        NSGraphicsContext *previousContext = [NSGraphicsContext currentContext];
         NSGraphicsContext *nsGraphicsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:hbitmap flipped:NO];
         [NSGraphicsContext saveGraphicsState];
         [NSGraphicsContext setCurrentContext:nsGraphicsContext];
         [[NSColor whiteColor] setFill];
         NSRectFill(NSMakeRect(0.0, 0.0, imageSize.width, imageSize.height));
         [nsimage drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-        [NSGraphicsContext setCurrentContext:nsGraphicsContext];
+        [NSGraphicsContext setCurrentContext:previousContext];
     }
     return hbitmap;
 }
