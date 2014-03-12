@@ -4571,6 +4571,27 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
         return rect;
     }
 
+
+    if ( wxDynamicCast(paneWindow->GetParent(), wxAuiNotebook) ) {
+
+        // If the dragged pane is part of a wxAuiNotebook, we have to better show
+        // the split direction, so truncate the hint rectangle in the opposite direction to it's own direction
+
+        int hw = wxMax(rect.GetWidth()/2,1);
+        int hh = wxMax(rect.GetHeight()/2,1);
+        switch(hint.GetDirection()) {
+        
+            case wxAUI_DOCK_BOTTOM: rect.SetTop(rect.GetTop()+rect.GetHeight()-hh);
+            case wxAUI_DOCK_TOP   : rect.SetHeight(hh); break;
+
+            case wxAUI_DOCK_RIGHT : rect.SetLeft(rect.GetLeft()+rect.GetWidth()-hw); 
+            case wxAUI_DOCK_LEFT  : rect.SetWidth(hw); break;
+
+        }
+
+    }
+
+
     // actually show the hint rectangle on the screen
     m_frame->ClientToScreen(&rect.x, &rect.y);
 
