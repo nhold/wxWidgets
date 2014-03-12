@@ -4033,7 +4033,7 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
     if (part->type == wxAuiDockUIPart::typePaneTab)
     {
         // Figure out if the pane is already part of the notebook, which will happen when dragging a tab in a notebook.
-        int isAlreadyInNotebook = part->m_tab_container->GetPages().Index(&drop);
+        bool isAlreadyInNotebook = part->m_tab_container->GetPages().Index(&target) != wxNOT_FOUND;
 
         // Check if tab moving is allowed
         if(isAlreadyInNotebook && !HasFlag(wxAUI_MGR_NB_TAB_MOVE))
@@ -4061,17 +4061,18 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
         else
         {
             // Insert after pane we are hovering over.
-            if( isAlreadyInNotebook && drop.GetPage()<hitPane->GetPage() )
-            {
-                page = hitPane->GetPage()+1;
-            }
-            else
-            {
-                // Insert before pane we are hovering over.
-                page = hitPane->GetPage();
+            if (isAlreadyInNotebook) {
+                if( drop.GetPage()<hitPane->GetPage() )
+                {
+                    page = hitPane->GetPage()+1;
+                }
+                else
+                {
+                    // Insert before pane we are hovering over.
+                    page = hitPane->GetPage();
+                }
             }
         }
-
 
         wxAuiDoInsertPage(panes, hitPane->GetDirection(), hitPane->GetLayer(), hitPane->GetRow(), hitPane->GetPosition(), page);
         drop.Dock().SetDirection(hitPane->GetDirection()).SetLayer(hitPane->GetLayer()).SetRow(hitPane->GetRow()).SetPosition(hitPane->GetPosition()).SetPage(page);
