@@ -2614,7 +2614,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1)))
+                if( wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ||  (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -2840,7 +2840,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1)))
+                if(wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) || (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
