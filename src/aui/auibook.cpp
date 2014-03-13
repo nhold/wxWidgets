@@ -97,6 +97,7 @@ void wxAuiNotebook::Init(long style)
     m_mgr.SetManagedWindow(this);
     m_mgr.SetDockSizeConstraint(1.0, 1.0); // no dock size constraint
     SetWindowStyleFlag(style);
+        
 }
 
 wxAuiNotebook::~wxAuiNotebook()
@@ -194,20 +195,14 @@ void wxAuiNotebook::SetWindowStyleFlag(long style)
 {
     wxControl::SetWindowStyleFlag(style);
     
-    m_mgr.SetFlags(style);
-    
-    unsigned int i;
-    for(i=0;i<m_mgr.GetAllPanes().size();i++)
-    {
-        if(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT))
-        {
-            m_mgr.GetAllPanes()[i].SetDockable(true);
-        }
-        else
-        {
-            m_mgr.GetAllPanes()[i].SetDockable(false);
-        }
-    }
+    // copy notebook dedicated style flags to the onboard manager flags
+    m_mgr.SetFlags( style & 0xFFFF );
+   
+    // split is done by allowing the pane normal docking
+    // if the flag changes, we have to redo the layout
+    bool allow_docking = m_mgr.HasFlag(wxAUI_MGR_NB_TAB_SPLIT);
+    for(size_t i=0; i<m_mgr.GetAllPanes().size() ;i++)
+        m_mgr.GetAllPanes()[i].SetDockable(allow_docking);
     
     m_mgr.Update();
 }
@@ -231,7 +226,7 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)));
+    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false));
     
     
     if(select)
@@ -446,7 +441,7 @@ wxAuiTabContainer* wxAuiNotebook::GetActiveTabCtrl()
     return NULL;
 }
 
-void wxAuiNotebook::OnTabCancelDrag(wxAuiNotebookEvent& commandEvent)
+void wxAuiNotebook::OnTabCancelDrag(wxAuiNotebookEvent& /* evt */)
 {
     //fixme: (MJM) merge - this has been broken in the merge and needs to be re-implemented
 }

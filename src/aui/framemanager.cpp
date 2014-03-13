@@ -2614,7 +2614,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1)))
+                if( wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ||  (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -2840,7 +2840,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1)))
+                if(wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) || (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -4033,7 +4033,7 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
     if (part->type == wxAuiDockUIPart::typePaneTab)
     {
         // Figure out if the pane is already part of the notebook, which will happen when dragging a tab in a notebook.
-        int isAlreadyInNotebook = part->m_tab_container->GetPages().Index(&drop);
+        bool isAlreadyInNotebook = part->m_tab_container->GetPages().Index(&target) != wxNOT_FOUND;
 
         // Check if tab moving is allowed
         if(isAlreadyInNotebook && !HasFlag(wxAUI_MGR_NB_TAB_MOVE))
@@ -4061,17 +4061,18 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
         else
         {
             // Insert after pane we are hovering over.
-            if( isAlreadyInNotebook && drop.GetPage()<hitPane->GetPage() )
-            {
-                page = hitPane->GetPage()+1;
-            }
-            else
-            {
-                // Insert before pane we are hovering over.
-                page = hitPane->GetPage();
+            if (isAlreadyInNotebook) {
+                if( drop.GetPage()<hitPane->GetPage() )
+                {
+                    page = hitPane->GetPage()+1;
+                }
+                else
+                {
+                    // Insert before pane we are hovering over.
+                    page = hitPane->GetPage();
+                }
             }
         }
-
 
         wxAuiDoInsertPage(panes, hitPane->GetDirection(), hitPane->GetLayer(), hitPane->GetRow(), hitPane->GetPosition(), page);
         drop.Dock().SetDirection(hitPane->GetDirection()).SetLayer(hitPane->GetLayer()).SetRow(hitPane->GetRow()).SetPosition(hitPane->GetPosition()).SetPage(page);
@@ -4569,6 +4570,27 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
         m_doingHintCalculation = false;
         return rect;
     }
+
+
+    if ( wxDynamicCast(paneWindow->GetParent(), wxAuiNotebook) ) {
+
+        // If the dragged pane is part of a wxAuiNotebook, we have to better show
+        // the split direction, so truncate the hint rectangle in the opposite direction to it's own direction
+
+        int hw = wxMax(rect.GetWidth()/2,1);
+        int hh = wxMax(rect.GetHeight()/2,1);
+        switch(hint.GetDirection()) {
+        
+            case wxAUI_DOCK_BOTTOM: rect.SetTop(rect.GetTop()+rect.GetHeight()-hh);
+            case wxAUI_DOCK_TOP   : rect.SetHeight(hh); break;
+
+            case wxAUI_DOCK_RIGHT : rect.SetLeft(rect.GetLeft()+rect.GetWidth()-hw); 
+            case wxAUI_DOCK_LEFT  : rect.SetWidth(hw); break;
+
+        }
+
+    }
+
 
     // actually show the hint rectangle on the screen
     m_frame->ClientToScreen(&rect.x, &rect.y);
