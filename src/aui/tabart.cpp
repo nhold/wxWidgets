@@ -161,13 +161,15 @@ static const unsigned char list_bits[] = {
 
 wxAuiGenericTabArt::wxAuiGenericTabArt()
 {
+	m_requestedSize.x = -1;
+	m_requestedSize.y = -1;
     m_normalFont = *wxNORMAL_FONT;
     m_selectedFont = *wxNORMAL_FONT;
     m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     m_measuringFont = m_selectedFont;
 
     m_fixedTabSize = 20;
-    m_tabCtrlHeight = 0;
+    m_tabCtrlHeight = 100;
 
 #if defined( __WXMAC__ ) && wxOSX_USE_COCOA_OR_CARBON
     wxColor baseColour = wxColour( wxMacCreateCGColorFromHITheme(kThemeBrushToolbarBackground));
@@ -290,6 +292,25 @@ void wxAuiGenericTabArt::SetSizingInfo(const wxSize& tabCtrlSize, size_t tabCoun
     }
 }
 
+void wxAuiGenericTabArt::SetTabCtrlHeight(int size)
+{
+	m_requestedSize.y = size;
+}
+
+void wxAuiGenericTabArt::SetTabCtrlWidth(int size)
+{
+	m_requestedSize.x = size;
+}
+
+void wxAuiGenericTabArt::SetUniformBitmapSize(const wxSize& size)
+{
+	m_requiredBitmapSize = size;
+}
+
+wxSize wxAuiGenericTabArt::GetRequestedSize() const
+{
+	return wxSize(m_tabCtrlWidth, m_tabCtrlHeight);
+}
 
 void wxAuiGenericTabArt::DrawBorder(wxDC& dc, wxWindow* wnd, const wxRect& rect)
 {
@@ -1071,6 +1092,11 @@ void wxAuiGenericTabArt::SetActiveColour(const wxColour& colour)
     m_activeColour = colour;
 }
 
+wxSize wxAuiGenericTabArt::GetRequiredBitmapSize() const
+{
+	return m_requiredBitmapSize;
+}
+
 // -- wxAuiSimpleTabArt class implementation --
 
 wxAuiSimpleTabArt::wxAuiSimpleTabArt()
@@ -1079,7 +1105,8 @@ wxAuiSimpleTabArt::wxAuiSimpleTabArt()
     m_selectedFont = *wxNORMAL_FONT;
     m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     m_measuringFont = m_selectedFont;
-
+	m_requestedSize.x = -1;
+	m_requestedSize.y = -1;
     m_flags = 0;
     m_fixedTabSize = 20;
 
@@ -1688,6 +1715,31 @@ void wxAuiSimpleTabArt::SetSelectedFont(const wxFont& font)
 void wxAuiSimpleTabArt::SetMeasuringFont(const wxFont& font)
 {
     m_measuringFont = font;
+}
+
+void wxAuiSimpleTabArt::SetTabCtrlHeight(int size)
+{
+	m_requestedSize.y = size;
+}
+
+void wxAuiSimpleTabArt::SetTabCtrlWidth(int size)
+{
+	m_requestedSize.x = size;
+}
+
+void wxAuiSimpleTabArt::SetUniformBitmapSize(const wxSize& size)
+{
+	m_requiredBitmapSize = size;
+}
+
+wxSize wxAuiSimpleTabArt::GetRequestedSize() const
+{
+	return wxSize(m_tabCtrlWidth, m_tabCtrlHeight);
+}
+
+wxSize wxAuiSimpleTabArt::GetRequiredBitmapSize() const
+{
+	return m_requiredBitmapSize;
 }
 
 #endif // wxUSE_AUI

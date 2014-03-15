@@ -86,12 +86,6 @@ bool wxAuiNotebook::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 void wxAuiNotebook::Init(long style)
 {
     SetName(wxT("wxAuiNotebook"));
-    m_tabCtrlHeight = 100;
-    
-    m_normalFont = *wxNORMAL_FONT;
-    m_selectedFont = *wxNORMAL_FONT;
-    m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
-    
     SetArtProvider(new wxAuiDefaultTabArt);
     
     m_mgr.SetManagedWindow(this);
@@ -124,12 +118,12 @@ void wxAuiNotebook::SetArtProvider(wxAuiTabArt* art)
 // any previous call and returns to the default behaviour
 void wxAuiNotebook::SetTabCtrlHeight(int height)
 {
-    m_requestedTabCtrlHeight = height;
+	GetArtProvider()->SetTabCtrlHeight(height);
 }
 
-void wxAuiNotebook::SetTabCtrlWidth(int w)
+void wxAuiNotebook::SetTabCtrlWidth(int width)
 {
-    m_tabCtrlWidth = w;
+    GetArtProvider()->SetTabCtrlWidth(width);
 }
 
 
@@ -142,7 +136,7 @@ void wxAuiNotebook::SetTabCtrlWidth(int w)
 
 void wxAuiNotebook::SetUniformBitmapSize(const wxSize& size)
 {
-    m_requestedBmpSize = size;
+    GetArtProvider()->SetUniformBitmapSize(size);
 }
 
 // UpdateTabCtrlSize() does the actual tab resizing. It's meant
@@ -154,15 +148,14 @@ bool wxAuiNotebook::UpdateTabCtrlSize()
     
     // if the tab control height needs to change, update
     // all of our tab controls with the new height
-    if (m_tabCtrlHeight == size.y && m_tabCtrlWidth == size.x)
+    if (m_mgr.GetTabArtProvider()->GetRequestedSize() == size)
         return false;
-    
-    //fixme: (MJM) This has been broken in the merge and needs to be re-implemented
-    
+
+
+	// Are we supposed to update from the 'size' or what?
+
     return true;
 }
-
-
 
 wxSize wxAuiNotebook::CalculateTabCtrlSize()
 {
@@ -174,12 +167,13 @@ wxSize wxAuiNotebook::CalculateTabCtrlSize()
         allPanes.Add(&m_mgr.GetPane(i));
     }
     
-    wxSize tab_size = m_mgr.GetTabArtProvider()->GetBestTabSize((wxWindow*)this, allPanes, m_requestedBmpSize);
+    wxSize tab_size = m_mgr.GetTabArtProvider()->GetBestTabSize((wxWindow*)this, allPanes,
+		m_mgr.GetTabArtProvider()->GetRequiredBitmapSize());
     // if a fixed tab ctrl height is specified,
     // just use that instead of calculating a
     // tab height
-    if (m_requestedTabCtrlHeight != -1)
-        tab_size.y = m_requestedTabCtrlHeight;
+    if (m_mgr.GetTabArtProvider()->GetRequestedSize().y != -1)
+        tab_size.y = m_mgr.GetTabArtProvider()->GetRequestedSize().y;
     
     return tab_size;
 }
@@ -504,14 +498,12 @@ void wxAuiNotebook::Split(size_t pageIndex, int direction)
 // Sets the normal font
 void wxAuiNotebook::SetNormalFont(const wxFont& font)
 {
-    m_normalFont = font;
     GetArtProvider()->SetNormalFont(font);
 }
 
 // Sets the selected tab font
 void wxAuiNotebook::SetSelectedFont(const wxFont& font)
 {
-    m_selectedFont = font;
     GetArtProvider()->SetSelectedFont(font);
 }
 
@@ -540,13 +532,13 @@ bool wxAuiNotebook::SetFont(const wxFont& font)
 // Gets the tab control height
 int wxAuiNotebook::GetTabCtrlHeight() const
 {
-    return m_tabCtrlHeight;
+    return GetArtProvider()->m_tabCtrlHeight;
 }
 
 // Gets the tab control width
 int wxAuiNotebook::GetTabCtrlWidth() const
 {
-    return m_tabCtrlWidth;
+    return GetArtProvider()->m_tabCtrlWidth;
 }
 
 // Gets the height of the notebook for a given page height

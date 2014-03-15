@@ -245,14 +245,6 @@ protected:
 
 protected:
     wxAuiManager m_mgr;
-    //temp: (MJM) - The below should all be removed, they belong in the aui manager or the art class
-    wxSize m_requestedBmpSize;
-    int m_requestedTabCtrlHeight;
-    int m_requestedTabCtrlWidth;
-    wxFont m_selectedFont;
-    wxFont m_normalFont;
-    int m_tabCtrlHeight;
-    int m_tabCtrlWidth;
 #ifndef SWIG
     DECLARE_CLASS(wxAuiNotebook)
     DECLARE_EVENT_TABLE()
