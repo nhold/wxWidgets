@@ -40,30 +40,35 @@ enum wxAuiManagerDock
 
 enum wxAuiManagerOption
 {
-    wxAUI_MGR_ALLOW_FLOATING           = 1 << 0,
-    wxAUI_MGR_ALLOW_ACTIVE_PANE        = 1 << 1,
-    wxAUI_MGR_TRANSPARENT_DRAG         = 1 << 2,
-    wxAUI_MGR_TRANSPARENT_HINT         = 1 << 3,
-    wxAUI_MGR_VENETIAN_BLINDS_HINT     = 1 << 4,
-    wxAUI_MGR_RECTANGLE_HINT           = 1 << 5,
-    wxAUI_MGR_HINT_FADE                = 1 << 6,
-    wxAUI_MGR_NO_VENETIAN_BLINDS_FADE  = 1 << 7,
-    wxAUI_MGR_LIVE_RESIZE              = 1 << 8,
-    wxAUI_MGR_MIDDLE_CLICK_CLOSE       = 1 << 9,
-    wxAUI_MGR_NB_TOP                   = 1 << 10,
-    wxAUI_MGR_NB_LEFT                  = 1 << 11,
-    wxAUI_MGR_NB_RIGHT                 = 1 << 12,
-    wxAUI_MGR_NB_BOTTOM                = 1 << 13,
-    wxAUI_MGR_NB_TAB_MOVE              = 1 << 14,
-    wxAUI_MGR_ALLOW_EXTERNAL_MOVE      = 1 << 15,
-    wxAUI_MGR_NB_TAB_FIXED_WIDTH       = 1 << 16,
+
+    // The Notebook flags are also used as wxAuiNotbook style flags, and therefore must stay in the lower 16 bits
+    // to avoid colliding standard windows styles
+    wxAUI_MGR_NB_TOP                   = 1 << 0,
+    wxAUI_MGR_NB_LEFT                  = 1 << 1,
+    wxAUI_MGR_NB_RIGHT                 = 1 << 2,
+    wxAUI_MGR_NB_BOTTOM                = 1 << 3,
+    wxAUI_MGR_NB_TAB_MOVE              = 1 << 4,
+    wxAUI_MGR_ALLOW_EXTERNAL_MOVE      = 1 << 5,
+    wxAUI_MGR_NB_TAB_FIXED_WIDTH       = 1 << 6,
     wxAUI_MGR_NB_TAB_FIXED_HEIGHT      = wxAUI_MGR_NB_TAB_FIXED_WIDTH,
-    wxAUI_MGR_NB_SCROLL_BUTTONS        = 1 << 17,
-    wxAUI_MGR_NB_WINDOWLIST_BUTTON     = 1 << 18,
-    wxAUI_MGR_NB_CLOSE_BUTTON          = 1 << 19,
-    wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB   = 1 << 20,
-    wxAUI_MGR_NB_CLOSE_ON_ALL_TABS     = 1 << 21,
-    wxAUI_MGR_NB_TAB_SPLIT             = 1 << 22,  // wxAuiNotebook only
+    wxAUI_MGR_NB_SCROLL_BUTTONS        = 1 << 7,
+    wxAUI_MGR_NB_WINDOWLIST_BUTTON     = 1 << 8,
+    wxAUI_MGR_NB_CLOSE_BUTTON          = 1 << 9,
+    wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB   = 1 << 10,
+    wxAUI_MGR_NB_CLOSE_ON_ALL_TABS     = 1 << 11,
+    wxAUI_MGR_NB_TAB_SPLIT             = 1 << 12,  // wxAuiNotebook only
+
+    // below the flags are only wxAuiManager flags
+    wxAUI_MGR_ALLOW_FLOATING           = 1 << 16,
+    wxAUI_MGR_ALLOW_ACTIVE_PANE        = 1 << 17,
+    wxAUI_MGR_TRANSPARENT_DRAG         = 1 << 18,
+    wxAUI_MGR_TRANSPARENT_HINT         = 1 << 19,
+    wxAUI_MGR_VENETIAN_BLINDS_HINT     = 1 << 20,
+    wxAUI_MGR_RECTANGLE_HINT           = 1 << 21,
+    wxAUI_MGR_HINT_FADE                = 1 << 22,
+    wxAUI_MGR_NO_VENETIAN_BLINDS_FADE  = 1 << 23,
+    wxAUI_MGR_LIVE_RESIZE              = 1 << 24,
+    wxAUI_MGR_MIDDLE_CLICK_CLOSE       = 1 << 25,
 
     wxAUI_MGR_DEFAULT = wxAUI_MGR_ALLOW_FLOATING |
                         wxAUI_MGR_TRANSPARENT_HINT |
