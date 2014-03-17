@@ -187,7 +187,7 @@ public:
 #endif // !SWIG
 
 
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Window(wxWindow* w) , wxAuiPaneInfo test(*this); test.m_window = w; wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");this->m_window = w;return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Name(const wxString& n) , m_name = n; return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Caption(const wxString& c) , m_caption = c; return *this; );
@@ -251,8 +251,8 @@ public:
             m_dock_layer = 10;
         return *this;
     );
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
     // return a string serializing the state of this pane.
     wxString GetInfo() const;
     // load the pane state from a serialized string.
@@ -588,7 +588,7 @@ public:
     };
 
 public:
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
     wxDEPRECATED( wxString& name; )
     wxDEPRECATED( wxString& caption; )
     wxDEPRECATED( wxWindow*& window; )
@@ -607,8 +607,8 @@ public:
     wxDEPRECATED( wxAuiPaneButtonArray& buttons; )
     wxDEPRECATED( wxRect& rect; )
     wxDEPRECATED( wxBitmap &icon; )
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
 private:
     wxString m_name;        // name of the pane
     wxString m_caption;     // caption displayed on the window

@@ -121,7 +121,7 @@ const int notebookTabHeight = 42;
 
 wxAuiPaneInfo::wxAuiPaneInfo()
 :
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
   name(m_name),
   caption(m_caption),
   window(m_window),  
@@ -140,8 +140,8 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   buttons(m_buttons),
   rect(m_rect), 
   icon(m_dock_bitmap),  
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
   m_name(wxT("")),
   m_caption(wxT("")),
   m_tooltip(wxT("")),
@@ -165,7 +165,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
 
 #ifndef SWIG
 wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
 : name(m_name)
 , caption(m_caption)
 , window(m_window)
@@ -184,8 +184,8 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 , buttons(m_buttons)
 , rect(m_rect)
 , icon(m_dock_bitmap)
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
 {
    *this = c;
 }
