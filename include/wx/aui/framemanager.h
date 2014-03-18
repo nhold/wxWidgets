@@ -554,37 +554,38 @@ public:
     // in the perspective loading code.
     enum wxAuiPaneState
     {
-        optionFloating        = 1 << 0,
-        optionHidden          = 1 << 1,
-        optionLeftDockable    = 1 << 2,
-        optionRightDockable   = 1 << 3,
-        optionTopDockable     = 1 << 4,
-        optionBottomDockable  = 1 << 5,
-        optionFloatable       = 1 << 6,
-        optionMovable         = 1 << 7,
-        optionResizable       = 1 << 8,
-        optionPaneBorder      = 1 << 9,
-        optionCaption         = 1 << 10,
-        optionGripper         = 1 << 11,
-        optionDestroyOnClose  = 1 << 12,
-        optionToolbar         = 1 << 13,
-        optionActive          = 1 << 14,
-        optionGripperTop      = 1 << 15,
-        optionMaximized       = 1 << 16,
-        optionDockFixed       = 1 << 17,
-        optionActiveNotebook  = 1 << 18,
+        optionFloating             = 1 << 0,
+        optionHidden               = 1 << 1,
+        optionLeftDockable         = 1 << 2,
+        optionRightDockable        = 1 << 3,
+        optionTopDockable          = 1 << 4,
+        optionBottomDockable       = 1 << 5,
+        optionFloatable            = 1 << 6,
+        optionMovable              = 1 << 7,
+        optionResizable            = 1 << 8,
+        optionPaneBorder           = 1 << 9,
+        optionCaption              = 1 << 10,
+        optionGripper              = 1 << 11,
+        optionDestroyOnClose       = 1 << 12,
+        optionToolbar              = 1 << 13,
+        optionActive               = 1 << 14,
+        optionGripperTop           = 1 << 15,
+        optionMaximized            = 1 << 16,
+        optionDockFixed            = 1 << 17,
+        optionActiveNotebook       = 1 << 18,
+        optionAlwaysDockInNotebook = 1 << 19,
 
-        buttonClose           = 1 << 21,
-        buttonMaximize        = 1 << 22,
-        buttonMinimize        = 1 << 23,
-        buttonPin             = 1 << 24,
+        buttonClose                = 1 << 21,
+        buttonMaximize             = 1 << 22,
+        buttonMinimize             = 1 << 23,
+        buttonPin                  = 1 << 24,
 
-        buttonCustom1         = 1 << 26,
-        buttonCustom2         = 1 << 27,
-        buttonCustom3         = 1 << 28,
+        buttonCustom1              = 1 << 26,
+        buttonCustom2              = 1 << 27,
+        buttonCustom3              = 1 << 28,
 
-        savedHiddenState      = 1 << 30, // used internally
-        actionPane            = 1 << 31  // used internally
+        savedHiddenState           = 1 << 30, // used internally
+        actionPane                 = 1 << 31  // used internally
     };
 
 public:
@@ -733,6 +734,7 @@ protected:
     //Layout helper functions.
     void DoFrameLayout();
     bool CanDockOver(const wxAuiPaneInfo & pane, const wxAuiPaneInfo & covered_pane );
+    bool MustDockInNotebook(const wxAuiPaneInfo &pane) const;
     void LayoutAddPane(wxSizer* container, wxAuiDockInfo& dock, wxAuiPaneInfo& pane, wxAuiDockUIPartArray& uiparts, bool spacerOnly, bool allowtitlebar=true);
     void LayoutAddDock(wxSizer* container, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiParts, bool spacerOnly);
     void LayoutAddNotebook(wxAuiTabArt* tabArt, wxAuiTabContainer* notebookContainer, wxSizer* notebookSizer, wxAuiDockUIPart& part, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiparts, wxAuiTabContainerPointerArray& tabContainerRecalcList, wxAuiSizerItemPointerArray& tabContainerRecalcSizers, wxAuiPaneInfo* pane, int orient);

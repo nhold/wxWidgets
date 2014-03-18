@@ -2469,6 +2469,12 @@ if ( pane.GetPosition() == covered_pane.GetPosition() ) {
 return can_dock_over;
 }
 
+// This method tells if a pane must be set into a notebook, even if it's alone
+bool wxAuiManager::MustDockInNotebook(const wxAuiPaneInfo &pane) const
+{
+return !pane.IsFloating() && pane.HasFlag(wxAuiPaneInfo::optionAlwaysDockInNotebook);
+}
+
 
 void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiparts, bool spacerOnly)
 {
@@ -2614,7 +2620,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if( wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ||  (paneIndex<paneCount-1 && CanDockOver(pane, *dock.panes.Item(paneIndex+1))) )
+                if( MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -2840,7 +2846,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) || (paneIndex<paneCount-1 && CanDockOver(pane, *dock.panes.Item(paneIndex+1))) )
+                if(MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(pane, *dock.panes.Item(paneIndex+1))) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -3567,7 +3573,7 @@ void wxAuiManager::Update()
     for (i = 0; i < uiPartsCount; i++)
     {
         wxAuiDockUIPart& part = m_uiParts.Item(i);
-        if(part.m_tab_container)
+        if(part.m_tab_container && part.m_tab_container->GetPageCount() > 0)
         {
             wxAuiPaneInfo &pane = part.m_tab_container->GetPage(0);
             wxString notebookpositionhash;
@@ -3592,7 +3598,7 @@ void wxAuiManager::Update()
     for (i = 0; i < uiPartsCount; i++)
     {
         wxAuiDockUIPart& part = m_uiParts.Item(i);
-        if(part.m_tab_container)
+        if(part.m_tab_container && part.m_tab_container->GetPageCount() > 0)
         {
             wxAuiPaneInfo &pane = part.m_tab_container->GetPage(0);
             wxString notebookpositionhash;
