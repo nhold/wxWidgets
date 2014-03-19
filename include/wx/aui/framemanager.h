@@ -737,7 +737,7 @@ public:
 protected:
     //Layout helper functions.
     void DoFrameLayout();
-    bool CanDockOver(const wxAuiPaneInfo & pane, const wxAuiPaneInfo & covered_pane );
+    bool CanDockOver(const wxAuiPaneInfo & pane, const wxAuiPaneInfo & covered_pane);
     bool MustDockInNotebook(const wxAuiPaneInfo &pane) const;
     void LayoutAddPane(wxSizer* container, wxAuiDockInfo& dock, wxAuiPaneInfo& pane, wxAuiDockUIPartArray& uiparts, bool spacerOnly, bool allowtitlebar=true);
     void LayoutAddDock(wxSizer* container, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiParts, bool spacerOnly);
@@ -904,6 +904,8 @@ public:
     int GetButton() const { return button; }
     wxDC* GetDC() const { return dc; }
 
+    void Allow(bool allow = true) { veto_flag = !allow; }
+    bool IsAllowed() const { return !CanVeto(); }
     void Veto(bool veto = true) { veto_flag = veto; }
     bool GetVeto() const { return veto_flag; }
     void SetCanVeto(bool can_veto) { canveto_flag = can_veto; }
