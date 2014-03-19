@@ -461,7 +461,11 @@ public:
     bool IsDockFixed() const { return HasFlag(optionDockFixed); }
     wxAuiPaneInfo& SetDockFixed(bool b = true) { return SetFlag(optionDockFixed, b); }
 
-    // Move a pane over another one, creating a notebook if needed.
+    // get/set whether the pane should always dock in a notebook, even if not stacked with another pane
+    bool IsAlwaysDockInNotebook() const { return HasFlag(optionAlwaysDockInNotebook); }
+    wxAuiPaneInfo &SetAlwaysDockInNotebook(bool b = true) { return SetFlag(optionAlwaysDockInNotebook, b); }
+
+    // Move a pane over another one, creating a notebook if allowed.
     // The pane is set in the page immediatly after the targetted one
     wxAuiPaneInfo &MoveOver(const wxAuiPaneInfo &target);
 

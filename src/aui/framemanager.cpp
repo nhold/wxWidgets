@@ -2472,7 +2472,7 @@ return can_dock_over;
 // This method tells if a pane must be set into a notebook, even if it's alone
 bool wxAuiManager::MustDockInNotebook(const wxAuiPaneInfo &pane) const
 {
-return !pane.IsFloating() && pane.HasFlag(wxAuiPaneInfo::optionAlwaysDockInNotebook);
+return !pane.IsFloating() && pane.IsAlwaysDockInNotebook();
 }
 
 

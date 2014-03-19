@@ -220,7 +220,7 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false).SetFlag(wxAuiPaneInfo::optionAlwaysDockInNotebook, true));
+    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false).SetAlwaysDockInNotebook(false));
     
     
     if(select)
