@@ -4526,7 +4526,9 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
     sizer->Layout();
 
     // First check if the hint is somewhere in a notebook, if it is then take the hint rect from the active notebook page.
-    for (i = 0, partCount = uiparts.GetCount(); i < partCount; ++i)
+    bool hint_found = false;
+
+    for (i = 0, partCount = uiparts.GetCount(); i < partCount && !hint_found; ++i)
     {
         wxAuiDockUIPart& part = uiparts.Item(i);
 
@@ -4535,27 +4537,31 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
             wxAuiPaneInfoPtrArray& pages = part.m_tab_container->GetPages();
             int pageCount = pages.GetCount();
             int j = 0;
-            for (j = 0; j < pageCount;j++)
+            for (j = 0; j < pageCount && !hint_found;j++)
             {
                 if(pages[j]->GetName() == wxT("__HINT__"))
                 {
+                    hint_found = true;
+
                     int activePage=part.m_tab_container->GetActivePage();
                     //It is possible in some instances (when forming a new notebook via drag) - that no page is yet active, if this is the case act as if the first one is active.
                     if(activePage==-1)
                         activePage=0;
 
-                    rect = wxRect(part.m_tab_container->GetPage(activePage).GetWindow()->GetPosition(),
-                    part.m_tab_container->GetPage(activePage).GetWindow()->GetSize());
-                    break;
+                    // Don't take the rectangle if a container was just created: it has not yet a relevant position
+                    if (!part.m_tab_container->GetRect().IsEmpty())                 
+                        rect =  part.m_tab_container->GetPage(activePage).GetWindow()->GetRect();
+                   
                 }
             }
         }
     }
+
     // If it is not in the notebook then take the hint from the pane border.
     if (rect.IsEmpty())
     {
-        for (i = 0, partCount = uiparts.GetCount();
-            i < partCount; ++i)
+        for (i = 0, partCount = uiparts.GetCount(), hint_found=false;
+            i < partCount && !hint_found; ++i)
         {
             wxAuiDockUIPart& part = uiparts.Item(i);
 
@@ -4564,7 +4570,7 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
             {
                 rect = wxRect(part.sizer_item->GetPosition(),
                           part.sizer_item->GetSize());
-                break;
+                hint_found = true;
             }
         }
     }
