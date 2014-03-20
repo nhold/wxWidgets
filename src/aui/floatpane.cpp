@@ -90,7 +90,7 @@ void wxAuiFloatingFrame::SetPaneWindow(const wxAuiPaneInfo& pane)
     containedPane.Dock().SetDirectionCenter().Show().
                     SetCaptionVisible(false).
                     SetBorder(false).
-                    SetLayer(0).SetRow(0).SetPosition(0);
+                    SetLayer(0).SetRow(0).SetPosition(0).SetFlag(wxAuiPaneInfo::optionAlwaysDockInNotebook, false);
 
     // Carry over the minimum size
     wxSize paneMinSize = pane.GetWindow()->GetMinSize();

@@ -187,7 +187,7 @@ public:
 #endif // !SWIG
 
 
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Window(wxWindow* w) , wxAuiPaneInfo test(*this); test.m_window = w; wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");this->m_window = w;return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Name(const wxString& n) , m_name = n; return *this; );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Caption(const wxString& c) , m_caption = c; return *this; );
@@ -251,8 +251,8 @@ public:
             m_dock_layer = 10;
         return *this;
     );
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
     // return a string serializing the state of this pane.
     wxString GetInfo() const;
     // load the pane state from a serialized string.
@@ -461,7 +461,11 @@ public:
     bool IsDockFixed() const { return HasFlag(optionDockFixed); }
     wxAuiPaneInfo& SetDockFixed(bool b = true) { return SetFlag(optionDockFixed, b); }
 
-    // Move a pane over another one, creating a notebook if needed.
+    // get/set whether the pane should always dock in a notebook, even if not stacked with another pane
+    bool IsAlwaysDockInNotebook() const { return HasFlag(optionAlwaysDockInNotebook); }
+    wxAuiPaneInfo &SetAlwaysDockInNotebook(bool b = true) { return SetFlag(optionAlwaysDockInNotebook, b); }
+
+    // Move a pane over another one, creating a notebook if allowed.
     // The pane is set in the page immediatly after the targetted one
     wxAuiPaneInfo &MoveOver(const wxAuiPaneInfo &target);
 
@@ -554,41 +558,42 @@ public:
     // in the perspective loading code.
     enum wxAuiPaneState
     {
-        optionFloating        = 1 << 0,
-        optionHidden          = 1 << 1,
-        optionLeftDockable    = 1 << 2,
-        optionRightDockable   = 1 << 3,
-        optionTopDockable     = 1 << 4,
-        optionBottomDockable  = 1 << 5,
-        optionFloatable       = 1 << 6,
-        optionMovable         = 1 << 7,
-        optionResizable       = 1 << 8,
-        optionPaneBorder      = 1 << 9,
-        optionCaption         = 1 << 10,
-        optionGripper         = 1 << 11,
-        optionDestroyOnClose  = 1 << 12,
-        optionToolbar         = 1 << 13,
-        optionActive          = 1 << 14,
-        optionGripperTop      = 1 << 15,
-        optionMaximized       = 1 << 16,
-        optionDockFixed       = 1 << 17,
-        optionActiveNotebook  = 1 << 18,
+        optionFloating             = 1 << 0,
+        optionHidden               = 1 << 1,
+        optionLeftDockable         = 1 << 2,
+        optionRightDockable        = 1 << 3,
+        optionTopDockable          = 1 << 4,
+        optionBottomDockable       = 1 << 5,
+        optionFloatable            = 1 << 6,
+        optionMovable              = 1 << 7,
+        optionResizable            = 1 << 8,
+        optionPaneBorder           = 1 << 9,
+        optionCaption              = 1 << 10,
+        optionGripper              = 1 << 11,
+        optionDestroyOnClose       = 1 << 12,
+        optionToolbar              = 1 << 13,
+        optionActive               = 1 << 14,
+        optionGripperTop           = 1 << 15,
+        optionMaximized            = 1 << 16,
+        optionDockFixed            = 1 << 17,
+        optionActiveNotebook       = 1 << 18,
+        optionAlwaysDockInNotebook = 1 << 19,
 
-        buttonClose           = 1 << 21,
-        buttonMaximize        = 1 << 22,
-        buttonMinimize        = 1 << 23,
-        buttonPin             = 1 << 24,
+        buttonClose                = 1 << 21,
+        buttonMaximize             = 1 << 22,
+        buttonMinimize             = 1 << 23,
+        buttonPin                  = 1 << 24,
 
-        buttonCustom1         = 1 << 26,
-        buttonCustom2         = 1 << 27,
-        buttonCustom3         = 1 << 28,
+        buttonCustom1              = 1 << 26,
+        buttonCustom2              = 1 << 27,
+        buttonCustom3              = 1 << 28,
 
-        savedHiddenState      = 1 << 30, // used internally
-        actionPane            = 1 << 31  // used internally
+        savedHiddenState           = 1 << 30, // used internally
+        actionPane                 = 1 << 31  // used internally
     };
 
 public:
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
     wxDEPRECATED( wxString& name; )
     wxDEPRECATED( wxString& caption; )
     wxDEPRECATED( wxWindow*& window; )
@@ -607,8 +612,8 @@ public:
     wxDEPRECATED( wxAuiPaneButtonArray& buttons; )
     wxDEPRECATED( wxRect& rect; )
     wxDEPRECATED( wxBitmap &icon; )
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
 private:
     wxString m_name;        // name of the pane
     wxString m_caption;     // caption displayed on the window
@@ -732,7 +737,8 @@ public:
 protected:
     //Layout helper functions.
     void DoFrameLayout();
-    bool CanCreateTab(const wxAuiPaneInfo & pane, const wxAuiPaneInfo & covered_pane );
+    bool CanDockOver(const wxAuiPaneInfo & pane, const wxAuiPaneInfo & covered_pane);
+    bool MustDockInNotebook(const wxAuiPaneInfo &pane) const;
     void LayoutAddPane(wxSizer* container, wxAuiDockInfo& dock, wxAuiPaneInfo& pane, wxAuiDockUIPartArray& uiparts, bool spacerOnly, bool allowtitlebar=true);
     void LayoutAddDock(wxSizer* container, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiParts, bool spacerOnly);
     void LayoutAddNotebook(wxAuiTabArt* tabArt, wxAuiTabContainer* notebookContainer, wxSizer* notebookSizer, wxAuiDockUIPart& part, wxAuiDockInfo& dock, wxAuiDockUIPartArray& uiparts, wxAuiTabContainerPointerArray& tabContainerRecalcList, wxAuiSizerItemPointerArray& tabContainerRecalcSizers, wxAuiPaneInfo* pane, int orient);
@@ -898,6 +904,8 @@ public:
     int GetButton() const { return button; }
     wxDC* GetDC() const { return dc; }
 
+    void Allow(bool allow = true) { veto_flag = !allow; }
+    bool IsAllowed() const { return !CanVeto(); }
     void Veto(bool veto = true) { veto_flag = veto; }
     bool GetVeto() const { return veto_flag; }
     void SetCanVeto(bool can_veto) { canveto_flag = can_veto; }
@@ -1037,7 +1045,7 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CLOSE, wxAuiManagerEve
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CREATE_TAB, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_RENDER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_FIND_MANAGER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_ALLOW_DND, wxAuiManagerEvent );
@@ -1058,8 +1066,8 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_RESTORE, wxAuiManagerEventHandler(func))
 #define EVT_AUI_PANE_ACTIVATED(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(func))
-#define EVT_AUI_PANE_CREATE_TAB(func) \
-   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CREATE_TAB, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_DOCK_OVER(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEventHandler(func))
 #define EVT_AUI_RENDER(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_RENDER, wxAuiManagerEventHandler(func))
 #define EVT_AUI_FIND_MANAGER(func) \
@@ -1074,7 +1082,7 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
 %constant wxEventType wxEVT_AUI_PANE_MAXIMIZE;
 %constant wxEventType wxEVT_AUI_PANE_RESTORE;
 %constant wxEventType wxEVT_AUI_PANE_ACTIVATED;
-%constant wxEventType wxEVT_AUI_PANE_CREATE_TAB;
+%constant wxEventType wxEVT_AUI_PANE_DOCK_OVER;
 %constant wxEventType wxEVT_AUI_RENDER;
 %constant wxEventType wxEVT_AUI_FIND_MANAGER;
 %constant wxEventType wxEVT_AUI_ALLOW_DND;
@@ -1085,7 +1093,7 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
     EVT_AUI_PANE_MAXIMIZE = wx.PyEventBinder( wxEVT_AUI_PANE_MAXIMIZE )
     EVT_AUI_PANE_RESTORE = wx.PyEventBinder( wxEVT_AUI_PANE_RESTORE )
     EVT_AUI_PANE_ACTIVATED = wx.PyEventBinder( wxEVT_AUI_PANE_ACTIVATED )
-    EVT_AUI_PANE_CREATE_TAB = wx.PyEventBinder( wxEVT_AUI_PANE_CREATE_TAB )
+    EVT_AUI_PANE_DOCK_OVER = wx.PyEventBinder( wxEVT_AUI_PANE_DOCK_OVER )
     EVT_AUI_RENDER = wx.PyEventBinder( wxEVT_AUI_RENDER )
     EVT_AUI_FIND_MANAGER = wx.PyEventBinder( wxEVT_AUI_FIND_MANAGER )
     EVT_AUI_ALLOW_DND = wx.PyEventBinder( wxEVT_AUI_ALLOW_DND )

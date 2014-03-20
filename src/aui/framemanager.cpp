@@ -66,7 +66,7 @@ wxDEFINE_EVENT( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
-wxDEFINE_EVENT( wxEVT_AUI_PANE_CREATE_TAB, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_RENDER, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_FIND_MANAGER, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_ALLOW_DND, wxAuiManagerEvent );
@@ -121,7 +121,7 @@ const int notebookTabHeight = 42;
 
 wxAuiPaneInfo::wxAuiPaneInfo()
 :
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
   name(m_name),
   caption(m_caption),
   window(m_window),  
@@ -140,8 +140,8 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   buttons(m_buttons),
   rect(m_rect), 
   icon(m_dock_bitmap),  
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
   m_name(wxT("")),
   m_caption(wxT("")),
   m_tooltip(wxT("")),
@@ -165,7 +165,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
 
 #ifndef SWIG
 wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
-#if WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_3_0
 : name(m_name)
 , caption(m_caption)
 , window(m_window)
@@ -184,8 +184,8 @@ wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
 , buttons(m_buttons)
 , rect(m_rect)
 , icon(m_dock_bitmap)
-#else // !WXWIN_COMPATIBILITY_2_8
-#endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
+#else // !WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
 {
    *this = c;
 }
@@ -2442,31 +2442,37 @@ void wxAuiManager::LayoutAddNotebook(wxAuiTabArt* tabArt,wxAuiTabContainer* note
 
 // This method is used to find out if it is allowed to set a pane as a new tab in a notebook
 // The default behaviour of this method is set so it's backward compatible with wxWidgets 2.8 to 3.0
-// It sends a EVT_AUI_PANE_CREATE_TAB that may be Vetoed() / Allowed() to overide the default behaviour.
-bool wxAuiManager::CanCreateTab(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &covered_pane ) 
+// It sends a EVT_AUI_PANE_DOCK_OVER that may be Vetoed() / Allowed() to overide the default behaviour.
+bool wxAuiManager::CanDockOver(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &covered_pane) 
 {
-bool can_create_tab = false;
+bool can_dock_over = false;
 
 // Basically, we can create a tab if a pane exactly overlaps another one
 if ( pane.GetPosition() == covered_pane.GetPosition() ) {
 
-        wxAuiPaneInfo evt_pane(pane); // we use a copy of the pane to forbid accidentally modifying the underlying one from "user space"
-        wxAuiPaneInfo evt_covered_pane(covered_pane);
+    wxAuiPaneInfo evt_pane(pane); // we use a copy of the pane to forbid accidentally modifying the underlying one from "user space"
+    wxAuiPaneInfo evt_covered_pane(covered_pane);
 
-        wxAuiManagerEvent evt(wxEVT_AUI_PANE_CREATE_TAB);
-        evt.SetManager(this);
-        evt.SetPane(&evt_pane);
-        evt.SetTargetPane(&evt_covered_pane);
-        evt.SetCanVeto(true);        
-        evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow tabs in wxAuiNotebook and forbid them elsewhere 
+    wxAuiManagerEvent evt(wxEVT_AUI_PANE_DOCK_OVER);
+    evt.SetManager(this);
+    evt.SetPane(&evt_pane);
+    evt.SetTargetPane(&evt_covered_pane);
+    evt.SetCanVeto(true);        
+    evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow docking over in wxAuiNotebook and forbid them elsewhere 
 
-        GetManagedWindow()->ProcessWindowEvent(evt);
+    GetManagedWindow()->ProcessWindowEvent(evt);
 
-        can_create_tab = !evt.GetVeto();              
+    can_dock_over = evt.IsAllowed();              
 
 }
 
-return can_create_tab;
+return can_dock_over;
+}
+
+// This method tells if a pane must be set into a notebook, even if it's alone
+bool wxAuiManager::MustDockInNotebook(const wxAuiPaneInfo &pane) const
+{
+return !pane.IsFloating() && pane.IsAlwaysDockInNotebook();
 }
 
 
@@ -2533,7 +2539,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
             if (pane.IsMaximized())
                 hasMaximizedPane = true;
 
-            if(firstPaneInNotebook && CanCreateTab(pane, *firstPaneInNotebook))
+            if(firstPaneInNotebook && CanDockOver(pane, *firstPaneInNotebook))
             {
                 // This page is part of an existing notebook so add it to the container.
                 // If it is the active page then it is visible, otherwise hide it.
@@ -2614,7 +2620,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if( wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ||  (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
+                if( MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(*dock.panes.Item(paneIndex+1), pane)) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -2756,7 +2762,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
             if (pane.IsMaximized())
                 hasMaximizedPane = true;
 
-            if(firstPaneInNotebook && CanCreateTab(pane, *firstPaneInNotebook))
+            if(firstPaneInNotebook && CanDockOver(pane, *firstPaneInNotebook))
             {
                 // This page is part of an existing notebook so add it to the container.
                 // If it is the active page then it is visible, otherwise hide it.
@@ -2840,7 +2846,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) || (paneIndex<paneCount-1 && CanCreateTab(pane, *dock.panes.Item(paneIndex+1))) )
+                if(MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(*dock.panes.Item(paneIndex+1), pane)) )
                 {
                     firstPaneInNotebook = &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
@@ -3567,7 +3573,7 @@ void wxAuiManager::Update()
     for (i = 0; i < uiPartsCount; i++)
     {
         wxAuiDockUIPart& part = m_uiParts.Item(i);
-        if(part.m_tab_container)
+        if(part.m_tab_container && part.m_tab_container->GetPageCount() > 0)
         {
             wxAuiPaneInfo &pane = part.m_tab_container->GetPage(0);
             wxString notebookpositionhash;
@@ -3592,7 +3598,7 @@ void wxAuiManager::Update()
     for (i = 0; i < uiPartsCount; i++)
     {
         wxAuiDockUIPart& part = m_uiParts.Item(i);
-        if(part.m_tab_container)
+        if(part.m_tab_container && part.m_tab_container->GetPageCount() > 0)
         {
             wxAuiPaneInfo &pane = part.m_tab_container->GetPage(0);
             wxString notebookpositionhash;
@@ -4520,7 +4526,9 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
     sizer->Layout();
 
     // First check if the hint is somewhere in a notebook, if it is then take the hint rect from the active notebook page.
-    for (i = 0, partCount = uiparts.GetCount(); i < partCount; ++i)
+    bool hint_found = false;
+
+    for (i = 0, partCount = uiparts.GetCount(); i < partCount && !hint_found; ++i)
     {
         wxAuiDockUIPart& part = uiparts.Item(i);
 
@@ -4529,27 +4537,31 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
             wxAuiPaneInfoPtrArray& pages = part.m_tab_container->GetPages();
             int pageCount = pages.GetCount();
             int j = 0;
-            for (j = 0; j < pageCount;j++)
+            for (j = 0; j < pageCount && !hint_found;j++)
             {
                 if(pages[j]->GetName() == wxT("__HINT__"))
                 {
+                    hint_found = true;
+
                     int activePage=part.m_tab_container->GetActivePage();
                     //It is possible in some instances (when forming a new notebook via drag) - that no page is yet active, if this is the case act as if the first one is active.
                     if(activePage==-1)
                         activePage=0;
 
-                    rect = wxRect(part.m_tab_container->GetPage(activePage).GetWindow()->GetPosition(),
-                    part.m_tab_container->GetPage(activePage).GetWindow()->GetSize());
-                    break;
+                    // Don't take the rectangle if a container was just created: it has not yet a relevant position
+                    if (!part.m_tab_container->GetRect().IsEmpty())                 
+                        rect =  part.m_tab_container->GetPage(activePage).GetWindow()->GetRect();
+                   
                 }
             }
         }
     }
+
     // If it is not in the notebook then take the hint from the pane border.
     if (rect.IsEmpty())
     {
-        for (i = 0, partCount = uiparts.GetCount();
-            i < partCount; ++i)
+        for (i = 0, partCount = uiparts.GetCount(), hint_found=false;
+            i < partCount && !hint_found; ++i)
         {
             wxAuiDockUIPart& part = uiparts.Item(i);
 
@@ -4558,7 +4570,7 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
             {
                 rect = wxRect(part.sizer_item->GetPosition(),
                           part.sizer_item->GetSize());
-                break;
+                hint_found = true;
             }
         }
     }
