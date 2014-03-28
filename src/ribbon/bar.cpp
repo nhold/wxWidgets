@@ -115,12 +115,17 @@ bool wxRibbonBar::DismissExpandedPanel()
     return m_pages.Item(m_current_page).page->DismissExpandedPanel();
 }
 
-void wxRibbonBar::ShowPanels(bool show)
+void wxRibbonBar::ShowPanels(bool show, bool pin)
 {
     m_arePanelsShown = show;
     SetMinSize(wxSize(GetSize().GetWidth(), DoGetBestSize().GetHeight()));
     Realise();
-    GetParent()->Layout();
+    GetParent()->Layout();    
+    
+    if (show) 
+        m_ribbon_state = pin ? wxRIBBON_BAR_PINNED :  wxRIBBON_BAR_EXPANDED;
+    else
+        m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
 }
 
 void wxRibbonBar::SetWindowStyleFlag(long style)
@@ -974,13 +979,11 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
     {
         if ( m_ribbon_state == wxRIBBON_BAR_MINIMIZED )
         {
-            ShowPanels();
-            m_ribbon_state = wxRIBBON_BAR_EXPANDED;
+            ShowPanels(true, false);
         }
         else if ( (tab == &m_pages.Item(m_current_page)) && (m_ribbon_state == wxRIBBON_BAR_EXPANDED) )
         {
             HidePanels();
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
         }
     }
     else
@@ -988,7 +991,6 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
         if ( m_ribbon_state == wxRIBBON_BAR_EXPANDED )
         {
             HidePanels();
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
         }
     }
     if(tab && tab != &m_pages.Item(m_current_page))
@@ -1029,11 +1031,7 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
             if(m_toggle_button_rect.Contains(position))
             {
                 bool pshown = ArePanelsShown();
-                ShowPanels(!pshown);
-                if ( pshown )
-                    m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
-                else
-                    m_ribbon_state = wxRIBBON_BAR_PINNED;
+                ShowPanels(!pshown, true);
                 wxRibbonBarEvent event(wxEVT_RIBBONBAR_TOGGLED, GetId());
                 event.SetEventObject(this);
                 ProcessWindowEvent(event);
@@ -1168,13 +1166,11 @@ void wxRibbonBar::OnMouseDoubleClick(wxMouseEvent& evt)
     {
         if ( m_ribbon_state == wxRIBBON_BAR_PINNED )
         {
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
             HidePanels();
         }
         else
         {
-            m_ribbon_state = wxRIBBON_BAR_PINNED;
-            ShowPanels();
+            ShowPanels(true, true);
         }
     }
 }
@@ -1272,15 +1268,12 @@ void wxRibbonBar::HideIfExpanded()
     switch ( m_ribbon_state )
     {
         case wxRIBBON_BAR_EXPANDED:
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
-            // Fall through
-
         case wxRIBBON_BAR_MINIMIZED:
             HidePanels();
             break;
 
         case wxRIBBON_BAR_PINNED:
-            ShowPanels();
+            ShowPanels(true, true);
             break;
     }
 }

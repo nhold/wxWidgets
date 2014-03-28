@@ -140,7 +140,7 @@ public:
     void AddPageHighlight(size_t page, bool highlight = true);
     void RemovePageHighlight(size_t page) { AddPageHighlight(page, false); }
 
-    void ShowPanels(bool show = true);
+    void ShowPanels(bool show = true, bool pin = true);
     void HidePanels() { ShowPanels(false); }
     bool ArePanelsShown() const { return m_arePanelsShown; }
 

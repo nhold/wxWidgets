@@ -326,8 +326,16 @@ public:
         with when he/she doesn't need to see the ribbon's options.
 
         @since 2.9.2
+        
+        @param show
+            @true to show the panels, @false to hide them.
+            
+        @param pinned
+            
+            If the panels are shown, @true to display them as pinned, @false to display them as just expanded.
+            @since 3.0.1 
     */
-    void ShowPanels(bool show = true);
+    void ShowPanels(bool show = true, bool pinned = true);
 
     /**
         Hides the panel area of the ribbon bar.
