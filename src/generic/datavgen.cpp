@@ -4492,13 +4492,13 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
         // Call ActivateCell() after everything else as under GTK+
         if ( IsCellEditableInMode(item, col, wxDATAVIEW_CELL_ACTIVATABLE) )
         {
-            // notify cell about click
-            cell->PrepareForItem(model, item, col->GetModelColumn());
-
+            // notify cell about click           
             wxRect cell_rect( xpos + itemOffset,
                               GetLineStart( current ),
                               col->GetWidth() - itemOffset,
                               GetLineHeight( current ) );
+                              
+            cell->PrepareForItem(model, item, col->GetModelColumn());
 
             // Report position relative to the cell's custom area, i.e.
             // not the entire space as given by the control but the one
