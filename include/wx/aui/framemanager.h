@@ -223,14 +223,9 @@ public:
     wxDEPRECATED_INLINE( wxAuiPaneInfo& MinimizeButton(bool visible = true) , return SetFlag(buttonMinimize, visible); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& PinButton(bool visible = true) , return SetFlag(buttonPin, visible); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& DestroyOnClose(bool b = true) , return SetFlag(optionDestroyOnClose, b); );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& TopDockable(bool b = true) , return SetFlag(optionTopDockable, b); );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& BottomDockable(bool b = true) , return SetFlag(optionBottomDockable, b); );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& LeftDockable(bool b = true) , return SetFlag(optionLeftDockable, b); );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& RightDockable(bool b = true) , return SetFlag(optionRightDockable, b); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Floatable(bool b = true) , return SetFlag(optionFloatable, b); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& Movable(bool b = true) , return SetFlag(optionMovable, b); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& DockFixed(bool b = true) , return SetFlag(optionDockFixed, b); );
-    wxDEPRECATED_INLINE( wxAuiPaneInfo& Dockable(bool b = true) , return SetTopDockable(b).SetBottomDockable(b).SetLeftDockable(b).SetRightDockable(b); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& CentrePane() , return SetCenterPane(); );
     wxDEPRECATED_INLINE( wxAuiPaneInfo& CenterPane() ,
         m_state = 0;
@@ -302,27 +297,30 @@ public:
     bool IsDocked() const { return !HasFlag(optionFloating); }
     wxAuiPaneInfo& Dock() { return SetFlag(optionFloating, false); }
 
+    // get/set whether the pane can be docked at the center of the frame.
+    bool IsCenterDockable() const { return HasFlag(optionCenterDockable); }
+    wxAuiPaneInfo& CenterDockable(bool b = true) { return SetFlag(optionCenterDockable, b); }
     // get/set whether the pane can be docked at the top of the frame.
     bool IsTopDockable() const { return HasFlag(optionTopDockable); }
-    wxAuiPaneInfo& SetTopDockable(bool b = true) { return SetFlag(optionTopDockable, b); }
+    wxAuiPaneInfo& TopDockable(bool b = true) { return SetFlag(optionTopDockable, b); }
     // get/set whether the pane can be docked at the bottom of the frame.
     bool IsBottomDockable() const { return HasFlag(optionBottomDockable); }
-    wxAuiPaneInfo& SetBottomDockable(bool b = true) { return SetFlag(optionBottomDockable, b); }
+    wxAuiPaneInfo& BottomDockable(bool b = true) { return SetFlag(optionBottomDockable, b); }
     // get/set whether the pane can be docked at the left of the frame.
     bool IsLeftDockable() const { return HasFlag(optionLeftDockable); }
-    wxAuiPaneInfo& SetLeftDockable(bool b = true) { return SetFlag(optionLeftDockable, b); }
+    wxAuiPaneInfo& LeftDockable(bool b = true) { return SetFlag(optionLeftDockable, b); }
     // get/set whether the pane can be docked at the right of the frame.
     bool IsRightDockable() const { return HasFlag(optionRightDockable); }
-    wxAuiPaneInfo& SetRightDockable(bool b = true) { return SetFlag(optionRightDockable, b); }
+    wxAuiPaneInfo& RightDockable(bool b = true) { return SetFlag(optionRightDockable, b); }
     // convenience function to set all of the above at once.
-    wxAuiPaneInfo& SetDockable(bool b = true)
+    wxAuiPaneInfo& Dockable(bool b = true)
     {
-        return SetTopDockable(b).SetBottomDockable(b).SetLeftDockable(b).SetRightDockable(b);
+        return TopDockable(b).BottomDockable(b).LeftDockable(b).RightDockable(b).CenterDockable(b);
     }
     bool IsDockable() const
     {
         return HasFlag(optionTopDockable | optionBottomDockable |
-                        optionLeftDockable | optionRightDockable);
+                        optionLeftDockable | optionRightDockable | optionCenterDockable);
     }
 
 
@@ -578,6 +576,7 @@ public:
         optionDockFixed            = 1 << 17,
         optionActiveNotebook       = 1 << 18,
         optionAlwaysDockInNotebook = 1 << 19,
+        optionCenterDockable       = 1 << 20,
 
         buttonClose                = 1 << 21,
         buttonMaximize             = 1 << 22,

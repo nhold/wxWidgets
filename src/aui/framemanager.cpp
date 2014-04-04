@@ -1391,11 +1391,11 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
             // set docking flags based on toolbar style
             if (toolbar->GetWindowStyleFlag() & wxAUI_TB_VERTICAL)
             {
-                test.SetTopDockable(false).SetBottomDockable(false);
+                test.TopDockable(false).BottomDockable(false);
             }
             else if (toolbar->GetWindowStyleFlag() & wxAUI_TB_HORIZONTAL)
             {
-                test.SetLeftDockable(false).SetRightDockable(false);
+                test.LeftDockable(false).RightDockable(false);
             }
         }
         else
@@ -3838,8 +3838,7 @@ bool wxAuiManager::ProcessDockResult(wxAuiPaneInfo& target, const wxAuiPaneInfo&
         case wxAUI_DOCK_BOTTOM: allowed = target.IsBottomDockable(); break;
         case wxAUI_DOCK_LEFT:   allowed = target.IsLeftDockable();   break;
         case wxAUI_DOCK_RIGHT:  allowed = target.IsRightDockable();  break;
-        //fixme: (MJM) - The below should perhaps be determined by a new option/method?
-        case wxAUI_DOCK_CENTER: allowed = target.IsTopDockable()||target.IsBottomDockable()||target.IsLeftDockable()||target.IsRightDockable(); break;
+        case wxAUI_DOCK_CENTER: allowed = target.IsCenterDockable(); break;
     }
 
     if (allowed)
@@ -3939,6 +3938,7 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
             drop.Dock().SetDirectionBottom().SetLayer(newLayer).SetRow(0).SetPosition(pt.x - GetDockPixelOffset(drop) - offset.x);
             return ProcessDockResult(target, drop);
         }
+
     }
 
 
@@ -4127,13 +4127,16 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
             }
 
             wxAuiDoInsertDockRow(panes, part->dock->dock_direction, layer, 0);
-            drop.Dock(). SetDirection(part->dock->dock_direction). SetLayer(layer).SetRow(0).SetPosition(0);
+            drop.Dock().SetDirection(part->dock->dock_direction). SetLayer(layer).SetRow(0).SetPosition(0);
             return ProcessDockResult(target, drop);
         }
 
 
-        if (!part->pane)
-            return false;
+        if (!part->pane) {
+            // drop on background, i.e. on the center
+            drop.Dock().SetDirection(wxAUI_DOCK_CENTER).SetLayer(0).SetRow(0).SetPosition(0);
+            return ProcessDockResult(target, drop);
+        }
 
         part = GetPanePart(part->pane->GetWindow());
         if (!part)
@@ -4196,7 +4199,7 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
                 else if (pt.y >= pr.y+ pr.height - newRowPixelsY && pt.y < pr.y + pr.height)
                     insertDir = wxAUI_DOCK_BOTTOM;
                 else
-                    return false;
+                    insertDockRow = false;
 
                 insertRow = GetMaxRow(panes, insertDir, insertLayer) + 1;
             }
@@ -5289,9 +5292,6 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
             SetActivePane(part->pane->GetWindow());
             if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
                 Repaint();
-
-            if (part->dock && part->dock->dock_direction == wxAUI_DOCK_CENTER)
-                return;
 
             m_action = actionClickCaption;
             m_actionPart = part;

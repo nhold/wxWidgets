@@ -196,7 +196,7 @@ void wxAuiNotebook::SetWindowStyleFlag(long style)
     // if the flag changes, we have to redo the layout
     bool allow_docking = m_mgr.HasFlag(wxAUI_MGR_NB_TAB_SPLIT);
     for(size_t i=0; i<m_mgr.GetAllPanes().size() ;i++)
-        m_mgr.GetAllPanes()[i].SetDockable(allow_docking);
+        m_mgr.GetAllPanes()[i].Dockable(allow_docking);
     
     m_mgr.Update();
 }
@@ -220,7 +220,7 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false).SetAlwaysDockInNotebook(false));
+    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false).SetAlwaysDockInNotebook(false));
     
     
     if(select)
