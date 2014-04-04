@@ -612,11 +612,11 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
     DrawCaptionBackground(dc, rect, showActive);
 
     int captionOffset = 0;
-    if ( pane.GetBitmap().IsOk() )
+    if ( pane.GetIcon().IsOk() )
     {
         DrawIcon(dc, rect, pane);
 
-        captionOffset += pane.GetBitmap().GetWidth() + 3;
+        captionOffset += pane.GetIcon().GetWidth() + 3;
     }
 
 
@@ -645,8 +645,8 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
 void wxAuiDefaultDockArt::DrawIcon(wxDC& dc, const wxRect& rect, wxAuiPaneInfo& pane)
 {
    // Draw the icon centered vertically
-   dc.DrawBitmap(pane.GetBitmap(),
-                 rect.x+2, rect.y+(rect.height-pane.GetBitmap().GetHeight())/2,
+   dc.DrawBitmap(pane.GetIcon(),
+                 rect.x+2, rect.y+(rect.height-pane.GetIcon().GetHeight())/2,
                  true);
 }
 
@@ -926,15 +926,15 @@ bool wxAuiTabContainer::InsertPage(wxWindow* page, wxAuiPaneInfo& info, size_t i
 {
     info.GetWindow()->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown)  ,NULL,this);
 
-    info.SetWindow(page);
+    info.Window(page);
 
     if (idx >= m_pages.GetCount()) {
-        info.SetPage(m_pages.size());
+        info.Page(m_pages.size());
         m_pages.Add(&info);        
     } else {
         m_pages.Insert(&info, idx);
         for(size_t i=idx; i < m_pages.GetCount(); i++)
-            m_pages[i]->SetPage(i);
+            m_pages[i]->Page(i);
     }
 
     // let the art provider know how many pages we have
@@ -1164,7 +1164,7 @@ void wxAuiTabContainer::CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& tota
         wxSize size = m_tab_art->GetTabSize(dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             closeButton ?
                               wxAUI_BUTTON_STATE_NORMAL :
@@ -1218,7 +1218,7 @@ void wxAuiTabContainer::CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& total
         wxSize size = m_tab_art->GetTabSize(dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             closeButton ?
                               wxAUI_BUTTON_STATE_NORMAL :
@@ -1590,7 +1590,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
-        page.SetRect(page_rect);
+        page.Rect(page_rect);
 
         if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
         {
@@ -1629,7 +1629,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
-        page.SetRect(page_rect);
+        page.Rect(page_rect);
     }
 
 
@@ -1771,7 +1771,7 @@ bool wxAuiTabContainer::IsTabVisible(int tabPage, int tabOffset, wxDC* dc, wxWin
         wxSize size = m_tab_art->GetTabSize(*dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             tab_button.curState,
                             &extent);
