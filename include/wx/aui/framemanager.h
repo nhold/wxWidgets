@@ -196,22 +196,22 @@ public:
     bool IsToolbar() const { return HasFlag(optionToolbar); }
 
     // returns true if the wxAuiPaneInfo structure is valid. A pane structure is valid if it has an associated window.
-    bool IsOk() const { return m_window != NULL; }
+    bool IsOk() const { return window != NULL; }
     // get/set the window associated with this pane
-    wxWindow* GetWindow() const { return m_window; }
+    wxWindow* GetWindow() const { return window; }
     wxAuiPaneInfo& Window(wxWindow* w)
     {
       wxAuiPaneInfo test(*this);
-      test.m_window = w;
+      test.window = w;
       wxCHECK_MSG(test.IsValid(), *this,
                   "window settings and pane settings are incompatible");
-      this->m_window = w;
+      this->window = w;
       return *this;
     }
 
     // get/set the floating frame window that holds the pane
-    wxFrame* GetFrame() const { return m_frame; }
-    wxAuiPaneInfo& Frame(wxFrame* frame) { m_frame = frame; return *this; }
+    wxFrame* GetFrame() const { return frame; }
+    wxAuiPaneInfo& Frame(wxFrame* f) { frame = f; return *this; }
 
     // get/set if the pane is resizable.
     // opposite of Is/SetFixed.
@@ -312,87 +312,87 @@ public:
     wxAuiPaneInfo& PinButton(bool visible = true) { return SetFlag(buttonPin, visible); }
 
     // get/set the name of the pane.
-    wxString GetName() const { return m_name; }
-    wxAuiPaneInfo& Name(const wxString& n) { m_name = n; return *this; }
+    wxString GetName() const { return name; }
+    wxAuiPaneInfo& Name(const wxString& n) { name = n; return *this; }
 
     // get/set the caption of the pane.
-    wxString GetCaption() const { return m_caption; }
-    wxAuiPaneInfo& Caption(const wxString& c) { m_caption = c; return *this; }
+    wxString GetCaption() const { return caption; }
+    wxAuiPaneInfo& Caption(const wxString& c) { caption = c; return *this; }
 
     // get/set the tooltip of the pane.
     wxString GetToolTip() const { return m_tooltip; }
     wxAuiPaneInfo& ToolTip(const wxString& t) { m_tooltip = t; return *this; }
 
     // get/set the pane dock position.
-    int GetDirection() const { return m_dock_direction; }
-    wxAuiPaneInfo& Direction(int direction) { m_dock_direction = direction; return *this; }
+    int GetDirection() const { return dock_direction; }
+    wxAuiPaneInfo& Direction(int direction) { dock_direction = direction; return *this; }
 
     // Convenience functions to the above
-    wxAuiPaneInfo& Left()   { m_dock_direction = wxAUI_DOCK_LEFT; return *this; }
-    wxAuiPaneInfo& Right()  { m_dock_direction = wxAUI_DOCK_RIGHT; return *this; }
-    wxAuiPaneInfo& Top()    { m_dock_direction = wxAUI_DOCK_TOP; return *this; }
-    wxAuiPaneInfo& Bottom() { m_dock_direction = wxAUI_DOCK_BOTTOM; return *this; }
-    wxAuiPaneInfo& Center() { m_dock_direction = wxAUI_DOCK_CENTER; return *this; }
-    wxAuiPaneInfo& Centre() { m_dock_direction = wxAUI_DOCK_CENTRE; return *this; }
+    wxAuiPaneInfo& Left()   { dock_direction = wxAUI_DOCK_LEFT; return *this; }
+    wxAuiPaneInfo& Right()  { dock_direction = wxAUI_DOCK_RIGHT; return *this; }
+    wxAuiPaneInfo& Top()    { dock_direction = wxAUI_DOCK_TOP; return *this; }
+    wxAuiPaneInfo& Bottom() { dock_direction = wxAUI_DOCK_BOTTOM; return *this; }
+    wxAuiPaneInfo& Center() { dock_direction = wxAUI_DOCK_CENTER; return *this; }
+    wxAuiPaneInfo& Centre() { dock_direction = wxAUI_DOCK_CENTRE; return *this; }
 
     // get/set the layer of the pane when docked.
     // The dock layer is similar to an onion, the inner-most layer being layer 0.
     // Each shell moving in the outward direction has a higher layer number.
     // This allows for more complex docking layout formation.
-    int GetLayer() const { return m_dock_layer; }
-    wxAuiPaneInfo& Layer(int layer) { m_dock_layer = layer; return *this; }
+    int GetLayer() const { return dock_layer; }
+    wxAuiPaneInfo& Layer(int layer) { dock_layer = layer; return *this; }
 
     // get/set the row of the pane when docked.
-    int GetRow() const { return m_dock_row; }
-    wxAuiPaneInfo& Row(int row) { m_dock_row = row; return *this; }
+    int GetRow() const { return dock_row; }
+    wxAuiPaneInfo& Row(int row) { dock_row = row; return *this; }
 
     // get/set the position of the pane when docked.
-    int GetPosition() const { return m_dock_pos; }
-    wxAuiPaneInfo& Position(int pos) { m_dock_pos = pos; return *this; }
+    int GetPosition() const { return dock_pos; }
+    wxAuiPaneInfo& Position(int pos) { dock_pos = pos; return *this; }
 
     // get/set the tab position of the pane when in a notebook.
     int GetPage() const { return m_dock_page; }
     wxAuiPaneInfo& Page(int page) { m_dock_page = page; return *this; }
 
     // get/set the bitmap associated with this pane.
-    const wxBitmap &GetIcon() const { return m_dock_bitmap; }
-    wxAuiPaneInfo& Icon(wxBitmap bitmap) { m_dock_bitmap = bitmap; return *this; }
+    const wxBitmap &GetIcon() const { return icon; }
+    wxAuiPaneInfo& Icon(wxBitmap bitmap) { icon = bitmap; return *this; }
 
     // get/set the proportion of the pane.
-    int GetProportion() const { return m_dock_proportion; }
-    wxAuiPaneInfo& Proportion(int proportion) { m_dock_proportion = proportion; return *this; }
+    int GetProportion() const { return dock_proportion; }
+    wxAuiPaneInfo& Proportion(int proportion) { dock_proportion = proportion; return *this; }
 
     // get/set the position of the pane when floating.
-    wxPoint GetFloatingPosition() const { return m_floating_pos; }
-    wxAuiPaneInfo& FloatingPosition(int x, int y) { m_floating_pos.x = x; m_floating_pos.y = y; return *this; }
-    wxAuiPaneInfo& FloatingPosition(const wxPoint& pos) { m_floating_pos = pos; return *this; }
+    wxPoint GetFloatingPosition() const { return floating_pos; }
+    wxAuiPaneInfo& FloatingPosition(int x, int y) { floating_pos.x = x; floating_pos.y = y; return *this; }
+    wxAuiPaneInfo& FloatingPosition(const wxPoint& pos) { floating_pos = pos; return *this; }
 
     // get/set the size of the pane when floating.
-    wxSize GetFloatingSize() const { return m_floating_size; }
-    wxAuiPaneInfo& FloatingSize(int x, int y) { m_floating_size.Set(x,y); return *this; }
-    wxAuiPaneInfo& FloatingSize(const wxSize& size) { m_floating_size = size; return *this; }
+    wxSize GetFloatingSize() const { return floating_size; }
+    wxAuiPaneInfo& FloatingSize(int x, int y) { floating_size.Set(x,y); return *this; }
+    wxAuiPaneInfo& FloatingSize(const wxSize& size) { floating_size = size; return *this; }
 
     // get/set the ideal size of the pane.
-    wxSize GetBestSize() const { return m_best_size; }
-    wxAuiPaneInfo& BestSize(int x, int y) { m_best_size.Set(x,y); return *this; }
-    wxAuiPaneInfo& BestSize(const wxSize& size) { m_best_size = size; return *this; }
+    wxSize GetBestSize() const { return best_size; }
+    wxAuiPaneInfo& BestSize(int x, int y) { best_size.Set(x,y); return *this; }
+    wxAuiPaneInfo& BestSize(const wxSize& size) { best_size = size; return *this; }
 
     // get/set the minimum size of the pane.
-    wxSize GetMinSize() const { return m_min_size; }
-    wxAuiPaneInfo& MinSize(int x, int y) { m_min_size.Set(x,y); return *this; }
-    wxAuiPaneInfo& MinSize(const wxSize& size) { m_min_size = size; return *this; }
+    wxSize GetMinSize() const { return min_size; }
+    wxAuiPaneInfo& MinSize(int x, int y) { min_size.Set(x,y); return *this; }
+    wxAuiPaneInfo& MinSize(const wxSize& size) { min_size = size; return *this; }
 
     // get/set the maximum size of the pane.
-    wxSize GetMaxSize() const { return m_max_size; };
-    wxAuiPaneInfo& MaxSize(int x, int y) { m_max_size.Set(x,y); return *this; }
-    wxAuiPaneInfo& MaxSize(const wxSize& size) { m_max_size = size; return *this; }
+    wxSize GetMaxSize() const { return max_size; };
+    wxAuiPaneInfo& MaxSize(int x, int y) { max_size.Set(x,y); return *this; }
+    wxAuiPaneInfo& MaxSize(const wxSize& size) { max_size = size; return *this; }
 
     // get/set the current rectangle (populated by wxAUI).
-    wxRect GetRect() const { return m_rect; };
-    wxAuiPaneInfo& Rect(const wxRect& rect) { m_rect = rect; return *this; }
+    wxRect GetRect() const { return rect; };
+    wxAuiPaneInfo& Rect(const wxRect& r) { rect = r; return *this; }
 
     // get the array of buttons that are present on the pane.
-    wxAuiPaneButtonArray& GetButtons() { return m_buttons; }
+    wxAuiPaneButtonArray& GetButtons() { return buttons; }
 
     // get/set whether the containing dock can have a resize sash.
     // when DockFixed is true no sash will be available.
@@ -410,33 +410,38 @@ public:
     // get/set a property flag for this pane, used internally by other get/set functions.
     bool HasFlag(int flag) const
     {
-        return (m_state & flag) != 0;
+        return (state & flag) != 0;
     }
     wxAuiPaneInfo& SetFlag(int flag, bool optionState)
     {
         wxAuiPaneInfo test(*this);
         if (optionState)
-             test.m_state |= flag;
+             test.state |= flag;
         else
-            test.m_state &= ~flag;
+            test.state &= ~flag;
         wxCHECK_MSG(test.IsValid(), *this,
                     "window settings and pane settings are incompatible");
         if (optionState)
-             this->m_state |= flag;
+             this->state |= flag;
         else
-            this->m_state &= ~flag;
+            this->state &= ~flag;
         return *this;
     }
     unsigned int GetFlags() const
     {
-        return m_state;
+        return state;
+    }
+
+    wxAuiPaneInfo& Flags(unsigned int f)
+    {
+    state = f; return *this;
     }
 
     // adopt the default center pane settings for this pane.
     wxAuiPaneInfo& CentrePane() { return CenterPane(); }
     wxAuiPaneInfo& CenterPane()
     {
-        m_state = 0;
+        state = 0;
         return Center().PaneBorder().Resizable();
     }
 
@@ -444,12 +449,12 @@ public:
     wxAuiPaneInfo& DefaultPane()
     {
        wxAuiPaneInfo test(*this);
-       test.m_state |= optionTopDockable | optionBottomDockable |
+       test.state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
                  optionCaption | optionPaneBorder | buttonClose;
         wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");
-        this->m_state |= optionTopDockable | optionBottomDockable |
+        this->state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
                  optionCaption | optionPaneBorder | buttonClose;
@@ -460,10 +465,10 @@ public:
     wxAuiPaneInfo& ToolbarPane()
     {
         DefaultPane();
-        m_state |= (optionToolbar | optionGripper);
-        m_state &= ~(optionResizable | optionCaption);
-        if (m_dock_layer == 0)
-            m_dock_layer = 10;
+        state |= (optionToolbar | optionGripper);
+        state &= ~(optionResizable | optionCaption);
+        if (dock_layer == 0)
+            dock_layer = 10;
         return *this;
     }
 
@@ -479,9 +484,9 @@ public:
     {
         // note source is not passed by reference so we can overwrite, to keep the
         // unsafe bits of "dest"
-        source.m_window = m_window;
-        source.m_frame = m_frame;
-        source.m_buttons = m_buttons;
+        source.window = window;
+        source.frame = frame;
+        source.buttons = buttons;
         // now assign
         *this = source;
     }
@@ -532,52 +537,43 @@ public:
     };
 
 public:
-#if WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED( wxString& name; )
-    wxDEPRECATED( wxString& caption; )
-    wxDEPRECATED( wxWindow*& window; )
-    wxDEPRECATED( wxFrame*& frame; )
-    wxDEPRECATED( unsigned int& state; )
-    wxDEPRECATED( int& dock_direction; )
-    wxDEPRECATED( int& dock_layer; )
-    wxDEPRECATED( int& dock_row; )
-    wxDEPRECATED( int& dock_pos; )
-    wxDEPRECATED( wxSize& best_size; )
-    wxDEPRECATED( wxSize& min_size; )
-    wxDEPRECATED( wxSize& max_size; )
-    wxDEPRECATED( wxPoint& floating_pos; )
-    wxDEPRECATED( wxSize& floating_size; )
-    wxDEPRECATED( int& dock_proportion; )
-    wxDEPRECATED( wxAuiPaneButtonArray& buttons; )
-    wxDEPRECATED( wxRect& rect; )
-    wxDEPRECATED( wxBitmap &icon; )
-#else // !WXWIN_COMPATIBILITY_3_0
-#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
+
+    // All the variables in this section are present for backward compatibility
+    // but should not be used anymore.
+    // Use the accessors methods to get their value. These variables may
+    // be removed or modified in the future.
+
+    wxString name;        // name of the pane
+    wxString caption;     // caption displayed on the window
+
+    wxWindow* window;     // window that is in this pane
+    wxFrame* frame;       // floating frame window that holds the pane
+    unsigned int state;   // a combination of wxPaneState values
+
+    int dock_direction;   // dock direction (top, bottom, left, right, center)
+    int dock_layer;       // layer number (0 = innermost layer)
+    int dock_row;         // row number on the docking bar (0 = first row)
+    int dock_pos;         // position inside the row (0 = first position)
+
+    wxBitmap icon;        // bitmap associated with the pane, shown on tab(if in a notebook) or on titlebar(if one is present)
+
+    wxSize best_size;     // size that the layout engine will prefer
+    wxSize min_size;      // minimum size the pane window can tolerate
+    wxSize max_size;      // maximum size the pane window can tolerate
+
+    wxPoint floating_pos; // position while floating
+    wxSize floating_size; // size while floating
+
+    int dock_proportion;          // proportion while docked
+    wxAuiPaneButtonArray buttons; // buttons on the pane
+    wxRect rect;                  // current rectangle (populated by wxAUI)
+
 private:
-    wxString m_name;        // name of the pane
-    wxString m_caption;     // caption displayed on the window
+
     wxString m_tooltip;     // tooltip displayed when hovering over title/tab of window
+    int      m_dock_page;   // tab position if we are in a notebook (0 = leftmost tab)
 
-    wxWindow* m_window;     // window that is in this pane
-    wxFrame* m_frame;       // floating frame window that holds the pane
-    unsigned int m_state;   // a combination of wxPaneState values
 
-    int m_dock_direction;   // dock direction (top, bottom, left, right, center)
-    int m_dock_layer;       // layer number (0 = innermost layer)
-    int m_dock_row;         // row number on the docking bar (0 = first row)
-    int m_dock_pos;         // position inside the row (0 = first position)
-    int m_dock_page;        // tab position if we are in a notebook (0 = leftmost tab)
-    wxBitmap m_dock_bitmap; // bitmap associated with the pane, shown on tab(if in a notebook) or on titlebar(if one is present)
-
-    wxSize m_best_size;     // size that the layout engine will prefer
-    wxSize m_min_size;      // minimum size the pane window can tolerate
-    wxSize m_max_size;      // maximum size the pane window can tolerate
-
-    wxPoint m_floating_pos; // position while floating
-    wxSize m_floating_size; // size while floating
-    int m_dock_proportion;  // proportion while docked
-    wxAuiPaneButtonArray m_buttons; // buttons on the pane
-    wxRect m_rect;          // current rectangle (populated by wxAUI)
 };
 
 

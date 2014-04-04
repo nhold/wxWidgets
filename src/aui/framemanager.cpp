@@ -121,97 +121,55 @@ const int notebookTabHeight = 42;
 
 wxAuiPaneInfo::wxAuiPaneInfo()
 :
-#if WXWIN_COMPATIBILITY_3_0
-  name(m_name),
-  caption(m_caption),
-  window(m_window),  
-  frame(m_frame),
-  state(m_state),
-  dock_direction(m_dock_direction),
-  dock_layer(m_dock_layer),
-  dock_row(m_dock_row),
-  dock_pos(m_dock_pos),
-  best_size(m_best_size),
-  min_size(m_min_size),
-  max_size(m_max_size),
-  floating_pos(m_floating_pos),
-  floating_size(m_floating_size),
-  dock_proportion(m_dock_proportion),
-  buttons(m_buttons),
-  rect(m_rect), 
-  icon(m_dock_bitmap),  
-#else // !WXWIN_COMPATIBILITY_3_0
-#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
-  m_name(wxT("")),
-  m_caption(wxT("")),
+  name(wxT("")),
+  caption(wxT("")),  
+  window(NULL),
+  frame(NULL),
+  state(0),
+  dock_direction(wxAUI_DOCK_LEFT),
+  dock_layer(0),
+  dock_row(0),
+  dock_pos(0),
+  best_size(wxDefaultSize),
+  min_size(wxDefaultSize),
+  max_size(wxDefaultSize),
+  floating_pos(wxDefaultPosition),
+  floating_size(wxDefaultSize),
+  dock_proportion(0),
   m_tooltip(wxT("")),
-  m_window(NULL),
-  m_frame(NULL),
-  m_state(0),
-  m_dock_direction(wxAUI_DOCK_LEFT),
-  m_dock_layer(0),
-  m_dock_row(0),
-  m_dock_pos(0),
-  m_dock_page(0),
-  m_best_size(wxDefaultSize),
-  m_min_size(wxDefaultSize),
-  m_max_size(wxDefaultSize),
-  m_floating_pos(wxDefaultPosition),
-  m_floating_size(wxDefaultSize),
-  m_dock_proportion(0)
+  m_dock_page(0)
 {
     DefaultPane();
 }
 
 #ifndef SWIG
 wxAuiPaneInfo::wxAuiPaneInfo(const wxAuiPaneInfo& c)
-#if WXWIN_COMPATIBILITY_3_0
-: name(m_name)
-, caption(m_caption)
-, window(m_window)
-, frame(m_frame)
-, state(m_state)
-, dock_direction(m_dock_direction)
-, dock_layer(m_dock_layer)
-, dock_row(m_dock_row)
-, dock_pos(m_dock_pos)
-, best_size(m_best_size)
-, min_size(m_min_size)
-, max_size(m_max_size)
-, floating_pos(m_floating_pos)
-, floating_size(m_floating_size)
-, dock_proportion(m_dock_proportion)
-, buttons(m_buttons)
-, rect(m_rect)
-, icon(m_dock_bitmap)
-#else // !WXWIN_COMPATIBILITY_3_0
-#endif // WXWIN_COMPATIBILITY_3_0/!WXWIN_COMPATIBILITY_3_0
 {
    *this = c;
 }
 
 wxAuiPaneInfo& wxAuiPaneInfo::operator=(const wxAuiPaneInfo& c)
 {
-    m_name            = c.m_name;
-    m_caption         = c.m_caption;
-    m_tooltip         = c.m_tooltip;
-    m_window          = c.m_window;
-    m_frame           = c.m_frame;
-    m_state           = c.m_state;
-    m_dock_direction  = c.m_dock_direction;
-    m_dock_layer      = c.m_dock_layer;
-    m_dock_row        = c.m_dock_row;
-    m_dock_pos        = c.m_dock_pos;
-    m_dock_page       = c.m_dock_page;
-    m_dock_bitmap     = c.m_dock_bitmap;
-    m_best_size       = c.m_best_size;
-    m_min_size        = c.m_min_size;
-    m_max_size        = c.m_max_size;
-    m_floating_pos    = c.m_floating_pos;
-    m_floating_size   = c.m_floating_size;
-    m_dock_proportion = c.m_dock_proportion;
-    m_buttons         = c.m_buttons;
-    m_rect            = c.m_rect;
+    name            = c.name;
+    caption         = c.caption;    
+    window          = c.window;
+    frame           = c.frame;
+    state           = c.state;
+    dock_direction  = c.dock_direction;
+    dock_layer      = c.dock_layer;
+    dock_row        = c.dock_row;
+    dock_pos        = c.dock_pos;    
+    icon            = c.icon;
+    best_size       = c.best_size;
+    min_size        = c.min_size;
+    max_size        = c.max_size;
+    floating_pos    = c.floating_pos;
+    floating_size   = c.floating_size;
+    dock_proportion = c.dock_proportion;
+    buttons         = c.buttons;
+    rect            = c.rect;
+    m_tooltip       = c.m_tooltip;
+    m_dock_page     = c.m_dock_page;
     return *this;
 }
 #endif // !SWIG
@@ -851,7 +809,7 @@ bool wxAuiPaneInfo::IsValid() const
     // Should this RTTI and function call be rewritten as
     // sending a new event type to allow other window types
     // to check the pane settings?
-    wxAuiToolBar* toolbar = wxDynamicCast(m_window, wxAuiToolBar);
+    wxAuiToolBar* toolbar = wxDynamicCast(window, wxAuiToolBar);
     return !toolbar || toolbar->IsPaneValid(*this);
 }
 
@@ -860,11 +818,11 @@ wxAuiPaneInfo &wxAuiPaneInfo::MoveOver(const wxAuiPaneInfo &target)
 {
 if (target.IsValid() && IsValid() && !IsToolbar() && !target.IsToolbar() && IsDockable() && target.IsDocked()) {
 
-    m_dock_direction = target.m_dock_direction;
-    m_dock_layer     = target.m_dock_layer;
-    m_dock_pos       = target.m_dock_pos;
-    m_dock_row       = target.m_dock_row;
-    m_dock_page      = target.m_dock_page+1;
+    dock_direction = target.dock_direction;
+    dock_layer     = target.dock_layer;
+    dock_pos       = target.dock_pos;
+    dock_row       = target.dock_row;
+    m_dock_page    = target.m_dock_page+1;
 
     Dock();
 
@@ -1810,30 +1768,34 @@ static wxString EscapeDelimiters(const wxString& s)
 wxString wxAuiPaneInfo::GetInfo() const
 {
     wxString result = wxT("name=");
-    result += EscapeDelimiters(m_name);
+    result += EscapeDelimiters(name);
     result += wxT(";");
 
     result += wxT("caption=");
-    result += EscapeDelimiters(m_caption);
+    result += EscapeDelimiters(caption);
     result += wxT(";");
 
-    result += wxString::Format(wxT("state=%u;"), m_state);
-    result += wxString::Format(wxT("dir=%d;"), m_dock_direction);
-    result += wxString::Format(wxT("layer=%d;"), m_dock_layer);
-    result += wxString::Format(wxT("row=%d;"), m_dock_row);
-    result += wxString::Format(wxT("pos=%d;"), m_dock_pos);
-    result += wxString::Format(wxT("prop=%d;"), m_dock_proportion);
+    result += wxT("tooltip=");
+    result += EscapeDelimiters(m_tooltip);
+    result += wxT(";");
+
+    result += wxString::Format(wxT("state=%u;"), state);
+    result += wxString::Format(wxT("dir=%d;"), dock_direction);
+    result += wxString::Format(wxT("layer=%d;"), dock_layer);
+    result += wxString::Format(wxT("row=%d;"), dock_row);
+    result += wxString::Format(wxT("pos=%d;"), dock_pos);
+    result += wxString::Format(wxT("prop=%d;"), dock_proportion);
     result += wxString::Format(wxT("page=%d;"), m_dock_page);
-    result += wxString::Format(wxT("bestw=%d;"), m_best_size.x);
-    result += wxString::Format(wxT("besth=%d;"), m_best_size.y);
-    result += wxString::Format(wxT("minw=%d;"), m_min_size.x);
-    result += wxString::Format(wxT("minh=%d;"), m_min_size.y);
-    result += wxString::Format(wxT("maxw=%d;"), m_max_size.x);
-    result += wxString::Format(wxT("maxh=%d;"), m_max_size.y);
-    result += wxString::Format(wxT("floatx=%d;"), m_floating_pos.x);
-    result += wxString::Format(wxT("floaty=%d;"), m_floating_pos.y);
-    result += wxString::Format(wxT("floatw=%d;"), m_floating_size.x);
-    result += wxString::Format(wxT("floath=%d;"), m_floating_size.y);
+    result += wxString::Format(wxT("bestw=%d;"), best_size.x);
+    result += wxString::Format(wxT("besth=%d;"), best_size.y);
+    result += wxString::Format(wxT("minw=%d;"), min_size.x);
+    result += wxString::Format(wxT("minh=%d;"), min_size.y);
+    result += wxString::Format(wxT("maxw=%d;"), max_size.x);
+    result += wxString::Format(wxT("maxh=%d;"), max_size.y);
+    result += wxString::Format(wxT("floatx=%d;"), floating_pos.x);
+    result += wxString::Format(wxT("floaty=%d;"), floating_pos.y);
+    result += wxString::Format(wxT("floatw=%d;"), floating_size.x);
+    result += wxString::Format(wxT("floath=%d;"), floating_size.y);
     return result;
 }
 wxString wxAuiManager::SavePaneInfo(wxAuiPaneInfo& pane)
@@ -1864,45 +1826,45 @@ void wxAuiPaneInfo::LoadInfo(wxString& info)
             break;
 
         if (valName == wxT("name"))
-            m_name = value;
+            name = value;
         else if (valName == wxT("caption"))
-            m_caption = value;
+            caption = value;
         else if (valName == wxT("tooltip"))
             m_tooltip = value;
         else if (valName == wxT("state"))
-            m_state = (unsigned int)wxAtoi(value.c_str());
+            state = (unsigned int)wxAtoi(value.c_str());
         else if (valName == wxT("dir"))
-            m_dock_direction = wxAtoi(value.c_str());
+            dock_direction = wxAtoi(value.c_str());
         else if (valName == wxT("layer"))
-            m_dock_layer = wxAtoi(value.c_str());
+            dock_layer = wxAtoi(value.c_str());
         else if (valName == wxT("row"))
-            m_dock_row = wxAtoi(value.c_str());
+            dock_row = wxAtoi(value.c_str());
         else if (valName == wxT("pos"))
-            m_dock_pos = wxAtoi(value.c_str());
+            dock_pos = wxAtoi(value.c_str());
         else if (valName == wxT("prop"))
-            m_dock_proportion = wxAtoi(value.c_str());
+            dock_proportion = wxAtoi(value.c_str());
         else if (valName == wxT("page"))
             m_dock_page = wxAtoi(value.c_str());
         else if (valName == wxT("bestw"))
-            m_best_size.x = wxAtoi(value.c_str());
+            best_size.x = wxAtoi(value.c_str());
         else if (valName == wxT("besth"))
-            m_best_size.y = wxAtoi(value.c_str());
+            best_size.y = wxAtoi(value.c_str());
         else if (valName == wxT("minw"))
-            m_min_size.x = wxAtoi(value.c_str());
+            min_size.x = wxAtoi(value.c_str());
         else if (valName == wxT("minh"))
-            m_min_size.y = wxAtoi(value.c_str());
+            min_size.y = wxAtoi(value.c_str());
         else if (valName == wxT("maxw"))
-            m_max_size.x = wxAtoi(value.c_str());
+            max_size.x = wxAtoi(value.c_str());
         else if (valName == wxT("maxh"))
-            m_max_size.y = wxAtoi(value.c_str());
+            max_size.y = wxAtoi(value.c_str());
         else if (valName == wxT("floatx"))
-            m_floating_pos.x = wxAtoi(value.c_str());
+            floating_pos.x = wxAtoi(value.c_str());
         else if (valName == wxT("floaty"))
-            m_floating_pos.y = wxAtoi(value.c_str());
+            floating_pos.y = wxAtoi(value.c_str());
         else if (valName == wxT("floatw"))
-            m_floating_size.x = wxAtoi(value.c_str());
+            floating_size.x = wxAtoi(value.c_str());
         else if (valName == wxT("floath"))
-            m_floating_size.y = wxAtoi(value.c_str());
+            floating_size.y = wxAtoi(value.c_str());
         else {
             wxFAIL_MSG(wxT("Bad Perspective String"));
         }
@@ -1910,10 +1872,10 @@ void wxAuiPaneInfo::LoadInfo(wxString& info)
 
     // replace escaped characters so we can
     // split up the string easily
-    m_name.Replace(wxT("\a"), wxT("|"));
-    m_name.Replace(wxT("\b"), wxT(";"));
-    m_caption.Replace(wxT("\a"), wxT("|"));
-    m_caption.Replace(wxT("\b"), wxT(";"));
+    name.Replace(wxT("\a"), wxT("|"));
+    name.Replace(wxT("\b"), wxT(";"));
+    caption.Replace(wxT("\a"), wxT("|"));
+    caption.Replace(wxT("\b"), wxT(";"));
     m_tooltip.Replace(wxT("\a"), wxT("|"));
     m_tooltip.Replace(wxT("\b"), wxT(";"));
     info.Replace(wxT("\a"), wxT("|"));
