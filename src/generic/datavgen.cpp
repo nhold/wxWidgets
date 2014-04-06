@@ -1608,13 +1608,10 @@ wxDragResult wxDataViewMainWindow::OnDragOver( wxDataFormat format, wxCoord x,
     m_owner->CalcUnscrolledPosition( xx, yy, &xx, &yy );
     unsigned int row = GetLineAt( yy );
 
-    if ((row >= GetRowCount()) || (xx > GetEndOfLastCol()))
-    {
-        RemoveDropHint();
-        return wxDragNone;
-    }
-
-    wxDataViewItem item = GetItemByRow( row );
+    wxDataViewItem item;
+    
+    if ( row < GetRowCount() && xx <= GetEndOfLastCol() )
+        item = GetItemByRow( row );
 
     wxDataViewModel *model = GetModel();
 
@@ -1624,24 +1621,20 @@ wxDragResult wxDataViewMainWindow::OnDragOver( wxDataFormat format, wxCoord x,
     event.SetModel( model );
     event.SetDataFormat( format );
     event.SetDropEffect( def );
-    if (!m_owner->HandleWindowEvent( event ))
+    if ( !m_owner->HandleWindowEvent( event ) || !event.IsAllowed() )
     {
         RemoveDropHint();
         return wxDragNone;
     }
 
-    if (!event.IsAllowed())
-    {
+    if (item.IsOk()) {
+        if (m_dropHint && (row != m_dropHintLine))
+            RefreshRow( m_dropHintLine );
+        m_dropHint = true;
+        m_dropHintLine = row;
+        RefreshRow( row );
+    } else
         RemoveDropHint();
-        return wxDragNone;
-    }
-
-
-    if (m_dropHint && (row != m_dropHintLine))
-        RefreshRow( m_dropHintLine );
-    m_dropHint = true;
-    m_dropHintLine = row;
-    RefreshRow( row );
 
     return def;
 }
@@ -1655,10 +1648,10 @@ bool wxDataViewMainWindow::OnDrop( wxDataFormat format, wxCoord x, wxCoord y )
     m_owner->CalcUnscrolledPosition( xx, yy, &xx, &yy );
     unsigned int row = GetLineAt( yy );
 
-    if ((row >= GetRowCount()) || (xx > GetEndOfLastCol()))
-        return false;
+    wxDataViewItem item;
 
-    wxDataViewItem item = GetItemByRow( row );
+    if ( row < GetRowCount() && xx <= GetEndOfLastCol())
+       item = GetItemByRow( row );
 
     wxDataViewModel *model = GetModel();
 
@@ -1667,10 +1660,7 @@ bool wxDataViewMainWindow::OnDrop( wxDataFormat format, wxCoord x, wxCoord y )
     event.SetItem( item );
     event.SetModel( model );
     event.SetDataFormat( format );
-    if (!m_owner->HandleWindowEvent( event ))
-        return false;
-
-    if (!event.IsAllowed())
+    if (!m_owner->HandleWindowEvent( event ) || !event.IsAllowed())
         return false;
 
     return true;
@@ -1684,10 +1674,10 @@ wxDragResult wxDataViewMainWindow::OnData( wxDataFormat format, wxCoord x, wxCoo
     m_owner->CalcUnscrolledPosition( xx, yy, &xx, &yy );
     unsigned int row = GetLineAt( yy );
 
-    if ((row >= GetRowCount()) || (xx > GetEndOfLastCol()))
-        return wxDragNone;
-
-    wxDataViewItem item = GetItemByRow( row );
+    wxDataViewItem item;
+    
+    if ( row < GetRowCount() && xx <= GetEndOfLastCol() )
+        item = GetItemByRow( row );
 
     wxDataViewModel *model = GetModel();
 
@@ -1701,10 +1691,7 @@ wxDragResult wxDataViewMainWindow::OnData( wxDataFormat format, wxCoord x, wxCoo
     event.SetDataSize( obj->GetSize() );
     event.SetDataBuffer( obj->GetData() );
     event.SetDropEffect( def );
-    if (!m_owner->HandleWindowEvent( event ))
-        return wxDragNone;
-
-    if (!event.IsAllowed())
+    if ( !m_owner->HandleWindowEvent( event ) || !event.IsAllowed() )
         return wxDragNone;
 
     return def;
@@ -4272,7 +4259,7 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
         {
             // we make the rectangle we are looking in a bit bigger than the actual
             // visual expander so the user can hit that little thing reliably
-            wxRect rect(itemOffset,
+            wxRect rect(xpos+itemOffset,
                         GetLineStart( current ) + (GetLineHeight(current) - m_lineHeight)/2,
                         m_lineHeight, m_lineHeight);
 
@@ -4492,13 +4479,13 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
         // Call ActivateCell() after everything else as under GTK+
         if ( IsCellEditableInMode(item, col, wxDATAVIEW_CELL_ACTIVATABLE) )
         {
-            // notify cell about click
-            cell->PrepareForItem(model, item, col->GetModelColumn());
-
+            // notify cell about click           
             wxRect cell_rect( xpos + itemOffset,
                               GetLineStart( current ),
                               col->GetWidth() - itemOffset,
                               GetLineHeight( current ) );
+                              
+            cell->PrepareForItem(model, item, col->GetModelColumn());
 
             // Report position relative to the cell's custom area, i.e.
             // not the entire space as given by the control but the one

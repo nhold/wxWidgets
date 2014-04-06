@@ -196,7 +196,7 @@ void wxAuiNotebook::SetWindowStyleFlag(long style)
     // if the flag changes, we have to redo the layout
     bool allow_docking = m_mgr.HasFlag(wxAUI_MGR_NB_TAB_SPLIT);
     for(size_t i=0; i<m_mgr.GetAllPanes().size() ;i++)
-        m_mgr.GetAllPanes()[i].SetDockable(allow_docking);
+        m_mgr.GetAllPanes()[i].Dockable(allow_docking);
     
     m_mgr.Update();
 }
@@ -220,7 +220,7 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).SetCloseButton(false).SetAlwaysDockInNotebook(false));
+    m_mgr.AddPane(page, wxAuiPaneInfo().Centre().Layer(1).Position(1).Caption(caption).Floatable(false).Movable(true).Page(pageIndex).Icon(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).CloseButton(false).AlwaysDockInNotebook(false));
     
     
     if(select)
@@ -298,7 +298,7 @@ bool wxAuiNotebook::SetPageText(size_t pageIndex, const wxString& text)
         return false;
     }
     
-    m_mgr.GetPane(pageIndex).SetCaption(text);
+    m_mgr.GetPane(pageIndex).Caption(text);
     return true;
 }
 
@@ -323,7 +323,7 @@ bool wxAuiNotebook::SetPageToolTip(size_t page_idx, const wxString& text)
     }
     
     // update tooltip info for pane.
-    m_mgr.GetPane(page_idx).SetToolTip(text);
+    m_mgr.GetPane(page_idx).ToolTip(text);
     
     // NB: we don't update the tooltip if it is already being displayed, it
     //     typically never happens, no need to code that
@@ -350,7 +350,7 @@ bool wxAuiNotebook::SetPageBitmap(size_t pageIndex, const wxBitmap& bitmap)
         return false;
     }
     
-    m_mgr.GetPane(pageIndex).SetBitmap(bitmap);
+    m_mgr.GetPane(pageIndex).Icon(bitmap);
     return true;
 }
 
@@ -363,7 +363,7 @@ wxBitmap wxAuiNotebook::GetPageBitmap(size_t pageIndex) const
         return wxNullBitmap;
     }
     
-    return m_mgr.GetPane(pageIndex).GetBitmap();
+    return m_mgr.GetPane(pageIndex).GetIcon();
 }
 
 // GetSelection() returns the index of the currently active page
@@ -478,7 +478,7 @@ void wxAuiNotebook::Split(size_t pageIndex, int direction)
             default: wxASSERT_MSG(0, wxT("Invalid direction passed to wxAuiNotebook::Split")); return;
         }
         
-        panes[pageIndex].SetDirection(direction);
+        panes[pageIndex].Direction(direction);
         
         wxAuiDoInsertDockLayer(panes,direction,panes[pageIndex].GetLayer());
         

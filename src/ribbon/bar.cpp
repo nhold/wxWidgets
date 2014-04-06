@@ -115,12 +115,22 @@ bool wxRibbonBar::DismissExpandedPanel()
     return m_pages.Item(m_current_page).page->DismissExpandedPanel();
 }
 
-void wxRibbonBar::ShowPanels(bool show)
+
+void wxRibbonBar::ShowPanels(wxRibbonDisplayMode mode)
 {
-    m_arePanelsShown = show;
+    m_arePanelsShown = (mode == wxRIBBON_BAR_PINNED || mode == wxRIBBON_BAR_EXPANDED);
+
     SetMinSize(wxSize(GetSize().GetWidth(), DoGetBestSize().GetHeight()));
     Realise();
     GetParent()->Layout();
+
+    m_ribbon_state = mode;
+}
+
+
+void wxRibbonBar::ShowPanels(bool show)
+{
+    ShowPanels( show ? wxRIBBON_BAR_PINNED : wxRIBBON_BAR_MINIMIZED );
 }
 
 void wxRibbonBar::SetWindowStyleFlag(long style)
@@ -974,13 +984,11 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
     {
         if ( m_ribbon_state == wxRIBBON_BAR_MINIMIZED )
         {
-            ShowPanels();
-            m_ribbon_state = wxRIBBON_BAR_EXPANDED;
+            ShowPanels(wxRIBBON_BAR_EXPANDED);
         }
         else if ( (tab == &m_pages.Item(m_current_page)) && (m_ribbon_state == wxRIBBON_BAR_EXPANDED) )
         {
             HidePanels();
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
         }
     }
     else
@@ -988,7 +996,6 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
         if ( m_ribbon_state == wxRIBBON_BAR_EXPANDED )
         {
             HidePanels();
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
         }
     }
     if(tab && tab != &m_pages.Item(m_current_page))
@@ -1028,12 +1035,7 @@ void wxRibbonBar::OnMouseLeftDown(wxMouseEvent& evt)
         {
             if(m_toggle_button_rect.Contains(position))
             {
-                bool pshown = ArePanelsShown();
-                ShowPanels(!pshown);
-                if ( pshown )
-                    m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
-                else
-                    m_ribbon_state = wxRIBBON_BAR_PINNED;
+                ShowPanels(ArePanelsShown() ? wxRIBBON_BAR_MINIMIZED : wxRIBBON_BAR_PINNED);
                 wxRibbonBarEvent event(wxEVT_RIBBONBAR_TOGGLED, GetId());
                 event.SetEventObject(this);
                 ProcessWindowEvent(event);
@@ -1168,13 +1170,11 @@ void wxRibbonBar::OnMouseDoubleClick(wxMouseEvent& evt)
     {
         if ( m_ribbon_state == wxRIBBON_BAR_PINNED )
         {
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
             HidePanels();
         }
         else
         {
-            m_ribbon_state = wxRIBBON_BAR_PINNED;
-            ShowPanels();
+            ShowPanels(wxRIBBON_BAR_PINNED);
         }
     }
 }
@@ -1269,20 +1269,8 @@ void wxRibbonBar::HitTestRibbonButton(const wxRect& rect, const wxPoint& positio
 
 void wxRibbonBar::HideIfExpanded()
 {
-    switch ( m_ribbon_state )
-    {
-        case wxRIBBON_BAR_EXPANDED:
-            m_ribbon_state = wxRIBBON_BAR_MINIMIZED;
-            // Fall through
-
-        case wxRIBBON_BAR_MINIMIZED:
-            HidePanels();
-            break;
-
-        case wxRIBBON_BAR_PINNED:
-            ShowPanels();
-            break;
-    }
+    if ( m_ribbon_state == wxRIBBON_BAR_EXPANDED)
+        HidePanels();
 }
 
 void wxRibbonBar::OnKillFocus(wxFocusEvent& WXUNUSED(evt))

@@ -402,7 +402,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     wxSize tabSize = GetTabSize(dc,
                                  wnd,
                                  page.GetCaption(),
-                                 page.GetBitmap(),
+                                 page.GetIcon(),
                                  page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                                  closeButtonState,
                                  xExtent);
@@ -722,17 +722,17 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     }
 
     int bitmapOffset = 0;
-    if (page.GetBitmap().IsOk())
+    if (page.GetIcon().IsOk())
     {
         bitmapOffset = tabX + 8;
 
         // draw bitmap
-        dc.DrawBitmap(page.GetBitmap(),
+        dc.DrawBitmap(page.GetIcon(),
                       bitmapOffset,
-                      drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
+                      drawnTabYOff + (drawnTabHeight/2) - (page.GetIcon().GetHeight()/2),
                       true);
 
-        textOffset = bitmapOffset + page.GetBitmap().GetWidth();
+        textOffset = bitmapOffset + page.GetIcon().GetWidth();
         textOffset += 3; // bitmap padding
 
     }
@@ -756,15 +756,15 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         wxRect focusRect;
         wxRect focusRectBitmap;
 
-        if (page.GetBitmap().IsOk())
-            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
-                                            page.GetBitmap().GetWidth(), page.GetBitmap().GetHeight());
+        if (page.GetIcon().IsOk())
+            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.GetIcon().GetHeight()/2),
+                                            page.GetIcon().GetWidth(), page.GetIcon().GetHeight());
 
-        if (page.GetBitmap().IsOk() && drawText.IsEmpty())
+        if (page.GetIcon().IsOk() && drawText.IsEmpty())
             focusRect = focusRectBitmap;
-        else if (!page.GetBitmap().IsOk() && !drawText.IsEmpty())
+        else if (!page.GetIcon().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText;
-        else if (page.GetBitmap().IsOk() && !drawText.IsEmpty())
+        else if (page.GetIcon().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText.Union(focusRectBitmap);
 
         focusRect.Inflate(2, 2);
@@ -995,8 +995,8 @@ int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiPaneInfoPtrArray&
             caption = wxT(" ");
 
         wxMenuItem* item = new wxMenuItem(NULL, 1000+i, caption);
-        if (page.GetBitmap().IsOk())
-            item->SetBitmap(page.GetBitmap());
+        if (page.GetIcon().IsOk())
+            item->SetBitmap(page.GetIcon());
         menuPopup.Append(item);
     }
 
@@ -1044,7 +1044,7 @@ wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrA
         if (measureBmp.IsOk())
             bmp = measureBmp;
         else
-            bmp = page.GetBitmap();
+            bmp = page.GetIcon();
 
         int ext = 0;
         wxSize s = GetTabSize(dc,
@@ -1303,7 +1303,7 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     wxSize tabSize = GetTabSize(dc,
                                  wnd,
                                  page.GetCaption(),
-                                 page.GetBitmap(),
+                                 page.GetIcon(),
                                  page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                                  closeButtonState,
                                  extent);

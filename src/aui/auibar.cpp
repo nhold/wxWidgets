@@ -2340,15 +2340,15 @@ void wxAuiToolBar::OnIdle(wxIdleEvent& evt)
                 Realize();
                 if (newOrientation == wxHORIZONTAL)
                 {
-                    pane.SetBestSize( GetHintSize(wxAUI_DOCK_TOP) );
+                    pane.BestSize( GetHintSize(wxAUI_DOCK_TOP) );
                 }
                 else
                 {
-                    pane.SetBestSize( GetHintSize(wxAUI_DOCK_LEFT) );
+                    pane.BestSize( GetHintSize(wxAUI_DOCK_LEFT) );
                 }
                 if (pane.IsDocked())
                 {
-                    pane.SetFloatingSize( wxDefaultSize );
+                    pane.FloatingSize( wxDefaultSize );
                 }
                 else
                 {
