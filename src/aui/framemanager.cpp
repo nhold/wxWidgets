@@ -3161,8 +3161,8 @@ wxSizer* wxAuiManager::LayoutAll(wxAuiPaneInfoArray& panes,
         // e.g. 1, 5, 5, 9 -> 0, 1, 1, 2
         if (!dock.fixed)
         {
-            int i=0;
-            int lastposition=-1;
+            int i = -1;
+            int lastposition = -1;
             for (j = 0; j < dockPaneCount; ++j)
             {
                 wxAuiPaneInfo& pane = *dock.panes.Item(j);
