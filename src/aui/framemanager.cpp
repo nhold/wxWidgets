@@ -1583,7 +1583,11 @@ bool wxAuiManager::DetachPane(wxWindow* window)
                     partCount--;
                     pi--;
                     continue;
-                }
+                } 
+
+                if (part.m_tab_container)
+                    part.m_tab_container->RemovePage(window);
+
             }
 
             m_panes.RemoveAt(i);
