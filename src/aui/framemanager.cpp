@@ -3797,6 +3797,9 @@ bool wxAuiManager::ProcessDockResult(wxAuiPaneInfo& target, const wxAuiPaneInfo&
         case wxAUI_DOCK_CENTER: allowed = target.IsCenterDockable(); break;
     }
 
+    if (!allowed && target.GetPage() != newPos.GetPage() && HasFlag(wxAUI_MGR_NB_TAB_MOVE))
+        allowed = true;
+
     if (allowed)
     {
         target = newPos;

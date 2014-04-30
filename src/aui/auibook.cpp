@@ -222,8 +222,8 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     
     m_mgr.AddPane(page, wxAuiPaneInfo().Centre().Layer(0).Position(0).Caption(caption).Floatable(false).Movable().Page(pageIndex).Icon(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).CloseButton(false).AlwaysDockInNotebook());
     
-    
-    if(select)
+    // Change the selection if explicitly requested, or if the page is the first one; for the later case, it ensures that there is a current page in the notebook   
+    if (select || GetPageCount() == 1)
         SetSelection(pageIndex);
     
     m_mgr.Update();
@@ -372,13 +372,10 @@ int wxAuiNotebook::GetSelection() const
     return m_mgr.GetActivePane(FindFocus());
 }
 
-// SetSelection() sets the currently active page
+// SetSelection() sets the currently active page and emit changed event
 int wxAuiNotebook::SetSelection(size_t new_page)
 {
-    wxWindow* wnd = m_mgr.GetPane(new_page).GetWindow();
-    int selection = m_mgr.SetActivePane(wnd);
-    m_mgr.Update();
-    return selection;
+    return DoModifySelection(new_page, true);
 }
 
 
@@ -688,9 +685,8 @@ int wxAuiNotebook::DoModifySelection(size_t n, bool events)
     if ((int)n == GetSelection())
     {
         if(!GetCurrentPage()->HasFocus())
-        {
             GetCurrentPage()->SetFocus();
-        }
+       
         return n;
     }
     
@@ -709,7 +705,9 @@ int wxAuiNotebook::DoModifySelection(size_t n, bool events)
     
     if (!vetoed)
     {
-        SetSelection(n);
+        wxWindow* wnd = m_mgr.GetPane(n).GetWindow();
+        m_mgr.SetActivePane(wnd);
+        m_mgr.Update();
         
         // program allows the page change
         if(events)
