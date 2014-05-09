@@ -287,7 +287,7 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
                          NULL);
 
     // figure out the size of the tab
-    wxSize tabSize = GetTabSize(dc, wnd, page.caption, page.GetBitmap(),
+    wxSize tabSize = GetTabSize(dc, wnd, page.caption, page.GetIcon(),
                                     page.HasFlag(wxAuiPaneInfo::optionActiveNotebook), closeButtonState, xExtent);
 
     wxRect tabRect = inRect;
@@ -426,12 +426,12 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
     wxCoord textX = tabRect.x + padding + styleNotebook->xthickness;
 
     int bitmapX = 0;
-    if (page.GetBitmap().IsOk())
+    if (page.GetIcon().IsOk())
     {
         bitmapX = textX;
 
         // draw bitmap
-        int bitmapY = tabRect.y +(tabRect.height - page.GetBitmap().GetHeight()) / 2;
+        int bitmapY = tabRect.y +(tabRect.height - page.GetIcon().GetHeight()) / 2;
         if(!page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
         {
             if (HasFlag(wxAUI_NB_TOP))
@@ -439,12 +439,12 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
             else
                 bitmapY -= styleNotebook->ythickness / 2;
         }
-        dc.DrawBitmap(page.GetBitmap(),
+        dc.DrawBitmap(page.GetIcon(),
                       bitmapX,
                       bitmapY,
                       true);
 
-        textX += page.GetBitmap().GetWidth() + padding;
+        textX += page.GetIcon().GetWidth() + padding;
     }
 
     wxCoord textW, textH, textY;
