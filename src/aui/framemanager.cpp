@@ -1606,7 +1606,9 @@ bool wxAuiManager::DetachPane(wxWindow* window)
 bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
 {
     // If we are a wxAuiNotebook then we must fire off a EVT_AUINOTEBOOK_PAGE_CLOSE event and give the user an opportunity to veto it.
-    if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
+    wxAuiNotebook *notebook = wxDynamicCast(GetManagedWindow(),wxAuiNotebook);
+    
+    if (notebook)
     {
         wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, GetManagedWindow()->GetId());
         e.SetSelection(GetAllPanes().Index(paneInfo));
@@ -1615,6 +1617,7 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
         if (!e.IsAllowed())
             return false;
     }
+    
 
     // fire pane close event, allow opportunity for users to veto close
     wxAuiManagerEvent e(wxEVT_AUI_PANE_CLOSE);
@@ -1623,6 +1626,28 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
     if (e.GetVeto())
         return false;
 
+    
+    // If the pane is the active page of a notebook, activate the next page, or the previous one if no next exists
+    if (paneInfo.HasFlag(wxAuiPaneInfo::optionActiveNotebook)) 
+    {            
+        wxAuiTabContainer* ctrl;
+        int                ctrlIndex;
+        
+        if(FindTab(paneInfo.GetWindow(), &ctrl, &ctrlIndex))
+        {                        
+            size_t n_pages   = ctrl->GetPageCount();
+            
+            if (n_pages > 1) 
+            {
+                size_t cur_page = (size_t)ctrlIndex;
+                size_t new_page = cur_page == n_pages-1 ? cur_page-1 : cur_page+1;          
+                ctrl->SetActivePage(new_page);
+            }
+        }
+                     
+    } 
+    
+    
     // if we were maximized, restore
     if (paneInfo.IsMaximized())
     {
@@ -1665,13 +1690,14 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
     }
 
     // If we are a wxAuiNotebook then we must fire off a EVT_AUINOTEBOOK_PAGE_CLOSED event to notify user of change.
-    if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-    {
+    if (notebook)
+    {	
         wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSED, GetManagedWindow()->GetId());
         e.SetSelection(GetAllPanes().Index(paneInfo));
         e.SetEventObject(GetManagedWindow());
         GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
     }
+    
     return true;
 }
 
