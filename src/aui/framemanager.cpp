@@ -5965,7 +5965,7 @@ void wxAuiManager::OnRightDown(wxMouseEvent& evt)
         if(part->type == wxAuiDockUIPart::typePaneTab)
         {
             wxAuiPaneInfo* hitPane;
-            if(!part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
+            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
             {
                 if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
                 {
@@ -5987,7 +5987,7 @@ void wxAuiManager::OnRightUp(wxMouseEvent& evt)
         if(part->type == wxAuiDockUIPart::typePaneTab)
         {
             wxAuiPaneInfo* hitPane;
-            if(!part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
+            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
             {
                 if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
                 {
@@ -6009,7 +6009,7 @@ void wxAuiManager::OnMiddleDown(wxMouseEvent& evt)
         if(part->type == wxAuiDockUIPart::typePaneTab)
         {
             wxAuiPaneInfo* hitPane;
-            if(!part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
+            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
             {
                 if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
                 {
