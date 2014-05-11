@@ -124,7 +124,7 @@ void wxAuiNotebook::SetArtProvider(wxAuiTabArt* art)
 // any previous call and returns to the default behaviour
 void wxAuiNotebook::SetTabCtrlHeight(int height)
 {
-	GetArtProvider()->SetTabCtrlHeight(height);
+    GetArtProvider()->SetTabCtrlHeight(height);
 }
 
 void wxAuiNotebook::SetTabCtrlWidth(int width)
@@ -158,7 +158,7 @@ bool wxAuiNotebook::UpdateTabCtrlSize()
         return false;
 
 
-	// Are we supposed to update from the 'size' or what?
+    // Are we supposed to update from the 'size' or what?
 
     return true;
 }
@@ -174,7 +174,7 @@ wxSize wxAuiNotebook::CalculateTabCtrlSize()
     }
     
     wxSize tab_size = m_mgr.GetTabArtProvider()->GetBestTabSize((wxWindow*)this, allPanes,
-		m_mgr.GetTabArtProvider()->GetRequiredBitmapSize());
+        m_mgr.GetTabArtProvider()->GetRequiredBitmapSize());
     // if a fixed tab ctrl height is specified,
     // just use that instead of calculating a
     // tab height
