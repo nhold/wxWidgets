@@ -2539,11 +2539,19 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                             ShowWnd(pane.GetWindow(),false);
                     }
                 }
-                // If we are only doing a drop calculation then we only want the first
-                // pane in the notebook and the hint window to be added as spacers are
-                // not affected by the window being hidden and therefore make the hint
-                // calculation incorrect.
-                if(spacerOnly && pane.GetName()!= wxT("__HINT__"))
+                
+                // If we are only doing a drop calculation then we only want the first pane in the notebook to be added to the sizer.
+                // This is because we are essentially ignoring hidden/visible state - so adding more than one pane means that the space gets divided up evenly between pages by the sizer.
+                // We don't want this because the hint rect should take up the whole sizer.
+                // The hint code needs to find a pane named __HINT__ in our notebook to know we contain the hint so ensure the first pane has __HINT__ set as the name.
+                if(m_doingHintCalculation&&pane.GetName()==L"__HINT__")
+                {
+                    if(part.pane)
+                    {
+                        part.pane->Name(L"__HINT__");
+                    }
+                }
+                if(spacerOnly)
                     continue;
             }
             else
@@ -2579,6 +2587,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                 if( MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(*dock.panes.Item(paneIndex+1), pane)) )
                 {
                     firstPaneInNotebook = &pane;
+                    
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
                     // Left/Right notebook
                     if(HasFlag(wxAUI_MGR_NB_LEFT)||HasFlag(wxAUI_MGR_NB_RIGHT))
@@ -2723,6 +2732,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                 // This page is part of an existing notebook so add it to the container.
                 // If it is the active page then it is visible, otherwise hide it.
                 notebookContainer->AddPage(pane);
+
                 if(pane.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
                 {
                     if(!activenotebookpagefound)
@@ -2747,11 +2757,19 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                             ShowWnd(pane.GetWindow(),false);
                     }
                 }
-                // If we are only doing a drop calculation then we only want the first
-                // pane in the notebook and the hint window to be added as spacers are
-                // not affected by the window being hidden and therefore make the hint
-                // calculation incorrect.
-                if(spacerOnly&&pane.GetName()!= wxT("__HINT__"))
+                
+                // If we are only doing a drop calculation then we only want the first pane in the notebook to be added to the sizer.
+                // This is because we are essentially ignoring hidden/visible state - so adding more than one pane means that the space gets divided up evenly between pages by the sizer.
+                // We don't want this because the hint rect should take up the whole sizer.
+                // The hint code needs to find a pane named __HINT__ in our notebook to know we contain the hint so ensure the first pane has __HINT__ set as the name.
+                if(m_doingHintCalculation&&pane.GetName()==L"__HINT__")
+                {
+                    if(part.pane)
+                    {
+                        part.pane->Name(L"__HINT__");
+                    }
+                }
+                if(spacerOnly)
                     continue;
             }
             else
@@ -2767,7 +2785,6 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                     {
                         LayoutAddNotebook(m_tab_art,notebookContainer,notebookSizer,part,dock,uiparts,tabContainerRecalcList,tabContainerRecalcSizers,firstPaneInNotebook,wxHORIZONTAL);
                     }
-
 
                     if(!activenotebookpagefound)
                     {
@@ -4493,7 +4510,6 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
     for (i = 0, partCount = uiparts.GetCount(); i < partCount && !hint_found; ++i)
     {
         wxAuiDockUIPart& part = uiparts.Item(i);
-
         if (part.type == wxAuiDockUIPart::typePaneTab)
         {
             wxAuiPaneInfoPtrArray& pages = part.m_tab_container->GetPages();
@@ -4506,14 +4522,22 @@ wxRect wxAuiManager::CalculateHintRect(wxWindow* paneWindow, const wxPoint& pt, 
                     hint_found = true;
 
                     int activePage=part.m_tab_container->GetActivePage();
-                    //It is possible in some instances (when forming a new notebook via drag) - that no page is yet active, if this is the case act as if the first one is active.
+                    // It is possible in some instances (when forming a new notebook via drag) - that no page is yet active, if this is the case act as if the first one is active.
                     if(activePage==-1)
                         activePage=0;
 
-                    // Don't take the rectangle if a container was just created: it has not yet a relevant position
-                    if (!part.m_tab_container->GetRect().IsEmpty())                 
-                        rect =  part.m_tab_container->GetPage(activePage).GetWindow()->GetRect();
-                   
+                    rect = part.m_tab_container->GetPage(activePage).GetWindow()->GetRect();
+
+                    // If we are a new notebook then there are no tabs yet on the page, so the hint will be wrong.
+                    // We need to add the height/width of the tabs
+                    // TODO: Future - we could probably get 'fancy' here and actually draw some tab outlines in as part of the hint if we wanted (instead of just increas.ing the rectangle size)
+                    if(pageCount==2)
+                    {
+                        //fixme: Need a better way to do this.
+                        rect.y-=notebookTabHeight/2;
+                        rect.height+=notebookTabHeight/2;
+                    }
+                    break;
                 }
             }
         }
