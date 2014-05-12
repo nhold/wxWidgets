@@ -2427,28 +2427,28 @@ void wxAuiManager::LayoutAddNotebook(wxAuiTabArt* tabArt,wxAuiTabContainer* note
 // It sends a EVT_AUI_PANE_DOCK_OVER that may be Vetoed() / Allowed() to overide the default behaviour.
 bool wxAuiManager::CanDockOver(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &covered_pane) 
 {
-bool can_dock_over = false;
+    bool can_dock_over = false;
 
-// Basically, we can create a tab if a pane exactly overlaps another one
-if ( pane.GetPosition() == covered_pane.GetPosition() ) {
+    // Basically, we can create a tab if a pane exactly overlaps another one
+    if ( pane.GetPosition() == covered_pane.GetPosition() )
+    {
+        wxAuiPaneInfo evt_pane(pane); // we use a copy of the pane to forbid accidentally modifying the underlying one from "user space"
+        wxAuiPaneInfo evt_covered_pane(covered_pane);
 
-    wxAuiPaneInfo evt_pane(pane); // we use a copy of the pane to forbid accidentally modifying the underlying one from "user space"
-    wxAuiPaneInfo evt_covered_pane(covered_pane);
+        wxAuiManagerEvent evt(wxEVT_AUI_PANE_DOCK_OVER);
+        evt.SetManager(this);
+        evt.SetPane(&evt_pane);
+        evt.SetTargetPane(&evt_covered_pane);
+        evt.SetCanVeto(true);
+        evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow docking over in wxAuiNotebook and forbid them elsewhere 
 
-    wxAuiManagerEvent evt(wxEVT_AUI_PANE_DOCK_OVER);
-    evt.SetManager(this);
-    evt.SetPane(&evt_pane);
-    evt.SetTargetPane(&evt_covered_pane);
-    evt.SetCanVeto(true);        
-    evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow docking over in wxAuiNotebook and forbid them elsewhere 
+        GetManagedWindow()->ProcessWindowEvent(evt);
 
-    GetManagedWindow()->ProcessWindowEvent(evt);
+        can_dock_over = evt.IsAllowed();              
 
-    can_dock_over = evt.IsAllowed();              
-
-}
-
-return can_dock_over;
+    }
+    
+    return can_dock_over;
 }
 
 // This method tells if a pane must be set into a notebook, even if it's alone
@@ -4619,11 +4619,11 @@ void wxAuiManager::DrawHintRect(wxWindow* paneWindow, const wxPoint& pt, const w
         {
             wxPoint screenPt = ::wxGetMousePosition();
             wxWindow* targetCtrl = ::wxFindWindowAtPoint(screenPt);
-	    
-	    // Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window) - if we don't have one we don't draw a hint here.
-	    if(!targetCtrl)
-		return;
-	    
+    
+            // Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window) - if we don't have one we don't draw a hint here.
+            if(!targetCtrl)
+                return;
+    
             // If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
             if(targetCtrl==m_hintWnd)
             {
@@ -5742,7 +5742,7 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         
         if (m_actionPart)
         {
-			wxAuiPaneInfo& pane = *m_actionPart->pane;
+            wxAuiPaneInfo& pane = *m_actionPart->pane;
  
             bool passHitTest=false;
             int buttonid=0;
@@ -5839,78 +5839,78 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         wxPoint clientPt = m_frame->ScreenToClient(screenPt);
 
         wxWindow* targetCtrl = ::wxFindWindowAtPoint(screenPt);
-	
-	// Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window)
-	if(targetCtrl)
-	{   
-		// If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
-		if(targetCtrl==m_hintWnd)
-		{
-		m_hintWnd->Hide();
-		targetCtrl = ::wxFindWindowAtPoint(screenPt);
-		m_hintWnd->Show();
-		}
-		// Find the manager this window belongs to (if it does belong to one)
-		wxAuiManager* otherMgr = NULL;
-		while(targetCtrl)
-		{
-		if(!wxDynamicCast(targetCtrl,wxAuiFloatingFrame))
-		{
-			if(targetCtrl->GetEventHandler() && wxDynamicCast(targetCtrl->GetEventHandler(),wxAuiManager))
-			{
-			otherMgr = ((wxAuiManager*)targetCtrl->GetEventHandler());
-			break;
-			}
-		}
-		targetCtrl = targetCtrl->GetParent();
-		}
 
-		bool didDrop=false;
+        // Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window)
+        if(targetCtrl)
+        {   
+                // If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
+                if(targetCtrl==m_hintWnd)
+                {
+                    m_hintWnd->Hide();
+                    targetCtrl = ::wxFindWindowAtPoint(screenPt);
+                    m_hintWnd->Show();
+                }
+                // Find the manager this window belongs to (if it does belong to one)
+                wxAuiManager* otherMgr = NULL;
+                while(targetCtrl)
+                {
+                    if(!wxDynamicCast(targetCtrl,wxAuiFloatingFrame))
+                    {
+                        if(targetCtrl->GetEventHandler() && wxDynamicCast(targetCtrl->GetEventHandler(),wxAuiManager))
+                        {
+                            otherMgr = ((wxAuiManager*)targetCtrl->GetEventHandler());
+                            break;
+                        }
+                    }
+                    targetCtrl = targetCtrl->GetParent();
+                }
 
-		//Store paneWindow now as the below code block can invalidate pane
-		wxWindow* paneWindow=pane.GetWindow();
+                bool didDrop=false;
 
-		// Alert other manager of the drop and have it show hint.
-		if(otherMgr)
-		{
-		if(otherMgr != this)
-		{
-			didDrop = DoDropExternal(otherMgr, targetCtrl, pane, screenPt, wxPoint(0,0));
+                //Store paneWindow now as the below code block can invalidate pane
+                wxWindow* paneWindow=pane.GetWindow();
 
-			//Update ourselves here, the next block of code will update the target control
-			if(didDrop)
-			{
-			Update();
-			DoFrameLayout();
-			Repaint();
-			}
-		}
-		else
-		{
-			didDrop = DoDrop(m_docks, m_panes, pane, clientPt, wxPoint(0,0));
-		}
-		}
+                // Alert other manager of the drop and have it show hint.
+                if(otherMgr)
+                {
+                    if(otherMgr != this)
+                    {
+                        didDrop = DoDropExternal(otherMgr, targetCtrl, pane, screenPt, wxPoint(0,0));
 
-		//Warning! pane can be invalidated by the Update in above code block, so should not be used from this point onwards.
-		if(didDrop)
-		{
-		// Try reduce flicker, Update() calls Repaint() and then we set the active pane and Repaint() again, so use Freeze()/Thaw() to try avoid the double Repaint()
-		otherMgr->GetManagedWindow()->Freeze();
+                        //Update ourselves here, the next block of code will update the target control
+                        if(didDrop)
+                        {
+                            Update();
+                            DoFrameLayout();
+                            Repaint();
+                        }
+                    }
+                    else
+                    {
+                        didDrop = DoDrop(m_docks, m_panes, pane, clientPt, wxPoint(0,0));
+                    }
+                }
 
-		// Update the layout to realize new position and e.g. form notebooks if needed.
-		otherMgr->Update();
+                //Warning! pane can be invalidated by the Update in above code block, so should not be used from this point onwards.
+                if(didDrop)
+                {
+                    // Try reduce flicker, Update() calls Repaint() and then we set the active pane and Repaint() again, so use Freeze()/Thaw() to try avoid the double Repaint()
+                    otherMgr->GetManagedWindow()->Freeze();
 
-		// If a notebook formed we may have lost our active status so set it again.
-		otherMgr->SetActivePane(paneWindow);
+                    // Update the layout to realize new position and e.g. form notebooks if needed.
+                    otherMgr->Update();
 
-		// Allow the updated layout an opportunity to recalculate/update the pane positions.
-		otherMgr->DoFrameLayout();
+                    // If a notebook formed we may have lost our active status so set it again.
+                    otherMgr->SetActivePane(paneWindow);
 
-		// Make changes visible to user.
-		otherMgr->Repaint();
-		otherMgr->GetManagedWindow()->Thaw();
-		}
-	}
+                    // Allow the updated layout an opportunity to recalculate/update the pane positions.
+                    otherMgr->DoFrameLayout();
+
+                    // Make changes visible to user.
+                    otherMgr->Repaint();
+                    otherMgr->GetManagedWindow()->Thaw();
+                }
+        }
 
 
 

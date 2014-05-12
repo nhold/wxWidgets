@@ -59,12 +59,12 @@ public:
     virtual void SetMeasuringFont(const wxFont& font) = 0;
     virtual void SetColour(const wxColour& colour) = 0;
     virtual void SetActiveColour(const wxColour& colour) = 0;
-	// this should actually set the requested size
-	virtual void SetTabCtrlHeight(int size) = 0;
-	// this should actually set the requested size
-	virtual void SetTabCtrlWidth(int size) = 0;
+    // this should actually set the requested size
+    virtual void SetTabCtrlHeight(int size) = 0;
+    // this should actually set the requested size
+    virtual void SetTabCtrlWidth(int size) = 0;
 
-	virtual void SetUniformBitmapSize(const wxSize& size) = 0;
+    virtual void SetUniformBitmapSize(const wxSize& size) = 0;
 
     virtual void DrawBorder(
                             wxDC& dc,
@@ -125,9 +125,9 @@ public:
                          wxWindow* wnd,
                          const wxAuiPaneInfoPtrArray& pages) = 0;
 
-	// this should return -1,-1 if there is no requested width \ height
-	virtual wxSize GetRequestedSize() const = 0;
-	virtual wxSize GetRequiredBitmapSize() const = 0;
+    // this should return -1,-1 if there is no requested width \ height
+    virtual wxSize GetRequestedSize() const = 0;
+    virtual wxSize GetRequiredBitmapSize() const = 0;
 
     int m_fixedTabSize;
     int m_tabCtrlHeight;
@@ -154,9 +154,9 @@ public:
     void SetMeasuringFont(const wxFont& font);
     void SetColour(const wxColour& colour);
     void SetActiveColour(const wxColour& colour);
-	void SetTabCtrlHeight(int size);
-	void SetTabCtrlWidth(int size);
-	void SetUniformBitmapSize(const wxSize& size);
+    void SetTabCtrlHeight(int size);
+    void SetTabCtrlWidth(int size);
+    void SetUniformBitmapSize(const wxSize& size);
 
     void DrawBorder(
                  wxDC& dc,
@@ -220,8 +220,8 @@ public:
                  }
 
 
-	wxSize GetRequiredBitmapSize() const;
-	wxSize GetRequestedSize() const;
+    wxSize GetRequiredBitmapSize() const;
+    wxSize GetRequestedSize() const;
 
     // Returns true if the tabart has the given flag bit set
     bool HasFlag(int flag) const    { return (m_flags & flag) != 0; }
@@ -229,8 +229,8 @@ public:
     bool IsHorizontal() const { return HasFlag(wxAUI_NB_TOP | wxAUI_NB_BOTTOM); }
 
 protected:
-	wxSize m_requiredBitmapSize;
-	wxSize m_requestedSize;
+    wxSize m_requiredBitmapSize;
+    wxSize m_requestedSize;
 
     wxFont m_normalFont;
     wxFont m_selectedFont;
@@ -274,9 +274,9 @@ public:
     void SetMeasuringFont(const wxFont& font);
     void SetColour(const wxColour& colour);
     void SetActiveColour(const wxColour& colour);
-	void SetTabCtrlHeight(int size);
-	void SetTabCtrlWidth(int size);
-	void SetUniformBitmapSize(const wxSize& size);
+    void SetTabCtrlHeight(int size);
+    void SetTabCtrlWidth(int size);
+    void SetUniformBitmapSize(const wxSize& size);
 
     void DrawBorder(
                  wxDC& dc,
@@ -339,8 +339,8 @@ public:
                      return GetBestTabSize(wnd, pages, m_requiredBitmapSize).GetHeight();
                  }
 
-	wxSize GetRequiredBitmapSize() const;
-	wxSize GetRequestedSize() const;
+    wxSize GetRequiredBitmapSize() const;
+    wxSize GetRequestedSize() const;
 
     // Returns true if the tabart has the given flag bit set
     bool HasFlag(int flag) const    { return (m_flags & flag) != 0; }
@@ -348,8 +348,8 @@ public:
     bool IsHorizontal() const { return HasFlag(wxAUI_NB_TOP | wxAUI_NB_BOTTOM); }
 
 protected:
-	wxSize m_requiredBitmapSize;
-	wxSize m_requestedSize;
+    wxSize m_requiredBitmapSize;
+    wxSize m_requestedSize;
     wxFont m_normalFont;
     wxFont m_selectedFont;
     wxFont m_measuringFont;
