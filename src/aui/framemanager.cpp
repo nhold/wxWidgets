@@ -4619,6 +4619,11 @@ void wxAuiManager::DrawHintRect(wxWindow* paneWindow, const wxPoint& pt, const w
         {
             wxPoint screenPt = ::wxGetMousePosition();
             wxWindow* targetCtrl = ::wxFindWindowAtPoint(screenPt);
+	    
+	    // Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window) - if we don't have one we don't draw a hint here.
+	    if(!targetCtrl)
+		return;
+	    
             // If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
             if(targetCtrl==m_hintWnd)
             {
@@ -5834,73 +5839,78 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         wxPoint clientPt = m_frame->ScreenToClient(screenPt);
 
         wxWindow* targetCtrl = ::wxFindWindowAtPoint(screenPt);
-        // If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
-        if(targetCtrl==m_hintWnd)
-        {
-            m_hintWnd->Hide();
-            targetCtrl = ::wxFindWindowAtPoint(screenPt);
-            m_hintWnd->Show();
-        }
-        // Find the manager this window belongs to (if it does belong to one)
-        wxAuiManager* otherMgr = NULL;
-        while(targetCtrl)
-        {
-            if(!wxDynamicCast(targetCtrl,wxAuiFloatingFrame))
-            {
-                if(targetCtrl->GetEventHandler() && wxDynamicCast(targetCtrl->GetEventHandler(),wxAuiManager))
-                {
-                    otherMgr = ((wxAuiManager*)targetCtrl->GetEventHandler());
-                    break;
-                }
-            }
-            targetCtrl = targetCtrl->GetParent();
-        }
+	
+	// Make sure we have a target ctrl (it can be NULL if e.g. drop is outside of program window)
+	if(targetCtrl)
+	{   
+		// If we are on top of a hint window then quickly hide the hint window and get the window that is underneath it.
+		if(targetCtrl==m_hintWnd)
+		{
+		m_hintWnd->Hide();
+		targetCtrl = ::wxFindWindowAtPoint(screenPt);
+		m_hintWnd->Show();
+		}
+		// Find the manager this window belongs to (if it does belong to one)
+		wxAuiManager* otherMgr = NULL;
+		while(targetCtrl)
+		{
+		if(!wxDynamicCast(targetCtrl,wxAuiFloatingFrame))
+		{
+			if(targetCtrl->GetEventHandler() && wxDynamicCast(targetCtrl->GetEventHandler(),wxAuiManager))
+			{
+			otherMgr = ((wxAuiManager*)targetCtrl->GetEventHandler());
+			break;
+			}
+		}
+		targetCtrl = targetCtrl->GetParent();
+		}
 
-        bool didDrop=false;
+		bool didDrop=false;
 
-        //Store paneWindow now as the below code block can invalidate pane
-        wxWindow* paneWindow=pane.GetWindow();
+		//Store paneWindow now as the below code block can invalidate pane
+		wxWindow* paneWindow=pane.GetWindow();
 
-        // Alert other manager of the drop and have it show hint.
-        if(otherMgr)
-        {
-            if(otherMgr != this)
-            {
-                didDrop = DoDropExternal(otherMgr, targetCtrl, pane, screenPt, wxPoint(0,0));
+		// Alert other manager of the drop and have it show hint.
+		if(otherMgr)
+		{
+		if(otherMgr != this)
+		{
+			didDrop = DoDropExternal(otherMgr, targetCtrl, pane, screenPt, wxPoint(0,0));
 
-                //Update ourselves here, the next block of code will update the target control
-                if(didDrop)
-                {
-                    Update();
-                    DoFrameLayout();
-                    Repaint();
-                }
-            }
-            else
-            {
-                didDrop = DoDrop(m_docks, m_panes, pane, clientPt, wxPoint(0,0));
-            }
-        }
+			//Update ourselves here, the next block of code will update the target control
+			if(didDrop)
+			{
+			Update();
+			DoFrameLayout();
+			Repaint();
+			}
+		}
+		else
+		{
+			didDrop = DoDrop(m_docks, m_panes, pane, clientPt, wxPoint(0,0));
+		}
+		}
 
-        //Warning! pane can be invalidated by the Update in above code block, so should not be used from this point onwards.
-        if(didDrop)
-        {
-            // Try reduce flicker, Update() calls Repaint() and then we set the active pane and Repaint() again, so use Freeze()/Thaw() to try avoid the double Repaint()
-            otherMgr->GetManagedWindow()->Freeze();
+		//Warning! pane can be invalidated by the Update in above code block, so should not be used from this point onwards.
+		if(didDrop)
+		{
+		// Try reduce flicker, Update() calls Repaint() and then we set the active pane and Repaint() again, so use Freeze()/Thaw() to try avoid the double Repaint()
+		otherMgr->GetManagedWindow()->Freeze();
 
-            // Update the layout to realize new position and e.g. form notebooks if needed.
-            otherMgr->Update();
+		// Update the layout to realize new position and e.g. form notebooks if needed.
+		otherMgr->Update();
 
-            // If a notebook formed we may have lost our active status so set it again.
-            otherMgr->SetActivePane(paneWindow);
+		// If a notebook formed we may have lost our active status so set it again.
+		otherMgr->SetActivePane(paneWindow);
 
-            // Allow the updated layout an opportunity to recalculate/update the pane positions.
-            otherMgr->DoFrameLayout();
+		// Allow the updated layout an opportunity to recalculate/update the pane positions.
+		otherMgr->DoFrameLayout();
 
-            // Make changes visible to user.
-            otherMgr->Repaint();
-            otherMgr->GetManagedWindow()->Thaw();
-        }
+		// Make changes visible to user.
+		otherMgr->Repaint();
+		otherMgr->GetManagedWindow()->Thaw();
+		}
+	}
 
 
 
