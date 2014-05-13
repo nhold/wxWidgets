@@ -3,9 +3,11 @@
 // Purpose:     wxaui: wx advanced user interface - sample/test program
 // Author:      Benjamin I. Williams
 // Modified by: Malcolm MacLeod
+// Modified by: Jens Lody
 // Created:     2005-10-03
-// RCS-ID:      $Id: auidemo.cpp 59860 2009-03-26 08:34:27Z BIW $
 // Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
+//                            2012, Jens Lody for the code related to left
+//                                  and right positioning
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +51,12 @@ public:
 DECLARE_APP(MyApp)
 IMPLEMENT_APP(MyApp)
 
+#include "wx/aui/tabart.h"
+#include "wx/aui/framemanager.h"
+#include "wx/containr.h"
+
+
+class wxAuiNotebook;
 
 class wxSizeReportCtrl;
 
@@ -62,32 +70,18 @@ class MyFrame : public wxFrame
         ID_CreateGrid,
         ID_CreateText,
         ID_CreateHTML,
+        ID_CreateNotebook,
         ID_CreateSizeReport,
         ID_GridContent,
         ID_TextContent,
         ID_TreeContent,
         ID_HTMLContent,
+        ID_NotebookContent,
         ID_SizeReportContent,
         ID_CreatePerspective,
         ID_CopyPerspectiveCode,
         ID_AllowFloating,
         ID_AllowActivePane,
-        ID_TabsDefault,
-        ID_TabsGeneric,
-        ID_TabsSimple,
-        #ifdef wxHAS_NATIVE_TABART
-        ID_TabsNative,
-        #endif
-        ID_TabsTop,
-        ID_TabsLeft,
-        ID_TabsRight,
-        ID_TabsBottom,
-        ID_TabWindowList,
-        ID_FixedWidth,
-        ID_CloseButton,
-        ID_CloseButtonActiveTab,
-        ID_CloseButtonAllTabs,
-        ID_NoCloseButton,
         ID_TransparentHint,
         ID_VenetianBlindsHint,
         ID_RectangleHint,
@@ -99,10 +93,36 @@ class MyFrame : public wxFrame
         ID_VerticalGradient,
         ID_HorizontalGradient,
         ID_LiveUpdate,
+        ID_AllowToolbarResizing,
         ID_Settings,
         ID_CustomizeToolbar,
         ID_DropDownToolbarItem,
+        ID_NotebookNoCloseButton,
+        ID_NotebookCloseButton,
+        ID_NotebookCloseButtonAll,
+        ID_NotebookCloseButtonActive,
+        ID_NotebookAllowTabMove,
+        ID_NotebookAllowTabExternalMove,
+        ID_NotebookAllowTabSplit,
+        ID_NotebookWindowList,
+        ID_NotebookScrollButtons,
+        ID_NotebookTabFixedWidth,
+        ID_NotebookArtDefault,
+        ID_NotebookArtSimple,
+#ifdef wxHAS_NATIVE_TABART
+        ID_NotebookArtGeneric,
+#endif
+        ID_NotebookAlignTop,
+        ID_NotebookAlignLeft,
+        ID_NotebookAlignRight,
+        ID_NotebookAlignBottom,
+        ID_NotebookSplitLeft,
+        ID_NotebookSplitRight,
+        ID_NotebookSplitTop,
+        ID_NotebookSplitBottom,
+
         ID_SampleItem,
+
         ID_FirstPerspective = ID_CreatePerspective+1000
     };
 
@@ -126,6 +146,7 @@ private:
     wxSizeReportCtrl* CreateSizeReportCtrl(int width = 80, int height = 80);
     wxPoint GetStartPosition();
     wxHtmlWindow* CreateHTMLCtrl(wxWindow* parent = NULL);
+    wxAuiNotebook* CreateNotebook();
 
     wxString GetIntroText();
 
@@ -137,6 +158,7 @@ private:
     void OnCreateTree(wxCommandEvent& evt);
     void OnCreateGrid(wxCommandEvent& evt);
     void OnCreateHTML(wxCommandEvent& evt);
+    void OnCreateNotebook(wxCommandEvent& evt);
     void OnCreateText(wxCommandEvent& evt);
     void OnCreateSizeReport(wxCommandEvent& evt);
     void OnChangeContentPane(wxCommandEvent& evt);
@@ -146,10 +168,18 @@ private:
     void OnRestorePerspective(wxCommandEvent& evt);
     void OnSettings(wxCommandEvent& evt);
     void OnCustomizeToolbar(wxCommandEvent& evt);
+    void OnAllowNotebookDnD(wxAuiNotebookEvent& evt);
+    void OnNotebookPageClose(wxAuiNotebookEvent& evt);
+    void OnNotebookPageClosed(wxAuiNotebookEvent& evt);
     void OnExit(wxCommandEvent& evt);
     void OnAbout(wxCommandEvent& evt);
+    void OnTabAlignment(wxCommandEvent &evt);
+    void OnTabSplit(wxCommandEvent &evt);
+
     void OnGradient(wxCommandEvent& evt);
+    void OnToolbarResizing(wxCommandEvent& evt);
     void OnManagerFlag(wxCommandEvent& evt);
+    void OnNotebookFlag(wxCommandEvent& evt);
     void OnUpdateUI(wxUpdateUIEvent& evt);
 
     void OnPaneClose(wxAuiManagerEvent& evt);
@@ -159,6 +189,8 @@ private:
     wxAuiManager m_mgr;
     wxArrayString m_perspectives;
     wxMenu* m_perspectives_menu;
+    long m_notebook_style;
+    long m_notebook_theme;
 
     DECLARE_EVENT_TABLE()
 };
@@ -206,19 +238,19 @@ private:
         {
             wxAuiPaneInfo pi = m_mgr->GetPane(this);
 
-            s.Printf(wxT("Layer: %d"), pi.GetLayer());
+            s.Printf(wxT("Layer: %d"), pi.dock_layer);
             dc.GetTextExtent(s, &w, &h);
             dc.DrawText(s, (size.x-w)/2, ((size.y-(height*5))/2)+(height*1));
 
-            s.Printf(wxT("Dock: %d Row: %d"), pi.GetDirection(), pi.GetRow());
+            s.Printf(wxT("Dock: %d Row: %d"), pi.dock_direction, pi.dock_row);
             dc.GetTextExtent(s, &w, &h);
             dc.DrawText(s, (size.x-w)/2, ((size.y-(height*5))/2)+(height*2));
 
-            s.Printf(wxT("Position: %d"), pi.GetPosition());
+            s.Printf(wxT("Position: %d"), pi.dock_pos);
             dc.GetTextExtent(s, &w, &h);
             dc.DrawText(s, (size.x-w)/2, ((size.y-(height*5))/2)+(height*3));
 
-            s.Printf(wxT("Proportion: %d"), pi.GetProportion());
+            s.Printf(wxT("Proportion: %d"), pi.dock_proportion);
             dc.GetTextExtent(s, &w, &h);
             dc.DrawText(s, (size.x-w)/2, ((size.y-(height*5))/2)+(height*4));
         }
@@ -272,7 +304,7 @@ public:
             : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize),
               m_frame(frame)
     {
-        //wxBowxSizer* vert = new wxBoxSizer(wxVERTICAL);
+        //wxBoxSizer* vert = new wxBoxSizer(wxVERTICAL);
 
         //vert->Add(1, 1, 1, wxEXPAND);
 
@@ -556,7 +588,6 @@ bool MyApp::OnInit()
                                  wxT("wxAUI Sample Application"),
                                  wxDefaultPosition,
                                  wxSize(800, 600));
-    SetTopWindow(frame);
     frame->Show();
 
     return true;
@@ -570,25 +601,10 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(MyFrame::ID_CreateText, MyFrame::OnCreateText)
     EVT_MENU(MyFrame::ID_CreateHTML, MyFrame::OnCreateHTML)
     EVT_MENU(MyFrame::ID_CreateSizeReport, MyFrame::OnCreateSizeReport)
+    EVT_MENU(MyFrame::ID_CreateNotebook, MyFrame::OnCreateNotebook)
     EVT_MENU(MyFrame::ID_CreatePerspective, MyFrame::OnCreatePerspective)
     EVT_MENU(MyFrame::ID_CopyPerspectiveCode, MyFrame::OnCopyPerspectiveCode)
     EVT_MENU(ID_AllowFloating, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsDefault, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsGeneric, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsSimple, MyFrame::OnManagerFlag)
-    #ifdef wxHAS_NATIVE_TABART
-    EVT_MENU(ID_TabsNative, MyFrame::OnManagerFlag)
-    #endif
-    EVT_MENU(ID_TabsTop, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsLeft, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsRight, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabsBottom, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_TabWindowList, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_FixedWidth, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_CloseButton, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_CloseButtonActiveTab, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_CloseButtonAllTabs, MyFrame::OnManagerFlag)
-    EVT_MENU(ID_NoCloseButton, MyFrame::OnManagerFlag)
     EVT_MENU(ID_TransparentHint, MyFrame::OnManagerFlag)
     EVT_MENU(ID_VenetianBlindsHint, MyFrame::OnManagerFlag)
     EVT_MENU(ID_RectangleHint, MyFrame::OnManagerFlag)
@@ -598,9 +614,33 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ID_TransparentDrag, MyFrame::OnManagerFlag)
     EVT_MENU(ID_LiveUpdate, MyFrame::OnManagerFlag)
     EVT_MENU(ID_AllowActivePane, MyFrame::OnManagerFlag)
+    EVT_MENU(ID_NotebookTabFixedWidth, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookNoCloseButton, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookCloseButton, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookCloseButtonAll, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookCloseButtonActive, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookAllowTabMove, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookAllowTabExternalMove, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookAllowTabSplit, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookScrollButtons, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookWindowList, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookArtDefault, MyFrame::OnNotebookFlag)
+    EVT_MENU(ID_NotebookArtSimple, MyFrame::OnNotebookFlag)
+#ifdef wxHAS_NATIVE_TABART
+    EVT_MENU(ID_NotebookArtGeneric, MyFrame::OnNotebookFlag)
+#endif
+    EVT_MENU(ID_NotebookAlignTop,     MyFrame::OnTabAlignment)
+    EVT_MENU(ID_NotebookAlignLeft,  MyFrame::OnTabAlignment)
+    EVT_MENU(ID_NotebookAlignRight,  MyFrame::OnTabAlignment)
+    EVT_MENU(ID_NotebookAlignBottom,  MyFrame::OnTabAlignment)
+    EVT_MENU(ID_NotebookSplitLeft,  MyFrame::OnTabSplit)
+    EVT_MENU(ID_NotebookSplitRight,  MyFrame::OnTabSplit)
+    EVT_MENU(ID_NotebookSplitTop,  MyFrame::OnTabSplit)
+    EVT_MENU(ID_NotebookSplitBottom,  MyFrame::OnTabSplit)
     EVT_MENU(ID_NoGradient, MyFrame::OnGradient)
     EVT_MENU(ID_VerticalGradient, MyFrame::OnGradient)
     EVT_MENU(ID_HorizontalGradient, MyFrame::OnGradient)
+    EVT_MENU(ID_AllowToolbarResizing, MyFrame::OnToolbarResizing)
     EVT_MENU(ID_Settings, MyFrame::OnSettings)
     EVT_MENU(ID_CustomizeToolbar, MyFrame::OnCustomizeToolbar)
     EVT_MENU(ID_GridContent, MyFrame::OnChangeContentPane)
@@ -608,8 +648,19 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ID_TextContent, MyFrame::OnChangeContentPane)
     EVT_MENU(ID_SizeReportContent, MyFrame::OnChangeContentPane)
     EVT_MENU(ID_HTMLContent, MyFrame::OnChangeContentPane)
+    EVT_MENU(ID_NotebookContent, MyFrame::OnChangeContentPane)
     EVT_MENU(wxID_EXIT, MyFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+    EVT_UPDATE_UI(ID_NotebookTabFixedWidth, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookNoCloseButton, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookCloseButton, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookCloseButtonAll, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookCloseButtonActive, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookAllowTabMove, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookAllowTabExternalMove, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookAllowTabSplit, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookScrollButtons, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_NotebookWindowList, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_AllowFloating, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_TransparentHint, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_VenetianBlindsHint, MyFrame::OnUpdateUI)
@@ -622,10 +673,14 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_UPDATE_UI(ID_NoGradient, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_VerticalGradient, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_HorizontalGradient, MyFrame::OnUpdateUI)
+    EVT_UPDATE_UI(ID_AllowToolbarResizing, MyFrame::OnUpdateUI)
     EVT_MENU_RANGE(MyFrame::ID_FirstPerspective, MyFrame::ID_FirstPerspective+1000,
                    MyFrame::OnRestorePerspective)
     EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, MyFrame::OnDropDownToolbarItem)
     EVT_AUI_PANE_CLOSE(MyFrame::OnPaneClose)
+    EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, MyFrame::OnAllowNotebookDnD)
+    EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, MyFrame::OnNotebookPageClose)
+    EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, MyFrame::OnNotebookPageClosed)
 END_EVENT_TABLE()
 
 
@@ -643,6 +698,10 @@ MyFrame::MyFrame(wxWindow* parent,
     // set frame icon
     SetIcon(wxIcon(sample_xpm));
 
+    // set up default notebook style
+    m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+    m_notebook_theme = 0;
+
     // create menu
     wxMenuBar* mb = new wxMenuBar;
 
@@ -654,36 +713,17 @@ MyFrame::MyFrame(wxWindow* parent,
     view_menu->Append(ID_CreateHTML, _("Create HTML Control"));
     view_menu->Append(ID_CreateTree, _("Create Tree"));
     view_menu->Append(ID_CreateGrid, _("Create Grid"));
+    view_menu->Append(ID_CreateNotebook, _("Create Notebook"));
     view_menu->Append(ID_CreateSizeReport, _("Create Size Reporter"));
     view_menu->AppendSeparator();
     view_menu->Append(ID_GridContent, _("Use a Grid for the Content Pane"));
     view_menu->Append(ID_TextContent, _("Use a Text Control for the Content Pane"));
     view_menu->Append(ID_HTMLContent, _("Use an HTML Control for the Content Pane"));
     view_menu->Append(ID_TreeContent, _("Use a Tree Control for the Content Pane"));
+    view_menu->Append(ID_NotebookContent, _("Use a wxAuiNotebook control for the Content Pane"));
     view_menu->Append(ID_SizeReportContent, _("Use a Size Reporter for the Content Pane"));
 
     wxMenu* options_menu = new wxMenu;
-    options_menu->AppendRadioItem(ID_TabsDefault, _("Default theme"));
-    options_menu->AppendRadioItem(ID_TabsGeneric, _("Generic Theme (glossy)"));
-    options_menu->AppendRadioItem(ID_TabsSimple, _("Simple Theme"));
-    #ifdef wxHAS_NATIVE_TABART
-    options_menu->AppendRadioItem(ID_TabsNative, _("Native Theme"));
-    #endif
-    options_menu->AppendSeparator();
-    options_menu->AppendRadioItem(ID_TabsTop, _("Notebook tabs at top"));
-    options_menu->AppendRadioItem(ID_TabsBottom, _("Notebook tabs at bottom"));
-    options_menu->AppendRadioItem(ID_TabsLeft, _("Notebook tabs on left"));
-    options_menu->AppendRadioItem(ID_TabsRight, _("Notebook tabs on right"));
-    options_menu->AppendSeparator();
-    options_menu->AppendCheckItem(ID_TabWindowList, _("Show pulldown list of tabs in notebook"));
-    options_menu->AppendSeparator();
-    options_menu->AppendCheckItem(ID_FixedWidth, _("Use fixed tab width for notebook tabs"));
-    options_menu->AppendSeparator();
-    options_menu->AppendRadioItem(ID_CloseButtonActiveTab, _("Close button on active tab of notebook"));
-    options_menu->AppendRadioItem(ID_CloseButtonAllTabs, _("Close button on all tabs of notebook"));
-    options_menu->AppendRadioItem(ID_CloseButton, _("Close button on right of notebook"));
-    options_menu->AppendRadioItem(ID_NoCloseButton, _("No close button on notebook"));
-    options_menu->AppendSeparator();
     options_menu->AppendRadioItem(ID_TransparentHint, _("Transparent Hint"));
     options_menu->AppendRadioItem(ID_VenetianBlindsHint, _("Venetian Blinds Hint"));
     options_menu->AppendRadioItem(ID_RectangleHint, _("Rectangle Hint"));
@@ -700,7 +740,38 @@ MyFrame::MyFrame(wxWindow* parent,
     options_menu->AppendRadioItem(ID_VerticalGradient, _("Vertical Caption Gradient"));
     options_menu->AppendRadioItem(ID_HorizontalGradient, _("Horizontal Caption Gradient"));
     options_menu->AppendSeparator();
+    options_menu->AppendCheckItem(ID_AllowToolbarResizing, _("Allow Toolbar Resizing"));
+    options_menu->AppendSeparator();
     options_menu->Append(ID_Settings, _("Settings Pane"));
+
+    wxMenu* notebook_menu = new wxMenu;
+    notebook_menu->AppendRadioItem(ID_NotebookArtDefault, _("Default Theme"));
+    notebook_menu->AppendRadioItem(ID_NotebookArtSimple, _("Simple Theme"));
+#ifdef wxHAS_NATIVE_TABART
+    notebook_menu->AppendRadioItem(ID_NotebookArtGeneric, _("Generic Theme"));
+#endif
+    notebook_menu->AppendSeparator();
+    notebook_menu->AppendRadioItem(ID_NotebookNoCloseButton, _("No Close Button"));
+    notebook_menu->AppendRadioItem(ID_NotebookCloseButton, _("Close Button at Right"));
+    notebook_menu->AppendRadioItem(ID_NotebookCloseButtonAll, _("Close Button on All Tabs"));
+    notebook_menu->AppendRadioItem(ID_NotebookCloseButtonActive, _("Close Button on Active Tab"));
+    notebook_menu->AppendSeparator();
+    notebook_menu->AppendRadioItem(ID_NotebookAlignTop, _("Tab Top Alignment"));
+    notebook_menu->AppendRadioItem(ID_NotebookAlignLeft, _("Tab Left Alignment"));
+    notebook_menu->AppendRadioItem(ID_NotebookAlignRight, _("Tab Right Alignment"));
+    notebook_menu->AppendRadioItem(ID_NotebookAlignBottom, _("Tab Bottom Alignment"));
+    notebook_menu->AppendSeparator();
+    notebook_menu->AppendCheckItem(ID_NotebookAllowTabMove, _("Allow Tab Move"));
+    notebook_menu->AppendCheckItem(ID_NotebookAllowTabExternalMove, _("Allow External Tab Move"));
+    notebook_menu->AppendCheckItem(ID_NotebookAllowTabSplit, _("Allow Notebook Split"));
+    notebook_menu->AppendCheckItem(ID_NotebookScrollButtons, _("Scroll Buttons Visible"));
+    notebook_menu->AppendCheckItem(ID_NotebookWindowList, _("Window List Button Visible"));
+    notebook_menu->AppendCheckItem(ID_NotebookTabFixedWidth, _("Fixed-width Tabs"));
+    notebook_menu->AppendSeparator();
+    notebook_menu->Append(ID_NotebookSplitLeft, _("Move Active Tab to Left"));
+    notebook_menu->Append(ID_NotebookSplitRight, _("Move Active Tab to Right"));
+    notebook_menu->Append(ID_NotebookSplitTop, _("Move Active Tab to Top"));
+    notebook_menu->Append(ID_NotebookSplitBottom, _("Move Active Tab to Bottom"));
 
     m_perspectives_menu = new wxMenu;
     m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
@@ -716,6 +787,7 @@ MyFrame::MyFrame(wxWindow* parent,
     mb->Append(view_menu, _("&View"));
     mb->Append(m_perspectives_menu, _("&Perspectives"));
     mb->Append(options_menu, _("&Options"));
+    mb->Append(notebook_menu, _("&Notebook"));
     mb->Append(help_menu, _("&Help"));
 
     SetMenuBar(mb);
@@ -731,47 +803,248 @@ MyFrame::MyFrame(wxWindow* parent,
 
 
 
-    m_mgr.AddPane(CreateTextCtrl(wxT("This is a movable pane. Its dock position can be changed but it cannot be floated.")), wxAuiPaneInfo().
-                  Name(wxT("move1")).Caption(wxT("Movable")).
-                  Left().Layer(1).Position(0).
-                  CloseButton(true).MaximizeButton(true).Icon(wxArtProvider::GetBitmap(wxART_QUESTION)).Floatable(false).Movable(true));
-    m_mgr.AddPane(CreateTextCtrl(wxT("This is a standard floatable pane, because it does not share the same position and layer as any other panes it will not form a notebook. It can become part of a notebook if you drop another pane on its caption or drop it on the caption of another pane (or into the tab area of an existing notebook)")), wxAuiPaneInfo().
-                  Name(wxT("float1")).Caption(wxT("Floatable1")).
-                  Left().Layer(1).Position(4).
+    // prepare a few custom overflow elements for the toolbars' overflow buttons
+
+    wxAuiToolBarItemArray prepend_items;
+    wxAuiToolBarItemArray append_items;
+    wxAuiToolBarItem item;
+    item.SetKind(wxITEM_SEPARATOR);
+    append_items.Add(item);
+    item.SetKind(wxITEM_NORMAL);
+    item.SetId(ID_CustomizeToolbar);
+    item.SetLabel(_("Customize..."));
+    append_items.Add(item);
+
+
+    // create some toolbars
+    wxAuiToolBar* tb1 = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                         wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW);
+    tb1->SetToolBitmapSize(wxSize(48,48));
+    tb1->AddTool(ID_SampleItem+1, wxT("Test"), wxArtProvider::GetBitmap(wxART_ERROR));
+    tb1->AddSeparator();
+    tb1->AddTool(ID_SampleItem+2, wxT("Test"), wxArtProvider::GetBitmap(wxART_QUESTION));
+    tb1->AddTool(ID_SampleItem+3, wxT("Test"), wxArtProvider::GetBitmap(wxART_INFORMATION));
+    tb1->AddTool(ID_SampleItem+4, wxT("Test"), wxArtProvider::GetBitmap(wxART_WARNING));
+    tb1->AddTool(ID_SampleItem+5, wxT("Test"), wxArtProvider::GetBitmap(wxART_MISSING_IMAGE));
+    tb1->SetCustomOverflowItems(prepend_items, append_items);
+    tb1->Realize();
+
+
+    wxAuiToolBar* tb2 = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                         wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_HORIZONTAL);
+    tb2->SetToolBitmapSize(wxSize(16,16));
+
+    wxBitmap tb2_bmp1 = wxArtProvider::GetBitmap(wxART_QUESTION, wxART_OTHER, wxSize(16,16));
+    tb2->AddTool(ID_SampleItem+6, wxT("Disabled"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+7, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+8, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+9, wxT("Test"), tb2_bmp1);
+    tb2->AddSeparator();
+    tb2->AddTool(ID_SampleItem+10, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+11, wxT("Test"), tb2_bmp1);
+    tb2->AddSeparator();
+    tb2->AddTool(ID_SampleItem+12, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+13, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+14, wxT("Test"), tb2_bmp1);
+    tb2->AddTool(ID_SampleItem+15, wxT("Test"), tb2_bmp1);
+    tb2->SetCustomOverflowItems(prepend_items, append_items);
+    tb2->EnableTool(ID_SampleItem+6, false);
+    tb2->Realize();
+
+
+    wxAuiToolBar* tb3 = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                         wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW);
+    tb3->SetToolBitmapSize(wxSize(16,16));
+    wxBitmap tb3_bmp1 = wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16,16));
+    tb3->AddTool(ID_SampleItem+16, wxT("Check 1"), tb3_bmp1, wxT("Check 1"), wxITEM_CHECK);
+    tb3->AddTool(ID_SampleItem+17, wxT("Check 2"), tb3_bmp1, wxT("Check 2"), wxITEM_CHECK);
+    tb3->AddTool(ID_SampleItem+18, wxT("Check 3"), tb3_bmp1, wxT("Check 3"), wxITEM_CHECK);
+    tb3->AddTool(ID_SampleItem+19, wxT("Check 4"), tb3_bmp1, wxT("Check 4"), wxITEM_CHECK);
+    tb3->AddSeparator();
+    tb3->AddTool(ID_SampleItem+20, wxT("Radio 1"), tb3_bmp1, wxT("Radio 1"), wxITEM_RADIO);
+    tb3->AddTool(ID_SampleItem+21, wxT("Radio 2"), tb3_bmp1, wxT("Radio 2"), wxITEM_RADIO);
+    tb3->AddTool(ID_SampleItem+22, wxT("Radio 3"), tb3_bmp1, wxT("Radio 3"), wxITEM_RADIO);
+    tb3->AddSeparator();
+    tb3->AddTool(ID_SampleItem+23, wxT("Radio 1 (Group 2)"), tb3_bmp1, wxT("Radio 1 (Group 2)"), wxITEM_RADIO);
+    tb3->AddTool(ID_SampleItem+24, wxT("Radio 2 (Group 2)"), tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
+    tb3->AddTool(ID_SampleItem+25, wxT("Radio 3 (Group 2)"), tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
+    tb3->SetCustomOverflowItems(prepend_items, append_items);
+    tb3->Realize();
+
+
+    wxAuiToolBar* tb4 = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                         wxAUI_TB_DEFAULT_STYLE |
+                                         wxAUI_TB_OVERFLOW |
+                                         wxAUI_TB_TEXT |
+                                         wxAUI_TB_HORZ_TEXT);
+    tb4->SetToolBitmapSize(wxSize(16,16));
+    wxBitmap tb4_bmp1 = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+    tb4->AddTool(ID_DropDownToolbarItem, wxT("Item 1"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+23, wxT("Item 2"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+24, wxT("Item 3"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+25, wxT("Item 4"), tb4_bmp1);
+    tb4->AddSeparator();
+    tb4->AddTool(ID_SampleItem+26, wxT("Item 5"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+27, wxT("Item 6"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+28, wxT("Item 7"), tb4_bmp1);
+    tb4->AddTool(ID_SampleItem+29, wxT("Item 8"), tb4_bmp1);
+    tb4->SetToolDropDown(ID_DropDownToolbarItem, true);
+    tb4->SetCustomOverflowItems(prepend_items, append_items);
+    wxChoice* choice = new wxChoice(tb4, ID_SampleItem+35);
+    choice->AppendString(wxT("One choice"));
+    choice->AppendString(wxT("Another choice"));
+    tb4->AddControl(choice);
+    tb4->Realize();
+
+
+    wxAuiToolBar* tb5 = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                         wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxAUI_TB_VERTICAL);
+    tb5->SetToolBitmapSize(wxSize(48,48));
+    tb5->AddTool(ID_SampleItem+30, wxT("Test"), wxArtProvider::GetBitmap(wxART_ERROR));
+    tb5->AddSeparator();
+    tb5->AddTool(ID_SampleItem+31, wxT("Test"), wxArtProvider::GetBitmap(wxART_QUESTION));
+    tb5->AddTool(ID_SampleItem+32, wxT("Test"), wxArtProvider::GetBitmap(wxART_INFORMATION));
+    tb5->AddTool(ID_SampleItem+33, wxT("Test"), wxArtProvider::GetBitmap(wxART_WARNING));
+    tb5->AddTool(ID_SampleItem+34, wxT("Test"), wxArtProvider::GetBitmap(wxART_MISSING_IMAGE));
+    tb5->SetCustomOverflowItems(prepend_items, append_items);
+    tb5->Realize();
+
+    // add a bunch of panes
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test1")).Caption(wxT("Pane Caption")).
+                  Top());
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test2")).Caption(wxT("Client Size Reporter")).
+                  Bottom().Position(1).
                   CloseButton(true).MaximizeButton(true));
-     
 
-    //create some more panes that should form into a notebook
-    {
-        m_mgr.AddPane(CreateTextCtrl(wxT("This is a floatable pane with a long caption, for demonstrating the difference between fixed/unfixed tab widths.")), wxAuiPaneInfo().
-                  Name(wxT("float2")).Caption(wxT("Floatable pane 2 (Long Caption)")).
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test3")).Caption(wxT("Client Size Reporter")).
+                  Bottom().
+                  CloseButton(true).MaximizeButton(true));
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test4")).Caption(wxT("Pane Caption")).
+                  Left());
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test5")).Caption(wxT("No Close Button")).
+                  Right().CloseButton(false));
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test6")).Caption(wxT("Client Size Reporter")).
+                  Right().Row(1).
+                  CloseButton(true).MaximizeButton(true));
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test7")).Caption(wxT("Client Size Reporter")).
+                  Left().Layer(1).
+                  CloseButton(true).MaximizeButton(true));
+
+    m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test8")).Caption(wxT("Tree Pane")).
                   Left().Layer(1).Position(1).
-                  CloseButton(true).MaximizeButton(true).Page(1).Icon(wxArtProvider::GetBitmap(wxART_ERROR)));
-        m_mgr.AddPane(CreateTextCtrl(wxT("This is a standard floatable pane, because it shares the same position and layer as other panes it will form a notebook. It can be removed from the notebook by dragging on the tab and it can reform new notebooks by dropping it on the caption of other panes.")), wxAuiPaneInfo().
-                  Name(wxT("float3")).Caption(wxT("Floatable3")).
-                  Left().Layer(1).Position(1).
-                  CloseButton(true).MaximizeButton(true).Page(3));
-        m_mgr.AddPane(CreateTextCtrl(wxT("This is a standard floatable pane, because it shares the same position and layer as other panes it will form a notebook. It can be removed from the notebook by dragging on the tab and it can reform new notebooks by dropping it on the caption of other panes.")), wxAuiPaneInfo().
-                  Name(wxT("float4")).Caption(wxT("Floatable4")).
-                  Left().Layer(1).Position(1).
-                  CloseButton(true).MaximizeButton(true).Page(2).SetFlag(wxAuiPaneInfo::optionActiveNotebook,true));
-        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().CenterPane().
-                  Name(wxT("float5")).Caption(wxT("Floatable5")).
-                  CloseButton(true).MaximizeButton(true).Page(1).Floatable(true).Dockable(true).CenterDockable(true));
-        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().CenterPane().Name(wxT("toolTip1")).Caption(wxT("ToolTip1")).ToolTip(wxT("lorem ipsem")).
-                  CloseButton(true).MaximizeButton(true).Page(2).Floatable(true).Dockable(true).CenterDockable(true));
-    }
+                  CloseButton(true).MaximizeButton(true));
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test9")).Caption(wxT("Min Size 200x100")).
+                  BestSize(wxSize(200,100)).MinSize(wxSize(200,100)).
+                  Bottom().Layer(1).
+                  CloseButton(true).MaximizeButton(true));
+
+    wxWindow* wnd10 = CreateTextCtrl(wxT("This pane will prompt the user before hiding."));
+
+    // Give this pane an icon, too, just for testing.
+    int iconSize = m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_CAPTION_SIZE);
+
+    // Make it even to use 16 pixel icons with default 17 caption height.
+    iconSize &= ~1;
+
+    m_mgr.AddPane(wnd10, wxAuiPaneInfo().
+                  Name(wxT("test10")).Caption(wxT("Text Pane with Hide Prompt")).
+                  Bottom().Layer(1).Position(1).
+                  Icon(wxArtProvider::GetBitmap(wxART_WARNING,
+                                                wxART_OTHER,
+                                                wxSize(iconSize, iconSize))));
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
+                  Name(wxT("test11")).Caption(wxT("Fixed Pane")).
+                  Bottom().Layer(1).Position(2).Fixed());
 
 
+    m_mgr.AddPane(new SettingsPanel(this,this), wxAuiPaneInfo().
+                  Name(wxT("settings")).Caption(wxT("Dock Manager Settings")).
+                  Dockable(false).Float().Hide());
 
+    // create some center panes
+
+    m_mgr.AddPane(CreateGrid(), wxAuiPaneInfo().Name(wxT("grid_content")).
+                  CenterPane().Hide());
+
+    m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().Name(wxT("tree_content")).
+                  CenterPane().Hide());
+
+    m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().Name(wxT("sizereport_content")).
+                  CenterPane().Hide());
+
+    m_mgr.AddPane(CreateTextCtrl(), wxAuiPaneInfo().Name(wxT("text_content")).
+                  CenterPane().Hide());
+
+    m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().Name(wxT("html_content")).
+                  CenterPane().Hide());
+
+    m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().Name(wxT("notebook_content")).
+                  CenterPane().PaneBorder(false));
+
+    // add the toolbars to the manager
+    m_mgr.AddPane(tb1, wxAuiPaneInfo().
+                  Name(wxT("tb1")).Caption(wxT("Big Toolbar")).
+                  ToolbarPane().Top());
+
+    m_mgr.AddPane(tb2, wxAuiPaneInfo().
+                  Name(wxT("tb2")).Caption(wxT("Toolbar 2 (Horizontal)")).
+                  ToolbarPane().Top().Row(1));
+
+    m_mgr.AddPane(tb3, wxAuiPaneInfo().
+                  Name(wxT("tb3")).Caption(wxT("Toolbar 3")).
+                  ToolbarPane().Top().Row(1).Position(1));
+
+    m_mgr.AddPane(tb4, wxAuiPaneInfo().
+                  Name(wxT("tb4")).Caption(wxT("Sample Bookmark Toolbar")).
+                  ToolbarPane().Top().Row(2));
+
+    m_mgr.AddPane(tb5, wxAuiPaneInfo().
+                  Name(wxT("tb5")).Caption(wxT("Sample Vertical Toolbar")).
+                  ToolbarPane().Left().
+                  GripperTop());
+
+    m_mgr.AddPane(new wxButton(this, wxID_ANY, _("Test Button")),
+                  wxAuiPaneInfo().Name(wxT("tb6")).
+                  ToolbarPane().Top().Row(2).Position(1).
+                  LeftDockable(false).RightDockable(false));
+
+    // make some default perspectives
+
+    wxString perspective_all = m_mgr.SavePerspective();
+
+    int i, count;
+    wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+    for (i = 0, count = all_panes.GetCount(); i < count; ++i)
+        if (!all_panes.Item(i).IsToolbar())
+            all_panes.Item(i).Hide();
+    m_mgr.GetPane(wxT("tb1")).Hide();
+    m_mgr.GetPane(wxT("tb6")).Hide();
+    m_mgr.GetPane(wxT("test8")).Show().Left().Layer(0).Row(0).Position(0);
+    m_mgr.GetPane(wxT("test10")).Show().Bottom().Layer(0).Row(0).Position(0);
+    m_mgr.GetPane(wxT("notebook_content")).Show();
+    wxString perspective_default = m_mgr.SavePerspective();
+
+    m_perspectives.Add(perspective_default);
+    m_perspectives.Add(perspective_all);
 
     // "commit" all changes made to wxAuiManager
     m_mgr.Update();
-
-    // make some default perspectives
-    wxString perspective_all = m_mgr.SavePerspective();
-
-    m_perspectives.Add(perspective_all);
 }
 
 MyFrame::~MyFrame()
@@ -804,7 +1077,7 @@ void MyFrame::OnSettings(wxCommandEvent& WXUNUSED(evt))
     // show the settings pane, and float it
     wxAuiPaneInfo& floating_pane = m_mgr.GetPane(wxT("settings")).Float().Show();
 
-    if (floating_pane.GetFloatingPosition() == wxDefaultPosition)
+    if (floating_pane.floating_pos == wxDefaultPosition)
         floating_pane.FloatingPosition(GetStartPosition());
 
     m_mgr.Update();
@@ -830,8 +1103,26 @@ void MyFrame::OnGradient(wxCommandEvent& event)
     m_mgr.Update();
 }
 
+void MyFrame::OnToolbarResizing(wxCommandEvent& WXUNUSED(evt))
+{
+    wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+    const size_t count = all_panes.GetCount();
+    for (size_t i = 0; i < count; ++i)
+    {
+        wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
+        if (toolbar)
+        {
+            all_panes[i].Resizable(!all_panes[i].IsResizable());
+        }
+    }
+
+    m_mgr.Update();
+}
+
 void MyFrame::OnManagerFlag(wxCommandEvent& event)
 {
+    unsigned int flag = 0;
+
 #if !defined(__WXMSW__) && !defined(__WXMAC__) && !defined(__WXGTK__)
     if (event.GetId() == ID_TransparentDrag ||
         event.GetId() == ID_TransparentHint ||
@@ -844,83 +1135,122 @@ void MyFrame::OnManagerFlag(wxCommandEvent& event)
 
     int id = event.GetId();
 
-    if (id == ID_CloseButton ||
-        id == ID_CloseButtonActiveTab ||
-        id == ID_CloseButtonAllTabs ||
-        id == ID_NoCloseButton)
-    {
-        m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_BUTTON,false);
-        m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB,false);
-        m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_ON_ALL_TABS,false);
-    }
-    else if (id == ID_TabWindowList)
-    {
-        m_mgr.SetFlag(wxAUI_MGR_NB_WINDOWLIST_BUTTON,event.IsChecked());
-    }
-    else if(id == ID_FixedWidth)
-    {
-        m_mgr.SetFlag(wxAUI_MGR_NB_TAB_FIXED_WIDTH,event.IsChecked());
-    }
-    else if (id == ID_TabsTop ||
-        id == ID_TabsLeft ||
-        id == ID_TabsRight ||
-        id == ID_TabsBottom
-        )
-    {
-        m_mgr.SetFlag(wxAUI_MGR_NB_TOP,false);
-        m_mgr.SetFlag(wxAUI_MGR_NB_LEFT,false);
-        m_mgr.SetFlag(wxAUI_MGR_NB_RIGHT,false);
-        m_mgr.SetFlag(wxAUI_MGR_NB_BOTTOM,false);
-    }
-    else if (id == ID_TransparentHint ||
+    if (id == ID_TransparentHint ||
         id == ID_VenetianBlindsHint ||
         id == ID_RectangleHint ||
         id == ID_NoHint)
     {
-        m_mgr.SetFlag(wxAUI_MGR_TRANSPARENT_HINT,false);
-        m_mgr.SetFlag(wxAUI_MGR_VENETIAN_BLINDS_HINT,false);
-        m_mgr.SetFlag(wxAUI_MGR_RECTANGLE_HINT,false);
+        unsigned int flags = m_mgr.GetFlags();
+        flags &= ~wxAUI_MGR_TRANSPARENT_HINT;
+        flags &= ~wxAUI_MGR_VENETIAN_BLINDS_HINT;
+        flags &= ~wxAUI_MGR_RECTANGLE_HINT;
+        m_mgr.SetFlags(flags);
     }
-    else if (id == ID_TabsDefault)
-    {
-        m_mgr.SetTabArtProvider(new wxAuiDefaultTabArt);
-    }
-    else if (id == ID_TabsGeneric)
-    {
-        m_mgr.SetTabArtProvider(new wxAuiGenericTabArt);
-    }
-    else if (id == ID_TabsSimple)
-    {
-        m_mgr.SetTabArtProvider(new wxAuiSimpleTabArt);
-    }
-    #ifdef wxHAS_NATIVE_TABART
-    else if (id == ID_TabsNative)
-    {
-        m_mgr.SetTabArtProvider(new wxAuiNativeTabArt);
-    }
-    #endif
 
     switch (id)
     {
-        case ID_AllowFloating: m_mgr.SetFlag(wxAUI_MGR_ALLOW_FLOATING,true); break;
-        case ID_TransparentDrag: m_mgr.SetFlag(wxAUI_MGR_TRANSPARENT_DRAG,true); break;
-        case ID_HintFade: m_mgr.SetFlag(wxAUI_MGR_HINT_FADE,true); break;
-        case ID_NoVenetianFade: m_mgr.SetFlag(wxAUI_MGR_NO_VENETIAN_BLINDS_FADE,true); break;
-        case ID_AllowActivePane: m_mgr.SetFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE,true); break;
-        case ID_TransparentHint: m_mgr.SetFlag(wxAUI_MGR_TRANSPARENT_HINT,true); break;
-        case ID_VenetianBlindsHint: m_mgr.SetFlag(wxAUI_MGR_VENETIAN_BLINDS_HINT,true); break;
-        case ID_RectangleHint: m_mgr.SetFlag(wxAUI_MGR_RECTANGLE_HINT,true); break;
-        case ID_LiveUpdate: m_mgr.SetFlag(wxAUI_MGR_LIVE_RESIZE,true); break;
-        case ID_TabsTop: m_mgr.SetFlag(wxAUI_MGR_NB_TOP,true); break;
-        case ID_TabsLeft: m_mgr.SetFlag(wxAUI_MGR_NB_LEFT,true); break;
-        case ID_TabsRight: m_mgr.SetFlag(wxAUI_MGR_NB_RIGHT,true); break;
-        case ID_TabsBottom: m_mgr.SetFlag(wxAUI_MGR_NB_BOTTOM,true); break;
-        case ID_CloseButton: m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_BUTTON,true); break;
-        case ID_CloseButtonActiveTab: m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB,true); break;
-        case ID_CloseButtonAllTabs: m_mgr.SetFlag(wxAUI_MGR_NB_CLOSE_ON_ALL_TABS,true); break;
+        case ID_AllowFloating: flag = wxAUI_MGR_ALLOW_FLOATING; break;
+        case ID_TransparentDrag: flag = wxAUI_MGR_TRANSPARENT_DRAG; break;
+        case ID_HintFade: flag = wxAUI_MGR_HINT_FADE; break;
+        case ID_NoVenetianFade: flag = wxAUI_MGR_NO_VENETIAN_BLINDS_FADE; break;
+        case ID_AllowActivePane: flag = wxAUI_MGR_ALLOW_ACTIVE_PANE; break;
+        case ID_TransparentHint: flag = wxAUI_MGR_TRANSPARENT_HINT; break;
+        case ID_VenetianBlindsHint: flag = wxAUI_MGR_VENETIAN_BLINDS_HINT; break;
+        case ID_RectangleHint: flag = wxAUI_MGR_RECTANGLE_HINT; break;
+        case ID_LiveUpdate: flag = wxAUI_MGR_LIVE_RESIZE; break;
+    }
+
+    if (flag)
+    {
+        m_mgr.SetFlags(m_mgr.GetFlags() ^ flag);
     }
 
     m_mgr.Update();
+}
+
+
+void MyFrame::OnNotebookFlag(wxCommandEvent& event)
+{
+    int id = event.GetId();
+
+    if (id == ID_NotebookNoCloseButton ||
+        id == ID_NotebookCloseButton ||
+        id == ID_NotebookCloseButtonAll ||
+        id == ID_NotebookCloseButtonActive)
+    {
+        m_notebook_style &= ~(wxAUI_NB_CLOSE_BUTTON |
+                              wxAUI_NB_CLOSE_ON_ACTIVE_TAB |
+                              wxAUI_NB_CLOSE_ON_ALL_TABS);
+
+        switch (id)
+        {
+            case ID_NotebookNoCloseButton: break;
+            case ID_NotebookCloseButton: m_notebook_style |= wxAUI_NB_CLOSE_BUTTON; break;
+            case ID_NotebookCloseButtonAll: m_notebook_style |= wxAUI_NB_CLOSE_ON_ALL_TABS; break;
+            case ID_NotebookCloseButtonActive: m_notebook_style |= wxAUI_NB_CLOSE_ON_ACTIVE_TAB; break;
+        }
+    }
+
+    if (id == ID_NotebookAllowTabMove)
+    {
+        m_notebook_style ^= wxAUI_NB_TAB_MOVE;
+    }
+    if (id == ID_NotebookAllowTabExternalMove)
+    {
+        m_notebook_style ^= wxAUI_NB_TAB_EXTERNAL_MOVE;
+    }
+     else if (id == ID_NotebookAllowTabSplit)
+    {
+        m_notebook_style ^= wxAUI_NB_TAB_SPLIT;
+    }
+     else if (id == ID_NotebookWindowList)
+    {
+        m_notebook_style ^= wxAUI_NB_WINDOWLIST_BUTTON;
+    }
+     else if (id == ID_NotebookScrollButtons)
+    {
+        m_notebook_style ^= wxAUI_NB_SCROLL_BUTTONS;
+    }
+     else if (id == ID_NotebookTabFixedWidth)
+    {
+        m_notebook_style ^= wxAUI_NB_TAB_FIXED_WIDTH;
+    }
+
+
+    size_t i, count;
+    wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+    for (i = 0, count = all_panes.GetCount(); i < count; ++i)
+    {
+        wxAuiPaneInfo& pane = all_panes.Item(i);
+        if (pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+        {
+            wxAuiNotebook* nb = (wxAuiNotebook*)pane.window;
+
+            if (id == ID_NotebookArtDefault)
+            {
+                nb->SetArtProvider(new wxAuiDefaultTabArt);
+                m_notebook_theme = 0;
+            }
+             else if (id == ID_NotebookArtSimple)
+            {
+                nb->SetArtProvider(new wxAuiSimpleTabArt);
+                m_notebook_theme = 1;
+            }
+#ifdef wxHAS_NATIVE_TABART
+            else if (id == ID_NotebookArtGeneric)
+            {
+                nb->SetArtProvider(new wxAuiGenericTabArt);
+                m_notebook_theme = 1;
+            }
+#endif
+
+
+            nb->SetWindowStyleFlag(m_notebook_style);
+            nb->Refresh();
+        }
+    }
+
+
 }
 
 
@@ -939,6 +1269,21 @@ void MyFrame::OnUpdateUI(wxUpdateUIEvent& event)
         case ID_HorizontalGradient:
             event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
             break;
+        case ID_AllowToolbarResizing:
+        {
+            wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+            const size_t count = all_panes.GetCount();
+            for (size_t i = 0; i < count; ++i)
+            {
+                wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
+                if (toolbar)
+                {
+                    event.Check(all_panes[i].IsResizable());
+                    break;
+                }
+            }
+            break;
+        }
         case ID_AllowFloating:
             event.Check((flags & wxAUI_MGR_ALLOW_FLOATING) != 0);
             break;
@@ -968,12 +1313,55 @@ void MyFrame::OnUpdateUI(wxUpdateUIEvent& event)
         case ID_NoVenetianFade:
             event.Check((flags & wxAUI_MGR_NO_VENETIAN_BLINDS_FADE) != 0);
             break;
+
+        case ID_NotebookNoCloseButton:
+            event.Check((m_notebook_style & (wxAUI_NB_CLOSE_BUTTON|wxAUI_NB_CLOSE_ON_ALL_TABS|wxAUI_NB_CLOSE_ON_ACTIVE_TAB)) != 0);
+            break;
+        case ID_NotebookCloseButton:
+            event.Check((m_notebook_style & wxAUI_NB_CLOSE_BUTTON) != 0);
+            break;
+        case ID_NotebookCloseButtonAll:
+            event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ALL_TABS) != 0);
+            break;
+        case ID_NotebookCloseButtonActive:
+            event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ACTIVE_TAB) != 0);
+            break;
+        case ID_NotebookAllowTabSplit:
+            event.Check((m_notebook_style & wxAUI_NB_TAB_SPLIT) != 0);
+            break;
+        case ID_NotebookAllowTabMove:
+            event.Check((m_notebook_style & wxAUI_NB_TAB_MOVE) != 0);
+            break;
+        case ID_NotebookAllowTabExternalMove:
+            event.Check((m_notebook_style & wxAUI_NB_TAB_EXTERNAL_MOVE) != 0);
+            break;
+        case ID_NotebookScrollButtons:
+            event.Check((m_notebook_style & wxAUI_NB_SCROLL_BUTTONS) != 0);
+            break;
+        case ID_NotebookWindowList:
+            event.Check((m_notebook_style & wxAUI_NB_WINDOWLIST_BUTTON) != 0);
+            break;
+        case ID_NotebookTabFixedWidth:
+            event.Check((m_notebook_style & wxAUI_NB_TAB_FIXED_WIDTH) != 0);
+            break;
+        case ID_NotebookArtDefault:
+            event.Check(m_notebook_style == 0);
+            break;
+        case ID_NotebookArtSimple:
+            event.Check(m_notebook_style == 1);
+            break;
+#ifdef wxHAS_NATIVE_TABART
+        case ID_NotebookArtGeneric:
+            event.Check(m_notebook_style == 2);
+            break;
+#endif
+
     }
 }
 
 void MyFrame::OnPaneClose(wxAuiManagerEvent& evt)
 {
-    if (evt.pane->GetName() == wxT("test10"))
+    if (evt.pane->name == wxT("test10"))
     {
         int res = wxMessageBox(wxT("Are you sure you want to close/hide this pane?"),
                                wxT("wxAUI"),
@@ -1020,6 +1408,39 @@ void MyFrame::OnRestorePerspective(wxCommandEvent& evt)
     m_mgr.LoadPerspective(m_perspectives.Item(evt.GetId() - ID_FirstPerspective));
 }
 
+void MyFrame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
+{
+    wxAuiNotebook* ctrl = (wxAuiNotebook*)evt.GetEventObject();
+    if (ctrl->GetPage(evt.GetSelection())->IsKindOf(CLASSINFO(wxHtmlWindow)))
+    {
+        int res = wxMessageBox(wxT("Are you sure you want to close/hide this notebook page?"),
+                       wxT("wxAUI"),
+                       wxYES_NO,
+                       this);
+        if (res != wxYES)
+            evt.Veto();
+    }
+}
+
+void MyFrame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
+{
+    wxAuiNotebook* ctrl = (wxAuiNotebook*)evt.GetEventObject();
+
+    // selection should always be a valid index
+    wxASSERT_MSG( ctrl->GetSelection() < (int)ctrl->GetPageCount(),
+                  wxString::Format("Invalid selection %d, only %d pages left",
+                                   ctrl->GetSelection(),
+                                   (int)ctrl->GetPageCount()) );
+
+    evt.Skip();
+}
+
+void MyFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& evt)
+{
+    // for the purpose of this test application, explicitly
+    // allow all noteboko drag and drop events
+    evt.Allow();
+}
 
 wxPoint MyFrame::GetStartPosition()
 {
@@ -1056,6 +1477,16 @@ void MyFrame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
     m_mgr.Update();
 }
 
+void MyFrame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
+{
+    m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
+                  Caption(wxT("Notebook")).
+                  Float().FloatingPosition(GetStartPosition()).
+                  //FloatingSize(300,200).
+                  CloseButton(true).MaximizeButton(true));
+    m_mgr.Update();
+}
+
 void MyFrame::OnCreateText(wxCommandEvent& WXUNUSED(event))
 {
     m_mgr.AddPane(CreateTextCtrl(), wxAuiPaneInfo().
@@ -1080,6 +1511,7 @@ void MyFrame::OnChangeContentPane(wxCommandEvent& evt)
     m_mgr.GetPane(wxT("tree_content")).Show(evt.GetId() == ID_TreeContent);
     m_mgr.GetPane(wxT("sizereport_content")).Show(evt.GetId() == ID_SizeReportContent);
     m_mgr.GetPane(wxT("html_content")).Show(evt.GetId() == ID_HTMLContent);
+    m_mgr.GetPane(wxT("notebook_content")).Show(evt.GetId() == ID_NotebookContent);
     m_mgr.Update();
 }
 
@@ -1127,6 +1559,56 @@ void MyFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 }
 
 
+void MyFrame::OnTabAlignment(wxCommandEvent &evt)
+{
+    size_t i, count;
+    wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+    for (i = 0, count = all_panes.GetCount(); i < count; ++i)
+    {
+        wxAuiPaneInfo& pane = all_panes.Item(i);
+        if (pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+        {
+            wxAuiNotebook* nb = (wxAuiNotebook*)pane.window;
+
+            long style = nb->GetWindowStyleFlag();
+            style &= ~(wxAUI_NB_TOP | wxAUI_NB_BOTTOM | wxAUI_NB_LEFT | wxAUI_NB_RIGHT);
+            if (evt.GetId() == ID_NotebookAlignTop)
+                style |= wxAUI_NB_TOP;
+            else if (evt.GetId() == ID_NotebookAlignLeft)
+                style |= wxAUI_NB_LEFT;
+            else if (evt.GetId() == ID_NotebookAlignRight)
+                style |= wxAUI_NB_RIGHT;
+            else if (evt.GetId() == ID_NotebookAlignBottom)
+                style |= wxAUI_NB_BOTTOM;
+            nb->SetWindowStyleFlag(style);
+
+            nb->Refresh();
+        }
+    }
+}
+
+void MyFrame::OnTabSplit(wxCommandEvent &evt)
+{
+    wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+    const size_t count = all_panes.GetCount();
+    for (size_t i = 0; i < count; ++i)
+    {
+        wxAuiPaneInfo& pane = all_panes.Item(i);
+        if (pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+        {
+            wxAuiNotebook* nb = (wxAuiNotebook*)pane.window;
+
+            if (evt.GetId() == ID_NotebookSplitLeft)
+                nb->Split(nb->GetSelection(), wxLEFT);
+            else if (evt.GetId() == ID_NotebookSplitRight)
+                nb->Split(nb->GetSelection(), wxRIGHT);
+            else if (evt.GetId() == ID_NotebookSplitTop)
+                nb->Split(nb->GetSelection(), wxTOP);
+            else if (evt.GetId() == ID_NotebookSplitBottom)
+                nb->Split(nb->GetSelection(), wxBOTTOM);
+        }
+    }
+}
 void MyFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
     Close(true);
@@ -1137,13 +1619,12 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     wxMessageBox(_("wxAUI Demo\nAn advanced window management library for wxWidgets\n(c) Copyright 2005-2006, Kirix Corporation"), _("About wxAUI Demo"), wxOK, this);
 }
 
-
 wxTextCtrl* MyFrame::CreateTextCtrl(const wxString& ctrl_text)
 {
     static int n = 0;
 
     wxString text;
-    if (ctrl_text.Length() > 0)
+    if ( !ctrl_text.empty() )
         text = ctrl_text;
     else
         text.Printf(wxT("This is text box %d"), ++n);
@@ -1224,23 +1705,131 @@ wxHtmlWindow* MyFrame::CreateHTMLCtrl(wxWindow* parent)
     return ctrl;
 }
 
+wxAuiNotebook* MyFrame::CreateNotebook()
+{
+   // create the notebook off-window to avoid flicker
+   wxSize client_size = GetClientSize();
+
+   wxAuiNotebook* ctrl = new wxAuiNotebook(this, wxID_ANY,
+                                    wxPoint(client_size.x, client_size.y),
+                                    wxSize(430,200),
+                                    m_notebook_style);
+   ctrl->Freeze();
+
+   wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+
+   ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Welcome to wxAUI") , false, page_bmp);
+   ctrl->SetPageToolTip(0, "Welcome to wxAUI (this is a page tooltip)");
+
+   wxPanel *panel = new wxPanel( ctrl, wxID_ANY );
+   wxFlexGridSizer *flex = new wxFlexGridSizer( 4, 2, 0, 0 );
+   flex->AddGrowableRow( 0 );
+   flex->AddGrowableRow( 3 );
+   flex->AddGrowableCol( 1 );
+   flex->Add( 5,5 );   flex->Add( 5,5 );
+   flex->Add( new wxStaticText( panel, -1, wxT("wxTextCtrl:") ), 0, wxALL|wxALIGN_CENTRE, 5 );
+   flex->Add( new wxTextCtrl( panel, -1, wxT(""), wxDefaultPosition, wxSize(100,-1)),
+                1, wxALL|wxALIGN_CENTRE, 5 );
+   flex->Add( new wxStaticText( panel, -1, wxT("wxSpinCtrl:") ), 0, wxALL|wxALIGN_CENTRE, 5 );
+   flex->Add( new wxSpinCtrl( panel, -1, wxT("5"), wxDefaultPosition, wxSize(100,-1),
+                wxSP_ARROW_KEYS, 5, 50, 5 ), 0, wxALL|wxALIGN_CENTRE, 5 );
+   flex->Add( 5,5 );   flex->Add( 5,5 );
+   panel->SetSizer( flex );
+   ctrl->AddPage( panel, wxT("wxPanel"), false, page_bmp );
+
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 1"), false, page_bmp );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 2") );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 3") );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 4") );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 5") );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 6") );
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 7 (longer title)") );
+   ctrl->SetPageToolTip(ctrl->GetPageCount()-1,
+                        "wxTextCtrl 7: and the tooltip message can be even longer!");
+
+   ctrl->AddPage( new wxTextCtrl( ctrl, wxID_ANY, wxT("Some more text"),
+                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxNO_BORDER) , wxT("wxTextCtrl 8") );
+
+   ctrl->Thaw();
+   return ctrl;
+}
+
 wxString MyFrame::GetIntroText()
 {
     const char* text =
         "<html><body>"
-        "<p>Welcome to the new AUI sample.</p>"
-        "<p>This sample is designed to demonstrate various new features that have been added to wxAUI.</p>"
-        "<p>1) Movable panes - It is now possible to set a pane so that it can be dragged to new dock positions without being allowed to float. Please try to drag/move the pane in the top left hand corner to see this in action.</p>"
-        "<p>2) 'Dynamic' notebooks.</p>"
-        "<p>    2.1) Panes now have a new 'page' property, when two panes occupy the same space (Direction/Layer/Position) they dynamically form a notebook with the page property deciding what order the tabs should be in.</p>"
-        "<p>    2.2) Panes can be floated or moved (If floatable or movable properties are set) out of a notebook by dragging the tab out of the tab bar.</p>"
-        "<p>    2.3) Panes can be added into a notebook by dragging them into the tab bar.</p>"
-        "<p>    2.4) New notebooks can be formed by dragging one pane onto the caption of another (Or programatically simply by setting two panes to share the same properties (Direction/Layer/Position).</p>"
-        "<p>    2.5) As notebooks are formed dynamically based on pane properties and not by use of actual notebook controls, all notebook information (Including the selected tab and the currently selected/visible tab) are automatically serialised/restored when saving/loading a perspective.</p>"
-        "<p>* Note the above functionality does not make use of wxAuiNotebook in any way - and for many purposes makes wxAuiNotebook almost redundant. wxAuiNotebook has been refactored and now exists merely as a convenience class (It is essentially just a frame with a standard manager and a little bit of wrapper code, with all the actual work done by the manager with dynamic notebooks as mentioned above)</p>"
-        "<p></p>"
-        "<p>In addition to the above the following changes have been made since the last version of wxAUI:</p>"
-        "<p>1) API has been refactored to be more like the rest of wxWidgets - e.g. 'Caption()' instead of 'Caption()', for now in order to allow backwards compatibility the older API will continue to work as long as WXWIN_COMPATIBILITY_2_8 is set.</p>"
+        "<h3>Welcome to wxAUI</h3>"
+        "<br/><b>Overview</b><br/>"
+        "<p>wxAUI is an Advanced User Interface library for the wxWidgets toolkit "
+        "that allows developers to create high-quality, cross-platform user "
+        "interfaces quickly and easily.</p>"
+        "<p><b>Features</b></p>"
+        "<p>With wxAUI, developers can create application frameworks with:</p>"
+        "<ul>"
+        "<li>Native, dockable floating frames</li>"
+        "<li>Perspective saving and loading</li>"
+        "<li>Native toolbars incorporating real-time, &quot;spring-loaded&quot; dragging</li>"
+        "<li>Customizable floating/docking behaviour</li>"
+        "<li>Completely customizable look-and-feel</li>"
+        "<li>Optional transparent window effects (while dragging or docking)</li>"
+        "<li>Splittable notebook control</li>"
+        "</ul>"
+        "<p><b>What's new in 0.9.4?</b></p>"
+        "<p>wxAUI 0.9.4, which is bundled with wxWidgets, adds the following features:"
+        "<ul>"
+        "<li>New wxAuiToolBar class, a toolbar control which integrates more "
+        "cleanly with wxAuiFrameManager.</li>"
+        "<li>Lots of bug fixes</li>"
+        "</ul>"
+        "<p><b>What's new in 0.9.3?</b></p>"
+        "<p>wxAUI 0.9.3, which is now bundled with wxWidgets, adds the following features:"
+        "<ul>"
+        "<li>New wxAuiNotebook class, a dynamic splittable notebook control</li>"
+        "<li>New wxAuiMDI* classes, a tab-based MDI and drop-in replacement for classic MDI</li>"
+        "<li>Maximize/Restore buttons implemented</li>"
+        "<li>Better hinting with wxGTK</li>"
+        "<li>Class rename.  'wxAui' is now the standard class prefix for all wxAUI classes</li>"
+        "<li>Lots of bug fixes</li>"
+        "</ul>"
+        "<p><b>What's new in 0.9.2?</b></p>"
+        "<p>The following features/fixes have been added since the last version of wxAUI:</p>"
+        "<ul>"
+        "<li>Support for wxMac</li>"
+        "<li>Updates for wxWidgets 2.6.3</li>"
+        "<li>Fix to pass more unused events through</li>"
+        "<li>Fix to allow floating windows to receive idle events</li>"
+        "<li>Fix for minimizing/maximizing problem with transparent hint pane</li>"
+        "<li>Fix to not paint empty hint rectangles</li>"
+        "<li>Fix for 64-bit compilation</li>"
+        "</ul>"
+        "<p><b>What changed in 0.9.1?</b></p>"
+        "<p>The following features/fixes were added in wxAUI 0.9.1:</p>"
+        "<ul>"
+        "<li>Support for MDI frames</li>"
+        "<li>Gradient captions option</li>"
+        "<li>Active/Inactive panes option</li>"
+        "<li>Fix for screen artifacts/paint problems</li>"
+        "<li>Fix for hiding/showing floated window problem</li>"
+        "<li>Fix for floating pane sizing problem</li>"
+        "<li>Fix for drop position problem when dragging around center pane margins</li>"
+        "<li>LF-only text file formatting for source code</li>"
+        "</ul>"
+        "<p>See README.txt for more information.</p>"
         "</body></html>";
+
     return wxString::FromAscii(text);
 }
