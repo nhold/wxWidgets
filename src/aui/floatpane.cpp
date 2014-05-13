@@ -87,10 +87,10 @@ void wxAuiFloatingFrame::SetPaneWindow(const wxAuiPaneInfo& pane)
     m_paneWindow->Reparent(this);
 
     wxAuiPaneInfo containedPane = pane;
-    containedPane.Dock().SetDirectionCenter().Show().
-                    SetCaptionVisible(false).
-                    SetBorder(false).
-                    SetLayer(0).SetRow(0).SetPosition(0);
+    containedPane.Dock().Center().Show().
+                    CaptionVisible(false).
+                    PaneBorder(false).
+                    Layer(0).Row(0).Position(0).SetFlag(wxAuiPaneInfo::optionAlwaysDockInNotebook, false);
 
     // Carry over the minimum size
     wxSize paneMinSize = pane.GetWindow()->GetMinSize();
@@ -234,7 +234,7 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
         if (m_ownerMgr)
         {
             m_ownerMgr->GetPane(m_paneWindow).
-                SetFloatingPosition( winRect.GetPosition() );
+                FloatingPosition( winRect.GetPosition() );
         }
 
         return;

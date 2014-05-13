@@ -351,7 +351,7 @@ NSTableColumn* CreateNativeColumn(const wxDataViewColumn *column)
     int resizingMask;
     if (column->IsResizeable())
     {
-        resizingMask = NSTableColumnUserResizingMask;
+        resizingMask = NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask;
         [nativeColumn setMinWidth:column->GetMinWidth()];
         [nativeColumn setMaxWidth:column->GetMaxWidth()];
     }
@@ -1971,7 +1971,7 @@ wxCocoaDataViewControl::wxCocoaDataViewControl(wxWindow* peer,
 void wxCocoaDataViewControl::InitOutlineView(long style)
 {
     [m_OutlineView setImplementation:this];
-    [m_OutlineView setColumnAutoresizingStyle:NSTableViewSequentialColumnAutoresizingStyle];
+    [m_OutlineView setColumnAutoresizingStyle:NSTableViewLastColumnOnlyAutoresizingStyle];
     [m_OutlineView setIndentationPerLevel:GetDataViewCtrl()->GetIndent()];
     NSUInteger maskGridStyle(NSTableViewGridNone);
     if (style & wxDV_HORIZ_RULES)
@@ -2876,8 +2876,19 @@ wxDataViewChoiceRenderer::OSXOnCellChanged(NSObject *value,
 {
     // At least under OS X 10.7 we get the index of the item selected and not
     // its string.
+    const long choiceIndex = ObjectToLong(value);
+
+    // We can receive -1 if the selection was cancelled, just ignore it.
+    if ( choiceIndex == -1 )
+        return;
+
+    // If it's not -1, it must be valid, but avoid crashing in GetChoice()
+    // below if it isn't, for some reason.
+    wxCHECK_RET( choiceIndex >= 0 && (size_t)choiceIndex < GetChoices().size(),
+                 wxS("Choice index out of range.") );
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(GetChoice(ObjectToLong(value)), item, col);
+    model->ChangeValue(GetChoice(choiceIndex), item, col);
 }
 
 bool wxDataViewChoiceRenderer::MacRender()
@@ -3152,6 +3163,7 @@ wxDataViewColumn::wxDataViewColumn(const wxString& title,
     if (renderer && !renderer->IsCustomRenderer() &&
         (renderer->GetAlignment() == wxDVR_DEFAULT_ALIGNMENT))
         renderer->SetAlignment(align);
+    SetResizeable((flags & wxDATAVIEW_COL_RESIZABLE) != 0);
 }
 
 wxDataViewColumn::wxDataViewColumn(const wxBitmap& bitmap,
@@ -3236,7 +3248,7 @@ void wxDataViewColumn::SetResizeable(bool resizable)
 {
     wxDataViewColumnBase::SetResizeable(resizable);
     if (resizable)
-        [m_NativeDataPtr->GetNativeColumnPtr() setResizingMask:NSTableColumnUserResizingMask];
+        [m_NativeDataPtr->GetNativeColumnPtr() setResizingMask:NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask];
     else
         [m_NativeDataPtr->GetNativeColumnPtr() setResizingMask:NSTableColumnNoResizing];
 }

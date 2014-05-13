@@ -13,13 +13,6 @@
 #ifndef _WX_DEFS_H_
 #define _WX_DEFS_H_
 
-/*
-    NOTE: this symbol will be replaced with "WXWIN_COMPATIBILITY_3_0" as soon
-          as the development branch for 3.1 is created
- */
-#define FUTURE_WXWIN_COMPATIBILITY_3_0      1
-#define wxDEPRECATED_FUTURE( x )            x
-
 /*  ---------------------------------------------------------------------------- */
 /*  compiler and OS identification */
 /*  ---------------------------------------------------------------------------- */
@@ -358,30 +351,37 @@ typedef short int WXTYPE;
 #endif
 
 #if defined(__has_include)
-    #if !defined(HAVE_TYPE_TRAITS) && __has_include(<type_traits>)
-        #define HAVE_TYPE_TRAITS
+    /*
+        Notice that we trust our configure tests more than __has_include(),
+        notably the latter can return true even if the header exists but isn't
+        actually usable, as it happens with <type_traits> in non C++11 mode.
+        So if configure already detected at least one working alternative,
+        just use it.
+     */
+    #if !defined(HAVE_TYPE_TRAITS) && !defined(HAVE_TR1_TYPE_TRAITS)
+        #if __has_include(<type_traits>)
+            #define HAVE_TYPE_TRAITS
+        #elif __has_include(<tr1/type_traits>)
+            #define HAVE_TR1_TYPE_TRAITS
+        #endif
     #endif
 
-    #if !defined(HAVE_TR1_TYPE_TRAITS) && __has_include(<tr1/type_traits>)
-        #define HAVE_TR1_TYPE_TRAITS
+    #if !defined(HAVE_STD_UNORDERED_MAP) && !defined(HAVE_TR1_UNORDERED_MAP)
+        #if __has_include(<unordered_map>)
+            #define HAVE_STD_UNORDERED_MAP
+        #elif __has_include(<tr1/unordered_map>)
+            #define HAVE_TR1_UNORDERED_MAP
+        #endif
     #endif
 
-    #if !defined(HAVE_STD_UNORDERED_MAP) && __has_include(<unordered_map>)
-        #define HAVE_STD_UNORDERED_MAP
+    #if !defined(HAVE_STD_UNORDERED_SET) && !defined(HAVE_TR1_UNORDERED_SET)
+        #if __has_include(<unordered_set>)
+            #define HAVE_STD_UNORDERED_SET
+        #elif __has_include(<tr1/unordered_set>)
+            #define HAVE_TR1_UNORDERED_SET
+        #endif
     #endif
-
-    #if !defined(HAVE_TR1_UNORDERED_MAP) && __has_include(<tr1/unordered_map>)
-        #define HAVE_TR1_UNORDERED_MAP
-    #endif
-
-    #if !defined(HAVE_STD_UNORDERED_SET) && __has_include(<unordered_set>)
-        #define HAVE_STD_UNORDERED_SET
-    #endif
-
-    #if !defined(HAVE_TR1_UNORDERED_SET) && __has_include(<tr1/unordered_set>)
-        #define HAVE_TR1_UNORDERED_SET
-    #endif
-#endif // defined(__has_include)
+#endif /* defined(__has_include) */
 
 /* provide replacement for C99 va_copy() if the compiler doesn't have it */
 
@@ -951,6 +951,10 @@ typedef wxUint16 wxWord;
 
         #ifndef SIZEOF_LONG
             #define SIZEOF_LONG 4
+        #endif
+
+        #ifndef SIZEOF_LONG_LONG
+            #define SIZEOF_LONG_LONG 8
         #endif
 
         #ifndef SIZEOF_WCHAR_T
@@ -1937,12 +1941,6 @@ enum wxBorder
 /*  always show an entire number of rows */
 #define wxLB_INT_HEIGHT     0x0800
 
-#if WXWIN_COMPATIBILITY_2_6
-    /*  deprecated synonyms */
-    #define wxPROCESS_ENTER   0x0400  /*  wxTE_PROCESS_ENTER */
-    #define wxPASSWORD        0x0800  /*  wxTE_PASSWORD */
-#endif
-
 /*
  * wxComboBox style flags
  */
@@ -2289,8 +2287,13 @@ enum wxStandardID
     wxID_OSX_HIDE = wxID_OSX_MENU_FIRST,
     wxID_OSX_HIDEOTHERS,
     wxID_OSX_SHOWALL,
+#if wxABI_VERSION >= 30001
+    wxID_OSX_SERVICES,
+    wxID_OSX_MENU_LAST = wxID_OSX_SERVICES,
+#else
     wxID_OSX_MENU_LAST = wxID_OSX_SHOWALL,
-    
+#endif
+
     /*  IDs used by generic file dialog (13 consecutive starting from this value) */
     wxID_FILEDLGG = 5900,
 
@@ -2420,8 +2423,6 @@ enum wxHatchStyle
              wxPenStyle, wxPenCap, wxPenJoin enum values instead!
 */
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-
 /* don't use any elements of this enum in the new code */
 enum wxDeprecatedGUIConstants
 {
@@ -2471,7 +2472,6 @@ enum wxDeprecatedGUIConstants
     wxFIRST_HATCH = wxHATCHSTYLE_FIRST,
     wxLAST_HATCH = wxHATCHSTYLE_LAST
 };
-#endif
 
 /*  ToolPanel in wxFrame (VZ: unused?) */
 enum
@@ -2625,11 +2625,6 @@ enum wxKeyCode
     WXK_SCROLL,
     WXK_PAGEUP,
     WXK_PAGEDOWN,
-#if WXWIN_COMPATIBILITY_2_6
-    WXK_PRIOR = WXK_PAGEUP,
-    WXK_NEXT  = WXK_PAGEDOWN,
-#endif
-
     WXK_NUMPAD_SPACE,
     WXK_NUMPAD_TAB,
     WXK_NUMPAD_ENTER,
@@ -2644,10 +2639,6 @@ enum wxKeyCode
     WXK_NUMPAD_DOWN,
     WXK_NUMPAD_PAGEUP,
     WXK_NUMPAD_PAGEDOWN,
-#if WXWIN_COMPATIBILITY_2_6
-    WXK_NUMPAD_PRIOR = WXK_NUMPAD_PAGEUP,
-    WXK_NUMPAD_NEXT  = WXK_NUMPAD_PAGEDOWN,
-#endif
     WXK_NUMPAD_END,
     WXK_NUMPAD_BEGIN,
     WXK_NUMPAD_INSERT,

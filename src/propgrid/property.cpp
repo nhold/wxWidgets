@@ -62,7 +62,7 @@ static void wxPGDrawFocusRect( wxDC& dc, const wxRect& rect )
     //   Also, it seems that this code may not work in future wx versions.
     dc.SetLogicalFunction(wxINVERT);
 
-    wxPen pen(*wxBLACK,1,wxDOT);
+    wxPen pen(*wxBLACK,1,wxPENSTYLE_DOT);
     pen.SetCap(wxCAP_BUTT);
     dc.SetPen(pen);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -73,7 +73,7 @@ static void wxPGDrawFocusRect( wxDC& dc, const wxRect& rect )
 #else
     dc.SetLogicalFunction(wxINVERT);
 
-    dc.SetPen(wxPen(*wxBLACK,1,wxDOT));
+    dc.SetPen(wxPen(*wxBLACK,1,wxPENSTYLE_DOT));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     dc.DrawRectangle(rect);
@@ -244,7 +244,7 @@ bool wxPGDefaultRenderer::Render( wxDC& dc, const wxRect& rect,
                                  wxPG_CUSTOM_IMAGE_WIDTH,
                                  rect.height-(wxPG_CUSTOM_IMAGE_SPACINGY*2));
 
-                dc.SetPen( wxPen(propertyGrid->GetCellTextColour(), 1, wxSOLID) );
+                dc.SetPen( wxPen(propertyGrid->GetCellTextColour(), 1, wxPENSTYLE_SOLID) );
 
                 paintdata.m_drawnWidth = imageSize.x;
                 paintdata.m_drawnHeight = imageSize.y;
@@ -1770,6 +1770,10 @@ wxVariant wxPGProperty::DoGetAttribute( const wxString& WXUNUSED(name) ) const
 
 wxVariant wxPGProperty::GetAttribute( const wxString& name ) const
 {
+    wxVariant value = DoGetAttribute(name);
+    if ( !value.IsNull() )
+        return value;
+
     return m_attributes.FindValue(name);
 }
 
@@ -2548,7 +2552,7 @@ void wxPGProperty::Empty()
 
 wxPGProperty* wxPGProperty::GetItemAtY( unsigned int y ) const
 {
-    unsigned int nextItem;
+    unsigned int nextItem = 0;
     return GetItemAtY( y, GetGrid()->GetRowHeight(), &nextItem);
 }
 

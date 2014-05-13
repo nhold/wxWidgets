@@ -617,19 +617,6 @@ bool wxSizerItem::IsShown() const
     return false;
 }
 
-#if WXWIN_COMPATIBILITY_2_6
-void wxSizerItem::SetOption( int option )
-{
-    SetProportion( option );
-}
-
-int wxSizerItem::GetOption() const
-{
-    return GetProportion();
-}
-#endif // WXWIN_COMPATIBILITY_2_6
-
-
 //---------------------------------------------------------------------------
 // wxSizer
 //---------------------------------------------------------------------------
@@ -674,13 +661,6 @@ void wxSizer::SetContainingWindow(wxWindow *win)
         }
     }
 }
-
-#if WXWIN_COMPATIBILITY_2_6
-bool wxSizer::Remove( wxWindow *window )
-{
-    return Detach( window );
-}
-#endif // WXWIN_COMPATIBILITY_2_6
 
 bool wxSizer::Remove( wxSizer *sizer )
 {
@@ -2469,7 +2449,31 @@ wxStaticBoxSizer::wxStaticBoxSizer(int orient, wxWindow *win, const wxString& s)
 
 wxStaticBoxSizer::~wxStaticBoxSizer()
 {
-    delete m_staticBox;
+    // As an exception to the general rule that sizers own other sizers that
+    // they contain but not the windows managed by them, this sizer does own
+    // the static box associated with it (which is not very logical but
+    // convenient in practice and, most importantly, can't be changed any more
+    // because of compatibility). However we definitely should not destroy the
+    // children of this static box when we're being destroyed, as this would be
+    // unexpected and break the existing code which worked with the windows
+    // created as siblings of the static box instead of its children in the
+    // previous wxWidgets versions, so ensure they are left alive.
+
+    if ( m_staticBox )
+    {
+        // Notice that we must make a copy of the list as it will be changed by
+        // Reparent() calls in the loop.
+        const wxWindowList children = m_staticBox->GetChildren();
+        wxWindow* const parent = m_staticBox->GetParent();
+        for ( wxWindowList::const_iterator i = children.begin();
+              i != children.end();
+              ++i )
+        {
+            (*i)->Reparent(parent);
+        }
+
+        delete m_staticBox;
+    }
 }
 
 void wxStaticBoxSizer::RecalcSizes()

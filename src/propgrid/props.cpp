@@ -52,6 +52,9 @@
 #include "wx/filename.h"
 
 #include "wx/propgrid/propgrid.h"
+#include "wx/numformatter.h"
+
+#include <float.h>
 
 #define wxPG_CUSTOM_IMAGE_WIDTH     20 // for wxColourProperty etc.
 
@@ -341,7 +344,8 @@ bool wxIntProperty::IntToValue( wxVariant& variant, int value, int WXUNUSED(argF
 // implementations.
 //
 // Note that 'value' is reference on purpose, so we can write
-// back to it when mode is wxPG_PROPERTY_VALIDATION_SATURATE.
+// back to it when mode is wxPG_PROPERTY_VALIDATION_SATURATE or wxPG_PROPERTY_VALIDATION_WRAP.
+// For argument 'value' of type 'double' there is a specialized function (below).
 //
 template<typename T>
 bool NumericValidation( const wxPGProperty* property,
@@ -368,6 +372,115 @@ bool NumericValidation( const wxPGProperty* property,
     {
         variant.Convert(&max);
         maxOk = true;
+    }
+
+    if ( minOk )
+    {
+        if ( value < min )
+        {
+            if ( mode == wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE )
+            {
+                wxString msg;
+                wxString smin = wxString::Format(strFmt, min);
+                wxString smax = wxString::Format(strFmt, max);
+                if ( !maxOk )
+                    msg = wxString::Format(
+                                _("Value must be %s or higher."),
+                                smin.c_str());
+                else
+                    msg = wxString::Format(
+                                _("Value must be between %s and %s."),
+                                smin.c_str(), smax.c_str());
+                pValidationInfo->SetFailureMessage(msg);
+            }
+            else if ( mode == wxPG_PROPERTY_VALIDATION_SATURATE )
+                value = min;
+            else
+                value = max - (min - value);
+            return false;
+        }
+    }
+
+    if ( maxOk )
+    {
+        if ( value > max )
+        {
+            if ( mode == wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE )
+            {
+                wxString msg;
+                wxString smin = wxString::Format(strFmt, min);
+                wxString smax = wxString::Format(strFmt, max);
+                if ( !minOk )
+                    msg = wxString::Format(
+                                _("Value must be %s or less."),
+                                smax.c_str());
+                else
+                    msg = wxString::Format(
+                                _("Value must be between %s and %s."),
+                                smin.c_str(), smax.c_str());
+                pValidationInfo->SetFailureMessage(msg);
+            }
+            else if ( mode == wxPG_PROPERTY_VALIDATION_SATURATE )
+                value = max;
+            else
+                value = min + (value - max);
+            return false;
+        }
+    }
+    return true;
+}
+
+// Template specialization for argument 'value' of type 'double'.
+// It takes into account required precision of the numbers
+// to avoid rounding and conversion errors.
+template<>
+bool NumericValidation( const wxPGProperty* property,
+                        double& value,
+                        wxPGValidationInfo* pValidationInfo,
+                        int mode,
+                        const wxString& strFmt )
+{
+    double min = DBL_MIN;
+    double max = DBL_MAX;
+    wxVariant variant;
+    bool minOk = false;
+    bool maxOk = false;
+
+    variant = property->GetAttribute(wxPGGlobalVars->m_strMin);
+    if ( !variant.IsNull() )
+    {
+        variant.Convert(&min);
+        minOk = true;
+    }
+
+    variant = property->GetAttribute(wxPGGlobalVars->m_strMax);
+    if ( !variant.IsNull() )
+    {
+        variant.Convert(&max);
+        maxOk = true;
+    }
+
+    if ( minOk || maxOk )
+    {
+        // Get required precision.
+        int precision = -1;
+        variant = property->GetAttribute(wxPG_FLOAT_PRECISION);
+        if ( !variant.IsNull() )
+        {
+            precision = variant.GetInteger();
+        }
+
+        // Round current value to the required precision.
+        wxString strVal = wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+        strVal.ToDouble(&value);
+
+        // Round minimal value to the required precision.
+        strVal = wxNumberFormatter::ToString(min, precision, wxNumberFormatter::Style_None);
+        strVal.ToDouble(&min);
+
+        // Round maximal value to the required precision.
+        strVal = wxNumberFormatter::ToString(max, precision, wxNumberFormatter::Style_None);
+        strVal.ToDouble(&max);
     }
 
     if ( minOk )
@@ -469,8 +582,18 @@ wxValidator* wxIntProperty::DoGetValidator() const
 // wxUIntProperty
 // -----------------------------------------------------------------------
 
-
-#define wxPG_UINT_TEMPLATE_MAX 8
+enum
+{
+    wxPG_UINT_HEX_LOWER,
+    wxPG_UINT_HEX_LOWER_PREFIX,
+    wxPG_UINT_HEX_LOWER_DOLLAR,
+    wxPG_UINT_HEX_UPPER,
+    wxPG_UINT_HEX_UPPER_PREFIX,
+    wxPG_UINT_HEX_UPPER_DOLLAR,
+    wxPG_UINT_DEC,
+    wxPG_UINT_OCT,
+    wxPG_UINT_TEMPLATE_MAX
+};
 
 static const wxChar* const gs_uintTemplates32[wxPG_UINT_TEMPLATE_MAX] = {
     wxT("%lx"),wxT("0x%lx"),wxT("$%lx"),
@@ -494,7 +617,7 @@ WX_PG_IMPLEMENT_PROPERTY_CLASS(wxUIntProperty,wxPGProperty,
 
 void wxUIntProperty::Init()
 {
-    m_base = 6; // This is magic number for dec base (must be same as in setattribute)
+    m_base = wxPG_UINT_DEC;
     m_realBase = 10;
     m_prefix = wxPG_PREFIX_NONE;
 }
@@ -520,7 +643,7 @@ wxString wxUIntProperty::ValueToString( wxVariant& value,
 {
     size_t index = m_base + m_prefix;
     if ( index >= wxPG_UINT_TEMPLATE_MAX )
-        index = wxPG_BASE_DEC;
+        index = wxPG_UINT_DEC;
 
     if ( value.GetType() == wxPG_VARIANT_TYPE_LONG )
     {
@@ -632,13 +755,13 @@ bool wxUIntProperty::DoSetAttribute( const wxString& name, wxVariant& value )
 
         //
         // Translate logical base to a template array index
-        m_base = 7; // oct
+        m_base = wxPG_UINT_OCT;
         if ( val == wxPG_BASE_HEX )
-            m_base = 3;
+            m_base = wxPG_UINT_HEX_UPPER;
         else if ( val == wxPG_BASE_DEC )
-            m_base = 6;
+            m_base = wxPG_UINT_DEC;
         else if ( val == wxPG_BASE_HEXL )
-            m_base = 0;
+            m_base = wxPG_UINT_HEX_LOWER_DOLLAR;
         return true;
     }
     else if ( name == wxPG_UINT_PREFIX )
@@ -667,6 +790,7 @@ wxFloatProperty::wxFloatProperty( const wxString& label,
 
 wxFloatProperty::~wxFloatProperty() { }
 
+#if WXWIN_COMPATIBILITY_3_0
 // This helper method provides standard way for floating point-using
 // properties to convert values to string.
 const wxString& wxPropertyGrid::DoubleToString(wxString& target,
@@ -738,6 +862,7 @@ const wxString& wxPropertyGrid::DoubleToString(wxString& target,
 
     return target;
 }
+#endif // WXWIN_COMPATIBILITY_3_0
 
 wxString wxFloatProperty::ValueToString( wxVariant& value,
                                          int argFlags ) const
@@ -745,11 +870,9 @@ wxString wxFloatProperty::ValueToString( wxVariant& value,
     wxString text;
     if ( !value.IsNull() )
     {
-        wxPropertyGrid::DoubleToString(text,
-                                       value,
-                                       m_precision,
-                                       !(argFlags & wxPG_FULL_VALUE),
-                                       NULL);
+        text = wxNumberFormatter::ToString(value.GetDouble(), m_precision,
+                                           argFlags & wxPG_FULL_VALUE ? wxNumberFormatter::Style_None
+                                                                      : wxNumberFormatter::Style_NoTrailingZeroes);
     }
     return text;
 }
@@ -809,6 +932,16 @@ bool wxFloatProperty::DoSetAttribute( const wxString& name, wxVariant& value )
         return true;
     }
     return false;
+}
+
+wxVariant wxFloatProperty::DoGetAttribute( const wxString& name ) const
+{
+    wxVariant value;
+    if ( name == wxPG_FLOAT_PRECISION )
+    {
+        value = (long)m_precision;
+    }
+    return value;
 }
 
 wxValidator*

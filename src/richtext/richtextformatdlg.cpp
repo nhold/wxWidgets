@@ -79,6 +79,8 @@
 #endif
 
 bool wxRichTextFormattingDialog::sm_showToolTips = false;
+bool wxRichTextFormattingDialog::sm_restoreLastPage = true;
+int wxRichTextFormattingDialog::sm_lastPage = -1;
 
 IMPLEMENT_CLASS(wxRichTextDialogPage, wxPanel)
 
@@ -100,10 +102,15 @@ void wxRichTextFormattingDialog::Init()
     m_styleSheet = NULL;
     m_object = NULL;
     m_options = 0;
+    m_ignoreUpdates = false;
 }
 
 wxRichTextFormattingDialog::~wxRichTextFormattingDialog()
 {
+    int sel = GetBookCtrl()->GetSelection();
+    if (sel != -1 && sel < (int) m_pageIds.GetCount())
+        sm_lastPage = m_pageIds[sel];
+
     delete m_styleDefinition;
 }
 
@@ -128,6 +135,16 @@ bool wxRichTextFormattingDialog::Create(long flags, wxWindow* parent, const wxSt
 
     LayoutDialog();
 
+    if (sm_restoreLastPage && sm_lastPage != -1)
+    {
+        int idx = m_pageIds.Index(sm_lastPage);
+        if (idx != -1)
+        {
+            m_ignoreUpdates = true;
+            GetBookCtrl()->SetSelection(idx);
+            m_ignoreUpdates = false;
+        }
+    }
     return true;
 }
 
@@ -212,6 +229,9 @@ bool wxRichTextFormattingDialog::UpdateDisplay()
 /// up to date
 void wxRichTextFormattingDialog::OnTabChanged(wxBookCtrlEvent& event)
 {
+    if (m_ignoreUpdates)
+        return;
+
     if (GetBookCtrl() != event.GetEventObject())
     {
         event.Skip();
@@ -691,7 +711,7 @@ bool wxRichTextFormattingDialog::ConvertFromString(const wxString& str, int& ret
         float value = 0.0;
         wxSscanf(str.c_str(), wxT("%f"), &value);
         // Convert from cm
-        ret = (int) ((value * 100.0) + 0.5);
+        ret = (int) ((value * 100.0) /* + 0.5 */);
         return true;
     }
     else if (unit == wxTEXT_ATTR_UNITS_PERCENTAGE)
@@ -703,7 +723,7 @@ bool wxRichTextFormattingDialog::ConvertFromString(const wxString& str, int& ret
     {
         float value = 0.0;
         wxSscanf(str.c_str(), wxT("%f"), &value);
-        ret = (int) ((value * 100.0) + 0.5);
+        ret = (int) ((value * 100.0) /* + 0.5 */);
     }
     else if (unit == wxTEXT_ATTR_UNITS_POINTS)
     {

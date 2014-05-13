@@ -769,9 +769,9 @@ wxImage wxImage::ResampleBilinear(int width, int height) const
 
             // result lines
 
-            dst_data[0] = static_cast<unsigned char>(r1 * dy1 + r2 * dy);
-            dst_data[1] = static_cast<unsigned char>(g1 * dy1 + g2 * dy);
-            dst_data[2] = static_cast<unsigned char>(b1 * dy1 + b2 * dy);
+            dst_data[0] = static_cast<unsigned char>(r1 * dy1 + r2 * dy + .5);
+            dst_data[1] = static_cast<unsigned char>(g1 * dy1 + g2 * dy + .5);
+            dst_data[2] = static_cast<unsigned char>(b1 * dy1 + b2 * dy + .5);
             dst_data += 3;
 
             if ( src_alpha )
@@ -3214,8 +3214,8 @@ wxImageHistogram::FindFirstUnusedColour(unsigned char *r,
                                         unsigned char *g,
                                         unsigned char *b,
                                         unsigned char r2,
-                                        unsigned char b2,
-                                        unsigned char g2) const
+                                        unsigned char g2,
+                                        unsigned char b2) const
 {
     unsigned long key = MakeKey(r2, g2, b2);
 
@@ -3257,8 +3257,8 @@ wxImage::FindFirstUnusedColour(unsigned char *r,
                                unsigned char *g,
                                unsigned char *b,
                                unsigned char r2,
-                               unsigned char b2,
-                               unsigned char g2) const
+                               unsigned char g2,
+                               unsigned char b2) const
 {
     wxImageHistogram histogram;
 

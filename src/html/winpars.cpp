@@ -265,15 +265,6 @@ void wxHtmlWinParser::DoneParser()
     wxHtmlParser::DoneParser();
 }
 
-#if WXWIN_COMPATIBILITY_2_6
-wxHtmlWindow *wxHtmlWinParser::GetWindow()
-{
-    if (!m_windowInterface)
-        return NULL;
-    return wxDynamicCast(m_windowInterface->GetHTMLWindow(), wxHtmlWindow);
-}
-#endif
-
 wxObject* wxHtmlWinParser::GetProduct()
 {
     wxHtmlContainerCell *top;
@@ -620,9 +611,9 @@ wxFont* wxHtmlWinParser::CreateCurrentFont()
         *faceptr = face;
         *fontptr = new wxFont(
                        (int) (m_FontsSizes[fs] * m_FontScale),
-                       ff ? wxMODERN : wxSWISS,
-                       fi ? wxITALIC : wxNORMAL,
-                       fb ? wxBOLD : wxNORMAL,
+                       ff ? wxFONTFAMILY_MODERN : wxFONTFAMILY_SWISS,
+                       fi ? wxFONTSTYLE_ITALIC : wxFONTSTYLE_NORMAL,
+                       fb ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL,
                        fu ? true : false, face
 #if wxUSE_UNICODE
                        );

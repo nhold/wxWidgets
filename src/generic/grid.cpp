@@ -1329,18 +1329,14 @@ void wxGridStringTable::Clear()
 
 bool wxGridStringTable::InsertRows( size_t pos, size_t numRows )
 {
-    size_t curNumRows = m_data.GetCount();
-    size_t curNumCols = ( curNumRows > 0 ? m_data[0].GetCount() :
-                          ( GetView() ? GetView()->GetNumberCols() : 0 ) );
-
-    if ( pos >= curNumRows )
+    if ( pos >= m_data.size() )
     {
         return AppendRows( numRows );
     }
 
     wxArrayString sa;
-    sa.Alloc( curNumCols );
-    sa.Add( wxEmptyString, curNumCols );
+    sa.Alloc( m_numCols );
+    sa.Add( wxEmptyString, m_numCols );
     m_data.Insert( sa, pos, numRows );
 
     if ( GetView() )
@@ -1358,16 +1354,11 @@ bool wxGridStringTable::InsertRows( size_t pos, size_t numRows )
 
 bool wxGridStringTable::AppendRows( size_t numRows )
 {
-    size_t curNumRows = m_data.GetCount();
-    size_t curNumCols = ( curNumRows > 0
-                         ? m_data[0].GetCount()
-                         : ( GetView() ? GetView()->GetNumberCols() : 0 ) );
-
     wxArrayString sa;
-    if ( curNumCols > 0 )
+    if ( m_numCols > 0 )
     {
-        sa.Alloc( curNumCols );
-        sa.Add( wxEmptyString, curNumCols );
+        sa.Alloc( m_numCols );
+        sa.Add( wxEmptyString, m_numCols );
     }
 
     m_data.Add( sa, numRows );
@@ -1430,14 +1421,7 @@ bool wxGridStringTable::DeleteRows( size_t pos, size_t numRows )
 
 bool wxGridStringTable::InsertCols( size_t pos, size_t numCols )
 {
-    size_t row, col;
-
-    size_t curNumRows = m_data.GetCount();
-    size_t curNumCols = ( curNumRows > 0
-                         ? m_data[0].GetCount()
-                         : ( GetView() ? GetView()->GetNumberCols() : 0 ) );
-
-    if ( pos >= curNumCols )
+    if ( pos >= static_cast<size_t>(m_numCols) )
     {
         return AppendCols( numCols );
     }
@@ -1446,14 +1430,13 @@ bool wxGridStringTable::InsertCols( size_t pos, size_t numCols )
     {
         m_colLabels.Insert( wxEmptyString, pos, numCols );
 
-        size_t i;
-        for ( i = pos; i < pos + numCols; i++ )
+        for ( size_t i = pos; i < pos + numCols; i++ )
             m_colLabels[i] = wxGridTableBase::GetColLabelValue( i );
     }
 
-    for ( row = 0; row < curNumRows; row++ )
+    for ( size_t row = 0; row < m_data.size(); row++ )
     {
-        for ( col = pos; col < pos + numCols; col++ )
+        for ( size_t col = pos; col < pos + numCols; col++ )
         {
             m_data[row].Insert( wxEmptyString, col );
         }
@@ -1476,11 +1459,7 @@ bool wxGridStringTable::InsertCols( size_t pos, size_t numCols )
 
 bool wxGridStringTable::AppendCols( size_t numCols )
 {
-    size_t row;
-
-    size_t curNumRows = m_data.GetCount();
-
-    for ( row = 0; row < curNumRows; row++ )
+    for ( size_t row = 0; row < m_data.size(); row++ )
     {
         m_data[row].Add( wxEmptyString, numCols );
     }
@@ -1504,8 +1483,7 @@ bool wxGridStringTable::DeleteCols( size_t pos, size_t numCols )
     size_t row;
 
     size_t curNumRows = m_data.GetCount();
-    size_t curNumCols = ( curNumRows > 0 ? m_data[0].GetCount() :
-                          ( GetView() ? GetView()->GetNumberCols() : 0 ) );
+    size_t curNumCols = m_numCols;
 
     if ( pos >= curNumCols )
     {
@@ -2449,7 +2427,7 @@ void wxGrid::Init()
     m_attrCache.attr = NULL;
 
     m_labelFont = GetFont();
-    m_labelFont.SetWeight( wxBOLD );
+    m_labelFont.SetWeight( wxFONTWEIGHT_BOLD );
 
     m_rowLabelHorizAlign = wxALIGN_CENTRE;
     m_rowLabelVertAlign  = wxALIGN_CENTRE;
@@ -7276,9 +7254,9 @@ void wxGrid::SetColLabelAlignment( int horiz, int vert )
 // Note: under MSW, the default column label font must be changed because it
 //       does not support vertical printing
 //
-// Example: wxFont font(9, wxSWISS, wxNORMAL, wxBOLD);
-//                      pGrid->SetLabelFont(font);
-//                      pGrid->SetColLabelTextOrientation(wxVERTICAL);
+// Example:
+//      pGrid->SetLabelFont(wxFontInfo(9).Family(wxFONTFAMILY_SWISS));
+//      pGrid->SetColLabelTextOrientation(wxVERTICAL);
 //
 void wxGrid::SetColLabelTextOrientation( int textOrientation )
 {
@@ -8169,8 +8147,9 @@ void wxGrid::SetRowSize( int row, int height )
         dc.SetFont(GetLabelFont());
         StringToLines(GetRowLabelValue( row ), lines);
         GetTextBoxSize( dc, lines, &w, &h );
-        //check that it is not less than the minimal height
-        height = wxMax(h, GetRowMinimalAcceptableHeight());
+
+        // As with the columns, don't make the row smaller than minimal height.
+        height = wxMax(h, GetRowMinimalHeight(row));
     }
 
     DoSetRowSize(row, height);
@@ -8250,8 +8229,14 @@ void wxGrid::SetColSize( int col, int width )
         else
             GetTextBoxSize( dc, lines, &h, &w );
         width = w + 6;
-        //check that it is not less than the minimal width
-        width = wxMax(width, GetColMinimalAcceptableWidth());
+
+        // Check that it is not less than the minimal width and do use the
+        // possibly greater than minimal-acceptable-width minimal-width itself
+        // here as we shouldn't become too small when auto-sizing, otherwise
+        // the column could be resized to be too small by double clicking its
+        // divider line (which ends up in a call to this function) even though
+        // it couldn't be resized to this size by dragging it.
+        width = wxMax(width, GetColMinimalWidth(col));
     }
 
     DoSetColSize(col, width);

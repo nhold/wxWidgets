@@ -43,23 +43,12 @@ enum
     wxFD_OPEN              = 0x0001,
     wxFD_SAVE              = 0x0002,
     wxFD_OVERWRITE_PROMPT  = 0x0004,
+    wxFD_NO_FOLLOW         = 0x0008,
     wxFD_FILE_MUST_EXIST   = 0x0010,
     wxFD_MULTIPLE          = 0x0020,
     wxFD_CHANGE_DIR        = 0x0080,
     wxFD_PREVIEW           = 0x0100
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-enum
-{
-    wxOPEN              = wxFD_OPEN,
-    wxSAVE              = wxFD_SAVE,
-    wxOVERWRITE_PROMPT  = wxFD_OVERWRITE_PROMPT,
-    wxFILE_MUST_EXIST   = wxFD_FILE_MUST_EXIST,
-    wxMULTIPLE          = wxFD_MULTIPLE,
-    wxCHANGE_DIR        = wxFD_CHANGE_DIR
-};
-#endif
 
 #define wxFD_DEFAULT_STYLE      wxFD_OPEN
 
@@ -134,14 +123,6 @@ public:
     wxWindow *GetExtraControl() const { return m_extraControl; }
 
     // Utility functions
-
-#if WXWIN_COMPATIBILITY_2_6
-
-    wxDEPRECATED( long GetStyle() const );
-    wxDEPRECATED( void SetStyle(long style) );
-
-#endif  // WXWIN_COMPATIBILITY_2_6
-
 
     // Append first extension to filePath from a ';' separated extensionList
     // if filePath = "path/foo.bar" just return it as is

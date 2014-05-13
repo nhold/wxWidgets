@@ -74,6 +74,11 @@ END_EVENT_TABLE()
 // -- wxAuiNotebook class implementation --
 bool wxAuiNotebook::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 {
+    //Necessary for backwards compatibility with old wxAuiNotebook control - if we don't strip these flags then we end up with an ugly border around notebooks (where there was none before) in old code.
+    style &= ~wxBORDER_MASK;
+    style |= wxBORDER_NONE;
+    style |= wxWANTS_CHARS;
+    
     if(!wxControl::Create(parent, id, pos, size, style))
         return false;
     
@@ -86,17 +91,12 @@ bool wxAuiNotebook::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 void wxAuiNotebook::Init(long style)
 {
     SetName(wxT("wxAuiNotebook"));
-    m_tabCtrlHeight = 100;
-    
-    m_normalFont = *wxNORMAL_FONT;
-    m_selectedFont = *wxNORMAL_FONT;
-    m_selectedFont.SetWeight(wxBOLD);
-    
     SetArtProvider(new wxAuiDefaultTabArt);
     
     m_mgr.SetManagedWindow(this);
     m_mgr.SetDockSizeConstraint(1.0, 1.0); // no dock size constraint
     SetWindowStyleFlag(style);
+        
 }
 
 wxAuiNotebook::~wxAuiNotebook()
@@ -124,12 +124,12 @@ void wxAuiNotebook::SetArtProvider(wxAuiTabArt* art)
 // any previous call and returns to the default behaviour
 void wxAuiNotebook::SetTabCtrlHeight(int height)
 {
-    m_requestedTabCtrlHeight = height;
+    GetArtProvider()->SetTabCtrlHeight(height);
 }
 
-void wxAuiNotebook::SetTabCtrlWidth(int w)
+void wxAuiNotebook::SetTabCtrlWidth(int width)
 {
-    m_tabCtrlWidth = w;
+    GetArtProvider()->SetTabCtrlWidth(width);
 }
 
 
@@ -142,7 +142,7 @@ void wxAuiNotebook::SetTabCtrlWidth(int w)
 
 void wxAuiNotebook::SetUniformBitmapSize(const wxSize& size)
 {
-    m_requestedBmpSize = size;
+    GetArtProvider()->SetUniformBitmapSize(size);
 }
 
 // UpdateTabCtrlSize() does the actual tab resizing. It's meant
@@ -154,15 +154,14 @@ bool wxAuiNotebook::UpdateTabCtrlSize()
     
     // if the tab control height needs to change, update
     // all of our tab controls with the new height
-    if (m_tabCtrlHeight == size.y && m_tabCtrlWidth == size.x)
+    if (m_mgr.GetTabArtProvider()->GetRequestedSize() == size)
         return false;
-    
-    //fixme: (MJM) This has been broken in the merge and needs to be re-implemented
-    
+
+
+    // Are we supposed to update from the 'size' or what?
+
     return true;
 }
-
-
 
 wxSize wxAuiNotebook::CalculateTabCtrlSize()
 {
@@ -174,12 +173,13 @@ wxSize wxAuiNotebook::CalculateTabCtrlSize()
         allPanes.Add(&m_mgr.GetPane(i));
     }
     
-    wxSize tab_size = m_mgr.GetTabArtProvider()->GetBestTabSize((wxWindow*)this, allPanes, m_requestedBmpSize);
+    wxSize tab_size = m_mgr.GetTabArtProvider()->GetBestTabSize((wxWindow*)this, allPanes,
+        m_mgr.GetTabArtProvider()->GetRequiredBitmapSize());
     // if a fixed tab ctrl height is specified,
     // just use that instead of calculating a
     // tab height
-    if (m_requestedTabCtrlHeight != -1)
-        tab_size.y = m_requestedTabCtrlHeight;
+    if (m_mgr.GetTabArtProvider()->GetRequestedSize().y != -1)
+        tab_size.y = m_mgr.GetTabArtProvider()->GetRequestedSize().y;
     
     return tab_size;
 }
@@ -192,22 +192,21 @@ wxAuiTabArt* wxAuiNotebook::GetArtProvider() const
 
 void wxAuiNotebook::SetWindowStyleFlag(long style)
 {
+    //Necessary for backwards compatibility with old wxAuiNotebook control - if we don't strip these flags then we end up with an ugly border around notebooks (where there was none before) in old code.
+    style &= ~wxBORDER_MASK;
+    style |= wxBORDER_NONE;
+    style |= wxWANTS_CHARS;
+    
     wxControl::SetWindowStyleFlag(style);
     
-    m_mgr.SetFlags(style);
-    
-    unsigned int i;
-    for(i=0;i<m_mgr.GetAllPanes().size();i++)
-    {
-        if(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT))
-        {
-            m_mgr.GetAllPanes()[i].SetDockable(true);
-        }
-        else
-        {
-            m_mgr.GetAllPanes()[i].SetDockable(false);
-        }
-    }
+    // copy notebook dedicated style flags to the onboard manager flags
+    m_mgr.SetFlags( style & 0xFFFF );
+   
+    // split is done by allowing the pane normal docking
+    // if the flag changes, we have to redo the layout
+    bool allow_docking = m_mgr.HasFlag(wxAUI_MGR_NB_TAB_SPLIT);
+    for(size_t i=0; i<m_mgr.GetAllPanes().size() ;i++)
+        m_mgr.GetAllPanes()[i].Dockable(allow_docking);
     
     m_mgr.Update();
 }
@@ -231,10 +230,10 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().SetDirectionCentre().SetLayer(1).SetPosition(1).SetCaption(caption).SetFloatable(false).SetMovable(true).SetPage(pageIndex).SetBitmap(bitmap).SetDockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)));
+    m_mgr.AddPane(page, wxAuiPaneInfo().Centre().Layer(0).Position(0).Caption(caption).Floatable(false).Movable().Page(pageIndex).Icon(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).CloseButton(false).AlwaysDockInNotebook());
     
-    
-    if(select)
+    // Change the selection if explicitly requested, or if the page is the first one; for the later case, it ensures that there is a current page in the notebook   
+    if (select || GetPageCount() == 1)
         SetSelection(pageIndex);
     
     m_mgr.Update();
@@ -309,7 +308,7 @@ bool wxAuiNotebook::SetPageText(size_t pageIndex, const wxString& text)
         return false;
     }
     
-    m_mgr.GetPane(pageIndex).SetCaption(text);
+    m_mgr.GetPane(pageIndex).Caption(text);
     return true;
 }
 
@@ -334,7 +333,7 @@ bool wxAuiNotebook::SetPageToolTip(size_t page_idx, const wxString& text)
     }
     
     // update tooltip info for pane.
-    m_mgr.GetPane(page_idx).SetToolTip(text);
+    m_mgr.GetPane(page_idx).ToolTip(text);
     
     // NB: we don't update the tooltip if it is already being displayed, it
     //     typically never happens, no need to code that
@@ -361,7 +360,7 @@ bool wxAuiNotebook::SetPageBitmap(size_t pageIndex, const wxBitmap& bitmap)
         return false;
     }
     
-    m_mgr.GetPane(pageIndex).SetBitmap(bitmap);
+    m_mgr.GetPane(pageIndex).Icon(bitmap);
     return true;
 }
 
@@ -374,7 +373,7 @@ wxBitmap wxAuiNotebook::GetPageBitmap(size_t pageIndex) const
         return wxNullBitmap;
     }
     
-    return m_mgr.GetPane(pageIndex).GetBitmap();
+    return m_mgr.GetPane(pageIndex).GetIcon();
 }
 
 // GetSelection() returns the index of the currently active page
@@ -383,13 +382,10 @@ int wxAuiNotebook::GetSelection() const
     return m_mgr.GetActivePane(FindFocus());
 }
 
-// SetSelection() sets the currently active page
+// SetSelection() sets the currently active page and emit changed event
 int wxAuiNotebook::SetSelection(size_t new_page)
 {
-    wxWindow* wnd = m_mgr.GetPane(new_page).GetWindow();
-    int selection = m_mgr.SetActivePane(wnd);
-    m_mgr.Update();
-    return selection;
+    return DoModifySelection(new_page, true);
 }
 
 
@@ -446,7 +442,7 @@ wxAuiTabContainer* wxAuiNotebook::GetActiveTabCtrl()
     return NULL;
 }
 
-void wxAuiNotebook::OnTabCancelDrag(wxAuiNotebookEvent& commandEvent)
+void wxAuiNotebook::OnTabCancelDrag(wxAuiNotebookEvent& /* evt */)
 {
     //fixme: (MJM) merge - this has been broken in the merge and needs to be re-implemented
 }
@@ -489,7 +485,7 @@ void wxAuiNotebook::Split(size_t pageIndex, int direction)
             default: wxASSERT_MSG(0, wxT("Invalid direction passed to wxAuiNotebook::Split")); return;
         }
         
-        panes[pageIndex].SetDirection(direction);
+        panes[pageIndex].Direction(direction);
         
         wxAuiDoInsertDockLayer(panes,direction,panes[pageIndex].GetLayer());
         
@@ -504,14 +500,12 @@ void wxAuiNotebook::Split(size_t pageIndex, int direction)
 // Sets the normal font
 void wxAuiNotebook::SetNormalFont(const wxFont& font)
 {
-    m_normalFont = font;
     GetArtProvider()->SetNormalFont(font);
 }
 
 // Sets the selected tab font
 void wxAuiNotebook::SetSelectedFont(const wxFont& font)
 {
-    m_selectedFont = font;
     GetArtProvider()->SetSelectedFont(font);
 }
 
@@ -528,7 +522,7 @@ bool wxAuiNotebook::SetFont(const wxFont& font)
     
     wxFont normalFont(font);
     wxFont selectedFont(normalFont);
-    selectedFont.SetWeight(wxBOLD);
+    selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     
     SetNormalFont(normalFont);
     SetSelectedFont(selectedFont);
@@ -540,13 +534,13 @@ bool wxAuiNotebook::SetFont(const wxFont& font)
 // Gets the tab control height
 int wxAuiNotebook::GetTabCtrlHeight() const
 {
-    return m_tabCtrlHeight;
+    return GetArtProvider()->m_tabCtrlHeight;
 }
 
 // Gets the tab control width
 int wxAuiNotebook::GetTabCtrlWidth() const
 {
-    return m_tabCtrlWidth;
+    return GetArtProvider()->m_tabCtrlWidth;
 }
 
 // Gets the height of the notebook for a given page height
@@ -701,9 +695,8 @@ int wxAuiNotebook::DoModifySelection(size_t n, bool events)
     if ((int)n == GetSelection())
     {
         if(!GetCurrentPage()->HasFocus())
-        {
             GetCurrentPage()->SetFocus();
-        }
+       
         return n;
     }
     
@@ -722,7 +715,9 @@ int wxAuiNotebook::DoModifySelection(size_t n, bool events)
     
     if (!vetoed)
     {
-        SetSelection(n);
+        wxWindow* wnd = m_mgr.GetPane(n).GetWindow();
+        m_mgr.SetActivePane(wnd);
+        m_mgr.Update();
         
         // program allows the page change
         if(events)

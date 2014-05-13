@@ -62,6 +62,7 @@
 #endif
 
 #include "wx/odcombo.h"
+#include "wx/numformatter.h"
 
 // -----------------------------------------------------------------------
 
@@ -339,13 +340,13 @@ bool wxPGSpinCtrlEditor::OnEvent( wxPropertyGrid* propgrid, wxPGProperty* proper
 
         int mode = wxPG_PROPERTY_VALIDATION_SATURATE;
 
-        if ( property->GetAttributeAsLong(wxT("Wrap"), 0) )
+        if ( property->GetAttributeAsLong(wxPG_ATTR_SPINCTRL_WRAP, 0) )
             mode = wxPG_PROPERTY_VALIDATION_WRAP;
 
         if ( property->GetValueType() == wxT("double") )
         {
             double v_d;
-            double step = property->GetAttributeAsDouble(wxT("Step"), 1.0);
+            double step = property->GetAttributeAsDouble(wxPG_ATTR_SPINCTRL_STEP, 1.0);
 
             // Try double
             if ( s.ToDouble(&v_d) )
@@ -361,7 +362,14 @@ bool wxPGSpinCtrlEditor::OnEvent( wxPropertyGrid* propgrid, wxPGProperty* proper
                 // Min/Max check
                 wxFloatProperty::DoValidation(property, v_d, NULL, mode);
 
-                wxPropertyGrid::DoubleToString(s, v_d, 6, true, NULL);
+                int precision = -1;
+                wxVariant v = property->GetAttribute(wxPG_FLOAT_PRECISION);
+                if ( !v.IsNull() )
+                {
+                    precision = v.GetInteger();
+                }
+
+                s = wxNumberFormatter::ToString(v_d, precision, wxNumberFormatter::Style_NoTrailingZeroes);
             }
             else
             {
@@ -371,7 +379,7 @@ bool wxPGSpinCtrlEditor::OnEvent( wxPropertyGrid* propgrid, wxPGProperty* proper
         else
         {
             wxLongLong_t v_ll;
-            wxLongLong_t step = property->GetAttributeAsLong(wxT("Step"), 1);
+            wxLongLong_t step = property->GetAttributeAsLong(wxPG_ATTR_SPINCTRL_STEP, 1);
 
             // Try (long) long
             if ( s.ToLongLong(&v_ll, 10) )
@@ -582,9 +590,9 @@ static const wxChar* const gs_fp_es_style_labels[] = {
 };
 
 static const long gs_fp_es_style_values[] = {
-    wxNORMAL,
-    wxSLANT,
-    wxITALIC
+    wxFONTSTYLE_NORMAL,
+    wxFONTSTYLE_SLANT,
+    wxFONTSTYLE_ITALIC
 };
 
 static const wxChar* const gs_fp_es_weight_labels[] = {
@@ -595,9 +603,9 @@ static const wxChar* const gs_fp_es_weight_labels[] = {
 };
 
 static const long gs_fp_es_weight_values[] = {
-    wxNORMAL,
-    wxLIGHT,
-    wxBOLD
+    wxFONTWEIGHT_NORMAL,
+    wxFONTWEIGHT_LIGHT,
+    wxFONTWEIGHT_BOLD
 };
 
 // Class body is in advprops.h
@@ -751,7 +759,7 @@ wxVariant wxFontProperty::ChildChanged( wxVariant& thisValue,
              st != wxFONTSTYLE_SLANT &&
              st != wxFONTSTYLE_ITALIC )
              st = wxFONTWEIGHT_NORMAL;
-        font.SetStyle( st );
+        font.SetStyle( static_cast<wxFontStyle>(st) );
     }
     else if ( ind == 3 )
     {
@@ -760,7 +768,7 @@ wxVariant wxFontProperty::ChildChanged( wxVariant& thisValue,
              wt != wxFONTWEIGHT_LIGHT &&
              wt != wxFONTWEIGHT_BOLD )
              wt = wxFONTWEIGHT_NORMAL;
-        font.SetWeight( wt );
+        font.SetWeight( static_cast<wxFontWeight>(wt) );
     }
     else if ( ind == 4 )
     {
@@ -769,10 +777,10 @@ wxVariant wxFontProperty::ChildChanged( wxVariant& thisValue,
     else if ( ind == 5 )
     {
         int fam = childValue.GetLong();
-        if ( fam < wxDEFAULT ||
-             fam > wxTELETYPE )
-             fam = wxDEFAULT;
-        font.SetFamily( fam );
+        if ( fam < wxFONTFAMILY_DEFAULT ||
+             fam > wxFONTFAMILY_TELETYPE )
+             fam = wxFONTFAMILY_DEFAULT;
+        font.SetFamily( static_cast<wxFontFamily>(fam) );
     }
 
     wxVariant newVariant;
@@ -805,9 +813,7 @@ void wxFontProperty::OnCustomPaint(wxDC& dc,
         dc.DrawRectangle( rect );
 
         wxFont oldFont = dc.GetFont();
-        wxFont drawFont(oldFont.GetPointSize(),
-                        wxDEFAULT,wxNORMAL,wxBOLD,false,drawFace);
-        dc.SetFont(drawFont);
+        dc.SetFont(wxFontInfo(oldFont.GetPointSize().Bold().FaceName(drawFace));
 
         dc.SetTextForeground( wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT) );
         dc.DrawText( wxT("Aa"), rect.x+2, rect.y+1 );

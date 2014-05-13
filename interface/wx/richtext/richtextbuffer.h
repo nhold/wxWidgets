@@ -2111,7 +2111,21 @@ public:
 
     bool GetVirtualAttributesEnabled() const;
 
+    /**
+        Enable or disable images
+    */
+
+    void EnableImages(bool b) { m_enableImages = b; }
+
+    /**
+        Returns @true if images are enabled.
+    */
+
+    bool GetImagesEnabled() const { return m_enableImages; }
+
     wxRichTextBuffer*   m_buffer;
+    bool                m_enableVirtualAttributes;
+    bool                m_enableImages;
 };
 
 /**
@@ -2587,16 +2601,6 @@ public:
         Returns @true if the object will be shown, @false otherwise.
     */
     bool IsShown() const;
-
-    /**
-        Returns the object's unique identifier, if any.
-    */
-    const wxString& GetId() const;
-
-    /**
-        Sets the object's unique identifier.
-    */
-    void SetId(const wxString& id);
 
 // Operations
 
@@ -4120,6 +4124,8 @@ public:
     virtual ~wxRichTextParagraph();
     wxRichTextParagraph(const wxRichTextParagraph& obj): wxRichTextCompositeObject() { Copy(obj); }
 
+    void Init();
+
 // Overridables
 
     virtual bool Draw(wxDC& dc, wxRichTextDrawingContext& context, const wxRichTextRange& range, const wxRichTextSelection& selection, const wxRect& rect, int descent, int style);
@@ -4253,11 +4259,24 @@ public:
     */
     void LayoutFloat(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style, wxRichTextFloatCollector* floatCollector);
 
+    /**
+        Whether the paragraph is impacted by floating objects from above.
+    */
+    int GetImpactedByFloatingObjects() const { return m_impactedByFloatingObjects; }
+
+    /**
+        Sets whether the paragraph is impacted by floating objects from above.
+    */
+    void SetImpactedByFloatingObjects(int i) { m_impactedByFloatingObjects = i; }
+
 protected:
 
     // The lines that make up the wrapped paragraph
-    wxRichTextLineList m_cachedLines;
+    wxRichTextLineList  m_cachedLines;
 
+    // Whether the paragraph is impacted by floating objects from above
+    int                 m_impactedByFloatingObjects;
+    
     // Default tabstops
     static wxArrayInt  sm_defaultTabs;
 
@@ -4652,7 +4671,7 @@ public:
     /**
         Creates a cached image at the required size.
     */
-    virtual bool LoadImageCache(wxDC& dc, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+    virtual bool LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
 
 protected:
     wxRichTextImageBlock    m_imageBlock;
@@ -5967,7 +5986,9 @@ public:
         Updates the control appearance, optimizing if possible given information from the call to Layout.
     */
     void UpdateAppearance(long caretPosition, bool sendUpdateEvent = false,
-                            wxArrayInt* optimizationLineCharPositions = NULL, wxArrayInt* optimizationLineYPositions = NULL, bool isDoCmd = true);
+                          const wxRect& oldFloatRect = wxRect(),
+                          wxArrayInt* optimizationLineCharPositions = NULL, wxArrayInt* optimizationLineYPositions = NULL,
+                          bool isDoCmd = true);
 
     /**
         Replaces the buffer paragraphs with the given fragment.
@@ -6022,7 +6043,8 @@ public:
     /**
         Calculate arrays for refresh optimization.
     */
-    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions);
+    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions,
+                                       wxRect& oldFloatRect);
 
     /**
         Sets the position used for e.g. insertion.

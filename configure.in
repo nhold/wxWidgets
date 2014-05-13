@@ -14,7 +14,7 @@ dnl ---------------------------------------------------------------------------
 dnl initialization
 dnl ---------------------------------------------------------------------------
 
-AC_INIT([wxWidgets], [3.0.0], [wx-dev@lists.wxwidgets.org])
+AC_INIT([wxWidgets], [3.1.0], [wx-dev@lists.wxwidgets.org])
 
 dnl the file passed to AC_CONFIG_SRCDIR should be specific to our package
 AC_CONFIG_SRCDIR([wx-config.in])
@@ -39,7 +39,7 @@ dnl
 dnl wx_release_number += 1
 
 wx_major_version_number=3
-wx_minor_version_number=0
+wx_minor_version_number=1
 wx_release_number=0
 wx_subrelease_number=0
 
@@ -715,8 +715,8 @@ WX_ARG_DISABLE(vararg_macros,[  --disable-vararg_macros don't use vararg macros,
 WX_ARG_ENABLE_PARAM(universal_binary, [[  --enable-universal_binary=archs create universal binary for the specified (or all supported) architectures]], wxUSE_UNIVERSAL_BINARY)
 WX_ARG_ENABLE_PARAM(macosx_arch,      [[  --enable-macosx_arch=ARCH  build for just the specified architecture]], wxUSE_MAC_ARCH)
 
-WX_ARG_ENABLE(compat26,      [  --enable-compat26       enable wxWidgets 2.6 compatibility], WXWIN_COMPATIBILITY_2_6)
-WX_ARG_DISABLE(compat28,     [  --disable-compat28      disable wxWidgets 2.8 compatibility], WXWIN_COMPATIBILITY_2_8)
+WX_ARG_ENABLE(compat28,      [  --enable-compat28       enable wxWidgets 2.8 compatibility], WXWIN_COMPATIBILITY_2_8)
+WX_ARG_DISABLE(compat30,     [  --disable-compat30      disable wxWidgets 3.0 compatibility], WXWIN_COMPATIBILITY_3_0)
 
 WX_ARG_DISABLE(rpath,        [  --disable-rpath         disable use of rpath for uninstalled builds], wxUSE_RPATH)
 
@@ -2316,8 +2316,9 @@ if test "$have_cos" = 1 -a "$have_floor" = 1; then
     AC_MSG_RESULT(yes)
 else
     AC_MSG_RESULT(no)
+    save_LIBS="$LIBS"
     LIBS="$LIBS -lm"
-    # use different functions to avoid configure caching
+    dnl use different functions to avoid configure caching
     have_sin=0
     have_ceil=0
     AC_CHECK_FUNCS(sin, have_sin=1)
@@ -2327,7 +2328,9 @@ else
         AC_MSG_RESULT(yes)
     else
         AC_MSG_RESULT(no)
-        # not sure we should warn the user, crash, etc.
+        dnl not sure we should warn the user, crash, etc. but don't link with
+        dnl -lm it might result in failure of the subsequent tests too
+        LIBS="$save_LIBS"
     fi
 fi
 
@@ -3783,7 +3786,6 @@ done
 for i in \${libnames} ; do
     ${HOST_PREFIX}install_name_tool \${changes} -id \${3}/\${i} \${1}/\${i}
 done
-${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}
 EOF
             chmod +x change-install-names
             DYLIB_RPATH_INSTALL="\$(wx_top_builddir)/change-install-names \${DESTDIR}\${libdir} \${DESTDIR}\${bindir} \${libdir} \$(wx_top_builddir)/lib"
@@ -4236,6 +4238,37 @@ if test "$ac_cv_func_vsscanf" = "yes"; then
 
     if test "$wx_cv_func_vsscanf_decl" = "yes"; then
         AC_DEFINE(HAVE_VSSCANF_DECL)
+
+        dnl we know there is a vsscanf() declaration, but it can be broken by
+        dnl declaring vsscanf() as taking a non-const first argument (this
+        dnl happens at least under HP-UX 11.31, see #15638).
+        AC_CACHE_CHECK([if vsscanf() declaration is broken], wx_cv_func_broken_vsscanf_decl,
+            [
+                AC_TRY_COMPILE(
+                    [
+                        #include <stdio.h>
+                        #include <stdarg.h>
+                        #ifdef __MSL__
+                        #if __MSL__ >= 0x6000
+                        namespace std {}
+                        using namespace std;
+                        #endif
+                        #endif
+                    ],
+                    [
+                        const char *buf;
+                        va_list args;
+                        vsscanf(buf, "%s", args);
+                    ],
+                    wx_cv_func_broken_vsscanf_decl=no,
+                    wx_cv_func_broken_vsscanf_decl=yes
+                )
+            ]
+        )
+
+        if test "$wx_cv_func_broken_vsscanf_decl" = "yes"; then
+            AC_DEFINE(HAVE_BROKEN_VSSCANF_DECL)
+        fi
     fi
 fi
 AC_LANG_POP()
@@ -5319,14 +5352,14 @@ dnl ---------------------------------------------------------------------------
 dnl compatibility level
 dnl ---------------------------------------------------------------------------
 
-if test "x$WXWIN_COMPATIBILITY_2_6" = "xyes"; then
-    AC_DEFINE(WXWIN_COMPATIBILITY_2_6)
+if test "x$WXWIN_COMPATIBILITY_2_8" = "xyes"; then
+    AC_DEFINE(WXWIN_COMPATIBILITY_2_8)
 
-    WXWIN_COMPATIBILITY_2_8="yes"
+    WXWIN_COMPATIBILITY_3_0="yes"
 fi
 
-if test "x$WXWIN_COMPATIBILITY_2_8" != "xno"; then
-    AC_DEFINE(WXWIN_COMPATIBILITY_2_8)
+if test "x$WXWIN_COMPATIBILITY_3_0" != "xno"; then
+    AC_DEFINE(WXWIN_COMPATIBILITY_3_0)
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -6326,25 +6359,9 @@ dnl ---------------------------------------------------------------------------
 if test "$wxUSE_GUI" = "yes" -a "$wxUSE_JOYSTICK" = "yes"; then
     wxUSE_JOYSTICK=no
 
-    dnl under MSW we always have joystick support
-    if test "$TOOLKIT" = "MSW"; then
+    dnl under MSW and OS X we always have joystick support
+    if test "$TOOLKIT" = "MSW" -o "$TOOLKIT" = "OSX_COCOA" -o "$TOOLKIT" = "COCOA"; then
         wxUSE_JOYSTICK=yes
-
-    dnl mac only available on darwin
-    elif test "$TOOLKIT" = "OSX" -o "$TOOLKIT" = "COCOA"; then
-        if test "$USE_DARWIN" = 1; then
-            dnl check for a bug in the headers, some have bad setEventCallout
-            AC_MSG_CHECKING([headers have declarations needed for joystick support])
-            AC_LANG_PUSH(C++)
-            AC_TRY_COMPILE( [ #include <IOKit/hid/IOHIDLib.h> ],
-                            [ IOHIDQueueInterface *qi = NULL;
-                              IOHIDCallbackFunction cb = NULL;
-                              qi->setEventCallout(NULL, cb, NULL, NULL); ],
-                            [ wxUSE_JOYSTICK=yes ]
-                          )
-            AC_LANG_POP()
-            AC_MSG_RESULT($wxUSE_JOYSTICK)
-        fi
 
     dnl joystick support is only for Linux 2.1.x or greater
     else
@@ -7116,6 +7133,8 @@ if test "$wxUSE_XRC" = "yes"; then
         AC_DEFINE(wxUSE_XRC)
         USE_XRC=1
         SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS xrc"
+
+        echo "${HOST_PREFIX}install_name_tool \${changes} \${2}/wxrc-${WX_RELEASE}" >> change-install-names
     fi
 fi
 
@@ -7615,7 +7634,6 @@ dnl ---------------------------------------------------------------------------
 STD_BASE_LIBS="base"
 STD_GUI_LIBS=""
 BUILT_WX_LIBS="base"
-ALL_WX_LIBS="xrc stc gl media qa html adv core xml net base"
 
 if test "$wxUSE_SOCKETS" = "yes" ; then
     STD_BASE_LIBS="net $STD_BASE_LIBS"
@@ -7669,7 +7687,6 @@ if test "$wxUSE_GUI" = "yes"; then
     fi
 fi
 
-AC_SUBST(ALL_WX_LIBS)
 AC_SUBST(BUILT_WX_LIBS)
 AC_SUBST(STD_BASE_LIBS)
 AC_SUBST(STD_GUI_LIBS)
@@ -8470,8 +8487,8 @@ else
 fi
 
 echo "  What level of wxWidgets compatibility should be enabled?"
-echo "                                       wxWidgets 2.6      ${WXWIN_COMPATIBILITY_2_6:-no}"
-echo "                                       wxWidgets 2.8      ${WXWIN_COMPATIBILITY_2_8:-yes}"
+echo "                                       wxWidgets 2.8      ${WXWIN_COMPATIBILITY_2_8:-no}"
+echo "                                       wxWidgets 3.0      ${WXWIN_COMPATIBILITY_3_0:-yes}"
 
 echo "  Which libraries should wxWidgets use?"
 echo "                                       STL                ${wxUSE_STL}"

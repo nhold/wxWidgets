@@ -774,7 +774,7 @@ void MyCanvas::DrawDefault(wxDC& dc)
 void MyCanvas::DrawText(wxDC& dc)
 {
     // set underlined font for testing
-    dc.SetFont( wxFont(12, wxMODERN, wxNORMAL, wxNORMAL, true) );
+    dc.SetFont( wxFontInfo(12).Family(wxFONTFAMILY_MODERN).Underlined() );
     dc.DrawText( wxT("This is text"), 110, 10 );
     dc.DrawRotatedText( wxT("That is text"), 20, 10, -45 );
 
@@ -791,7 +791,7 @@ void MyCanvas::DrawText(wxDC& dc)
         dc.DrawRotatedText(text , 400, 400, n);
     }
 
-    dc.SetFont( wxFont( 18, wxSWISS, wxNORMAL, wxNORMAL ) );
+    dc.SetFont( wxFontInfo(18).Family(wxFONTFAMILY_SWISS) );
 
     dc.DrawText( wxT("This is Swiss 18pt text."), 110, 40 );
 
@@ -827,6 +827,10 @@ void MyCanvas::DrawText(wxDC& dc)
 
     y += height;
     dc.DrawText("And\nmore\ntext on\nmultiple\nlines", 110, y);
+    y += 5*height;
+
+    dc.SetTextForeground(*wxBLUE);
+    dc.DrawRotatedText("Rotated text\ncan have\nmultiple lines\nas well", 110, y, 15);
 }
 
 static const struct
@@ -1232,7 +1236,7 @@ void MyCanvas::DrawSplines(wxDC& dc)
             letters[m][n].y = center.y + h[ letters[m][n].y ];
         }
 
-        dc.SetPen( wxPen( *wxBLUE, 1, wxDOT) );
+        dc.SetPen( wxPen( *wxBLUE, 1, wxPENSTYLE_DOT) );
         dc.DrawLines(5, letters[m]);
         dc.SetPen( wxPen( *wxBLACK, 4) );
         dc.DrawSpline(5, letters[m]);

@@ -5,6 +5,21 @@
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
+
+/**
+    The possible display modes of the panel area of a wxRibbonBar widget.
+    
+    @see wxRibbonBar::ShowPanels()
+    @see wxRibbonBar::GetDisplayMode()
+*/
+enum wxRibbonDisplayMode
+{
+    wxRIBBON_BAR_PINNED,     ///< The panel area is visible and pinned: it remains visible when the ribbon bar loose the focus.
+    wxRIBBON_BAR_MINIMIZED,  ///< The panel area is hidden: only the pages tabs remain visible.
+    wxRIBBON_BAR_EXPANDED    ///< The panel area is visible, but not pinned: it minimizes as soon as the focus is lost.
+};
+
+
 /**
     @class wxRibbonBarEvent
 
@@ -317,6 +332,14 @@ public:
         @since 2.9.5
     */
     void RemovePageHighlight(size_t page);
+    
+    /**
+        Shows or hide the panel area of the ribbon bar according to the
+        given display mode.
+                       
+        @since 3.0.1
+    */
+    void ShowPanels(wxRibbonDisplayMode mode);
 
     /**
         Shows or hides the panel area of the ribbon bar.
@@ -324,6 +347,7 @@ public:
         If the panel area is hidden, then only the tab of the ribbon bar will
         be shown. This is useful for giving the user more screen space to work
         with when he/she doesn't need to see the ribbon's options.
+        When the panel is shown, this method pins it.
 
         @since 2.9.2
     */
@@ -332,7 +356,7 @@ public:
     /**
         Hides the panel area of the ribbon bar.
 
-        This method simply calls ShowPanels() with @false argument.
+        This method behaves like ShowPanels() with @false argument.
 
         @since 2.9.2
     */
@@ -346,6 +370,16 @@ public:
         @since 2.9.2
     */
     bool ArePanelsShown() const;
+    
+    /**
+        Returns the current display mode of the panel area.
+        
+        @see ShowPanels()
+        
+        @since 3.0.1
+    */
+    wxRibbonDisplayMode GetDisplayMode() const;
+    
     
     /**
         Perform initial layout and size calculations of the bar and its

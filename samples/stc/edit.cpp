@@ -112,6 +112,8 @@ BEGIN_EVENT_TABLE (Edit, wxStyledTextCtrl)
     EVT_STC_MARGINCLICK (wxID_ANY,     Edit::OnMarginClick)
     EVT_STC_CHARADDED (wxID_ANY,       Edit::OnCharAdded)
     EVT_STC_KEY( wxID_ANY , Edit::OnKey )
+
+    EVT_KEY_DOWN( Edit::OnKeyDown )
 END_EVENT_TABLE()
 
 Edit::Edit (wxWindow *parent, wxWindowID id,
@@ -143,7 +145,7 @@ Edit::Edit (wxWindow *parent, wxWindowID id,
     SetReadOnly (g_CommonPrefs.readOnlyInitial);
     SetWrapMode (g_CommonPrefs.wrapModeInitial?
                  wxSTC_WRAP_WORD: wxSTC_WRAP_NONE);
-    wxFont font (10, wxMODERN, wxNORMAL, wxNORMAL);
+    wxFont font(wxFontInfo(10).Family(wxFONTFAMILY_MODERN));
     StyleSetFont (wxSTC_STYLE_DEFAULT, font);
     StyleSetForeground (wxSTC_STYLE_DEFAULT, *wxBLACK);
     StyleSetBackground (wxSTC_STYLE_DEFAULT, *wxWHITE);
@@ -208,6 +210,22 @@ void Edit::OnEditClear (wxCommandEvent &WXUNUSED(event)) {
 void Edit::OnKey (wxStyledTextEvent &WXUNUSED(event))
 {
     wxMessageBox("OnKey");
+}
+
+void Edit::OnKeyDown (wxKeyEvent &event)
+{
+    if (CallTipActive())
+        CallTipCancel();
+    if (event.GetKeyCode() == WXK_SPACE && event.ControlDown() && event.ShiftDown())
+    {
+        int pos = GetCurrentPos();
+        CallTipSetBackground(*wxYELLOW);
+        CallTipShow(pos,
+                    "This is a CallTip with multiple lines.\n"
+                    "It is meant to be a context sensitive popup helper for the user.");
+        return;
+    }
+    event.Skip();
 }
 
 void Edit::OnEditCut (wxCommandEvent &WXUNUSED(event)) {
@@ -511,7 +529,7 @@ bool Edit::InitializePrefs (const wxString &name) {
     // default fonts for all styles!
     int Nr;
     for (Nr = 0; Nr < wxSTC_STYLE_LASTPREDEFINED; Nr++) {
-        wxFont font (10, wxMODERN, wxNORMAL, wxNORMAL);
+        wxFont font(wxFontInfo(10).Family(wxFONTFAMILY_MODERN));
         StyleSetFont (Nr, font);
     }
 
@@ -525,8 +543,9 @@ bool Edit::InitializePrefs (const wxString &name) {
         for (Nr = 0; Nr < STYLE_TYPES_COUNT; Nr++) {
             if (curInfo->styles[Nr].type == -1) continue;
             const StyleInfo &curType = g_StylePrefs [curInfo->styles[Nr].type];
-            wxFont font (curType.fontsize, wxMODERN, wxNORMAL, wxNORMAL, false,
-                         curType.fontname);
+            wxFont font(wxFontInfo(curType.fontsize)
+                            .Family(wxFONTFAMILY_MODERN)
+                            .FaceName(curType.fontname));
             StyleSetFont (Nr, font);
             if (curType.foreground) {
                 StyleSetForeground (Nr, wxColour (curType.foreground));

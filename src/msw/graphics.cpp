@@ -785,7 +785,7 @@ wxGDIPlusBrushData::wxGDIPlusBrushData( wxGraphicsRenderer* renderer , const wxB
 : wxGraphicsObjectRefData(renderer)
 {
     Init();
-    if ( brush.GetStyle() == wxSOLID)
+    if ( brush.GetStyle() == wxBRUSHSTYLE_SOLID)
     {
         m_brush = new SolidBrush(wxColourToColor( brush.GetColour()));
     }
@@ -946,7 +946,9 @@ wxGDIPlusFontData::wxGDIPlusFontData( wxGraphicsRenderer* renderer,
     if ( font.GetWeight() == wxFONTWEIGHT_BOLD )
         style |= FontStyleBold;
 
-    Init(font.GetFaceName(), font.GetPointSize(), style, col, UnitPoint);
+    // Create font which size is measured in logical units
+    // and let the system rescale it according to the target resolution.
+    Init(font.GetFaceName(), font.GetPixelSize().GetHeight(), style, col, UnitPixel);
 }
 
 wxGDIPlusFontData::wxGDIPlusFontData(wxGraphicsRenderer* renderer,
@@ -2114,7 +2116,7 @@ wxGraphicsMatrix wxGDIPlusRenderer::CreateMatrix( wxDouble a, wxDouble b, wxDoub
 wxGraphicsPen wxGDIPlusRenderer::CreatePen(const wxPen& pen)
 {
     ENSURE_LOADED_OR_RETURN(wxNullGraphicsPen);
-    if ( !pen.IsOk() || pen.GetStyle() == wxTRANSPARENT )
+    if ( !pen.IsOk() || pen.GetStyle() == wxPENSTYLE_TRANSPARENT )
         return wxNullGraphicsPen;
     else
     {
@@ -2127,7 +2129,7 @@ wxGraphicsPen wxGDIPlusRenderer::CreatePen(const wxPen& pen)
 wxGraphicsBrush wxGDIPlusRenderer::CreateBrush(const wxBrush& brush )
 {
     ENSURE_LOADED_OR_RETURN(wxNullGraphicsBrush);
-    if ( !brush.IsOk() || brush.GetStyle() == wxTRANSPARENT )
+    if ( !brush.IsOk() || brush.GetStyle() == wxBRUSHSTYLE_TRANSPARENT )
         return wxNullGraphicsBrush;
     else
     {

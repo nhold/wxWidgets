@@ -833,7 +833,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/generic/accel.h
     wx/generic/buttonbar.h
     wx/generic/choicdgg.h
-    wx/generic/colrdlgg.h
     wx/generic/combo.h
     wx/generic/custombgwin.h
     wx/generic/dcpsg.h
@@ -3690,6 +3689,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/aui/tabmdi.cpp
     src/aui/tabart.cpp
     src/xrc/xh_auinotbk.cpp
+    src/xrc/xh_auitoolb.cpp
     $(AUI_GTK_SRC)
 </set>
 <set var="AUI_HDR" hints="files">
@@ -3702,6 +3702,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/aui/aui.h
     wx/aui/tabart.h
     wx/xrc/xh_auinotbk.h
+    wx/xrc/xh_auitoolb.h
     $(AUI_GTK_HDR)
 </set>
 

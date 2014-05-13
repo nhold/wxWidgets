@@ -31,9 +31,6 @@ public:
     wxBrush() { }
 
     wxBrush( const wxColour &colour, wxBrushStyle style = wxBRUSHSTYLE_SOLID );
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( wxBrush(const wxColour& col, int style) );
-#endif
     wxBrush( const wxBitmap &stippleBitmap );
     virtual ~wxBrush();
 
@@ -49,10 +46,12 @@ public:
     void SetStyle( wxBrushStyle style );
     void SetStipple( const wxBitmap& stipple );
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( void SetStyle(int style) )
-        { SetStyle((wxBrushStyle)style); }
-#endif
+
+    wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants")
+    wxBrush(const wxColour& col, int style);
+
+    wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants")
+    void SetStyle(int style) { SetStyle((wxBrushStyle)style); }
 
 protected:
     virtual wxGDIRefData *CreateGDIRefData() const;

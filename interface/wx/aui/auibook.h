@@ -20,9 +20,9 @@
     splitter configurations, and toggle through different themes to customize
     the control's look and feel.
 
-    The default theme that is used is wxAuiDefaultTabArt, which provides a modern,
-    glossy look and feel.
-    The theme can be changed by calling wxAuiNotebook::SetArtProvider.
+    The appearance of this class is configurable and can be changed by calling
+    wxAuiNotebook::SetArtProvider(). By default, native art provider is used if
+    available (currently only in wxGTK) and wxAuiGenericTabArt otherwise.
 
     @beginStyleTable
     @style{wxAUI_NB_DEFAULT_STYLE}
@@ -647,6 +647,22 @@ public:
 
     wxEvent *Clone();
 };
+
+wxEventType wxEVT_AUINOTEBOOK_PAGE_CLOSE;
+wxEventType wxEVT_AUINOTEBOOK_PAGE_CHANGED;
+wxEventType wxEVT_AUINOTEBOOK_PAGE_CHANGING;
+wxEventType wxEVT_AUINOTEBOOK_PAGE_CLOSED;
+wxEventType wxEVT_AUINOTEBOOK_BUTTON;
+wxEventType wxEVT_AUINOTEBOOK_BEGIN_DRAG;
+wxEventType wxEVT_AUINOTEBOOK_END_DRAG;
+wxEventType wxEVT_AUINOTEBOOK_DRAG_MOTION;
+wxEventType wxEVT_AUINOTEBOOK_ALLOW_DND;
+wxEventType wxEVT_AUINOTEBOOK_TAB_MIDDLE_DOWN;
+wxEventType wxEVT_AUINOTEBOOK_TAB_MIDDLE_UP;
+wxEventType wxEVT_AUINOTEBOOK_TAB_RIGHT_DOWN;
+wxEventType wxEVT_AUINOTEBOOK_TAB_RIGHT_UP;
+wxEventType wxEVT_AUINOTEBOOK_DRAG_DONE;
+wxEventType wxEVT_AUINOTEBOOK_BG_DCLICK;
 
 /**
     Default art provider for wxAuiNotebook.

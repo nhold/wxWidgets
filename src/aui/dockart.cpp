@@ -55,6 +55,7 @@
 #endif
 #ifdef __WXGTK3__
     #include "wx/graphics.h"
+    #include "wx/gtk/private.h"
 #endif
 #endif
 
@@ -205,7 +206,7 @@ wxAuiDefaultDockArt::wxAuiDefaultDockArt()
 #ifdef __WXMAC__
     m_captionFont = *wxSMALL_FONT;
 #else
-    m_captionFont = wxFont(8, wxDEFAULT, wxNORMAL, wxNORMAL, FALSE);
+    m_captionFont = wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 #endif
 
     // default metric values
@@ -430,20 +431,27 @@ void wxAuiDefaultDockArt::DrawSash(wxDC& dc, wxWindow* window, int orientation, 
     if (!window->m_wxwindow) return;
     if (!gtk_widget_is_drawable(window->m_wxwindow)) return;
 
+#ifdef __WXGTK3__
+    cairo_t* cr = static_cast<cairo_t*>(dc.GetGraphicsContext()->GetNativeContext());
+    // invert orientation for widget (horizontal GtkPaned has a vertical splitter)
+    wxOrientation orient = orientation == wxVERTICAL ? wxHORIZONTAL : wxVERTICAL;
+    GtkWidget* widget = wxGTKPrivate::GetSplitterWidget(orient);
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    gtk_style_context_save(sc);
+
+    gtk_style_context_add_class(sc, GTK_STYLE_CLASS_PANE_SEPARATOR);
+    gtk_render_handle(sc, cr, rect.x, rect.y, rect.width, rect.height);
+
+    gtk_style_context_restore(sc);
+#else
     gtk_paint_handle
     (
         gtk_widget_get_style(window->m_wxwindow),
-#ifdef __WXGTK3__
-        static_cast<cairo_t*>(dc.GetGraphicsContext()->GetNativeContext()),
-#else
         window->GTKGetDrawingWindow(),
-#endif
         // flags & wxCONTROL_CURRENT ? GTK_STATE_PRELIGHT : GTK_STATE_NORMAL,
         GTK_STATE_NORMAL,
         GTK_SHADOW_NONE,
-#ifndef __WXGTK3__
         NULL /* no clipping */,
-#endif
         window->m_wxwindow,
         "paned",
         rect.x,
@@ -452,6 +460,7 @@ void wxAuiDefaultDockArt::DrawSash(wxDC& dc, wxWindow* window, int orientation, 
         rect.height,
         (orientation == wxVERTICAL) ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL
     );
+#endif // !__WXGTK3__
 
 #else
     wxUnusedVar(window);
@@ -603,11 +612,11 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
     DrawCaptionBackground(dc, rect, showActive);
 
     int captionOffset = 0;
-    if ( pane.GetBitmap().IsOk() )
+    if ( pane.GetIcon().IsOk() )
     {
         DrawIcon(dc, rect, pane);
 
-        captionOffset += pane.GetBitmap().GetWidth() + 3;
+        captionOffset += pane.GetIcon().GetWidth() + 3;
     }
 
 
@@ -636,8 +645,8 @@ void wxAuiDefaultDockArt::DrawCaption(wxDC& dc, wxWindow* WXUNUSED(window),
 void wxAuiDefaultDockArt::DrawIcon(wxDC& dc, const wxRect& rect, wxAuiPaneInfo& pane)
 {
    // Draw the icon centered vertically
-   dc.DrawBitmap(pane.GetBitmap(),
-                 rect.x+2, rect.y+(rect.height-pane.GetBitmap().GetHeight())/2,
+   dc.DrawBitmap(pane.GetIcon(),
+                 rect.x+2, rect.y+(rect.height-pane.GetIcon().GetHeight())/2,
                  true);
 }
 
@@ -917,15 +926,15 @@ bool wxAuiTabContainer::InsertPage(wxWindow* page, wxAuiPaneInfo& info, size_t i
 {
     info.GetWindow()->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown)  ,NULL,this);
 
-    info.SetWindow(page);
+    info.Window(page);
 
     if (idx >= m_pages.GetCount()) {
-        info.SetPage(m_pages.size());
+        info.Page(m_pages.size());
         m_pages.Add(&info);        
     } else {
         m_pages.Insert(&info, idx);
         for(size_t i=idx; i < m_pages.GetCount(); i++)
-            m_pages[i]->SetPage(i);
+            m_pages[i]->Page(i);
     }
 
     // let the art provider know how many pages we have
@@ -1155,7 +1164,7 @@ void wxAuiTabContainer::CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& tota
         wxSize size = m_tab_art->GetTabSize(dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             closeButton ?
                               wxAUI_BUTTON_STATE_NORMAL :
@@ -1209,7 +1218,7 @@ void wxAuiTabContainer::CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& total
         wxSize size = m_tab_art->GetTabSize(dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             closeButton ?
                               wxAUI_BUTTON_STATE_NORMAL :
@@ -1581,7 +1590,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
-        page.SetRect(page_rect);
+        page.Rect(page_rect);
 
         if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
         {
@@ -1620,7 +1629,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
                        &page_rect,
                        &tab_button.rect,
                        &extent);
-        page.SetRect(page_rect);
+        page.Rect(page_rect);
     }
 
 
@@ -1762,7 +1771,7 @@ bool wxAuiTabContainer::IsTabVisible(int tabPage, int tabOffset, wxDC* dc, wxWin
         wxSize size = m_tab_art->GetTabSize(*dc,
                             wnd,
                             page.GetCaption(),
-                            page.GetBitmap(),
+                            page.GetIcon(),
                             page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                             tab_button.curState,
                             &extent);

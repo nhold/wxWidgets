@@ -254,7 +254,10 @@ bool wxHtmlWindowMouseHelper::OnCellClicked(wxHtmlCell *cell,
 
         wxASSERT_MSG( cell, wxT("can't be called with NULL cell") );
 
-        cell->ProcessMouseClick(m_interface, ev.GetPoint(), ev.GetMouseEvent());
+        // If we don't return true, HTML listboxes will always think that they should take
+        // the focus
+        if (cell->ProcessMouseClick(m_interface, ev.GetPoint(), ev.GetMouseEvent()))
+            return true;
     }
 
     // true if a link was clicked, false otherwise
@@ -283,6 +286,7 @@ wxHtmlFilter *wxHtmlWindow::m_DefaultFilter = NULL;
 wxHtmlProcessorList *wxHtmlWindow::m_GlobalProcessors = NULL;
 wxCursor *wxHtmlWindow::ms_cursorLink = NULL;
 wxCursor *wxHtmlWindow::ms_cursorText = NULL;
+wxCursor *wxHtmlWindow::ms_cursorDefault = NULL;
 
 void wxHtmlWindow::CleanUpStatics()
 {
@@ -293,6 +297,7 @@ void wxHtmlWindow::CleanUpStatics()
     wxDELETE(m_GlobalProcessors);
     wxDELETE(ms_cursorLink);
     wxDELETE(ms_cursorText);
+    wxDELETE(ms_cursorDefault);
 }
 
 void wxHtmlWindow::Init()
@@ -378,6 +383,14 @@ void wxHtmlWindow::SetRelatedFrame(wxFrame* frame, const wxString& format)
 {
     m_RelatedFrame = frame;
     m_TitleFormat = format;
+
+    // Check if the format provided can actually be used: it's more
+    // user-friendly to do it here and now rather than triggering the same
+    // assert much later when it's really used.
+
+    // If you get an assert here, it means that the title doesn't contain
+    // exactly one "%s" format specifier, which is an error in the caller.
+    wxString::Format(m_TitleFormat, wxString());
 }
 
 
@@ -1787,7 +1800,9 @@ wxCursor wxHtmlWindow::GetDefaultHTMLCursor(HTMLCursor type)
 
         case HTMLCursor_Default:
         default:
-            return *wxSTANDARD_CURSOR;
+            if ( !ms_cursorDefault )
+                ms_cursorDefault = new wxCursor(wxCURSOR_ARROW);
+            return *ms_cursorDefault;
     }
 }
 
@@ -1796,6 +1811,27 @@ wxCursor wxHtmlWindow::GetHTMLCursor(HTMLCursor type) const
     return GetDefaultHTMLCursor(type);
 }
 
+/*static*/
+void wxHtmlWindow::SetDefaultHTMLCursor(HTMLCursor type, const wxCursor& cursor)
+{
+    switch (type)
+    {
+        case HTMLCursor_Link:
+            delete ms_cursorLink;
+            ms_cursorLink = new wxCursor(cursor);
+            return;
+
+        case HTMLCursor_Text:
+            delete ms_cursorText;
+            ms_cursorText = new wxCursor(cursor);
+            return;
+
+        case HTMLCursor_Default:
+        default:
+            delete ms_cursorText;
+            ms_cursorDefault = new wxCursor(cursor);
+    }
+}
 
 //-----------------------------------------------------------------------------
 // wxHtmlWinModule

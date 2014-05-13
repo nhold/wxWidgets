@@ -591,6 +591,30 @@ later only and you need to explicitly register its handler using
 @endcode
 to use it.
 
+@subsubsection xrc_wxauitoolbar wxAuiToolBar
+
+Building an XRC for wxAuiToolBar is quite similar to wxToolBar.
+The only significant differences are:
+@li the use of the class name wxAuiToolBar
+@li the styles supported are the ones described in the wxAuiToolBar class definition
+@li the 'space' pseudo-class has two optional, mutually exclusive,
+integer properties: 'proportion' and 'width'. If 'width' is specified, a space
+is added using wxAuiToolBar::AddSpacer(); if 'proportion', the value is used in
+wxAuiToolBar::AddStretchSpacer(). If neither are provided, the default is a
+stretch-spacer with a proportion of 1.
+@li there is an additional pseudo-class, 'label', that has a string property.
+See wxAuiToolBar::AddLabel().
+
+Refer to the section @ref xrc_wxtoolbar for more details.
+
+@note The XML Handler should be explicitly registered:
+@code
+    #include <wx/xrc/xh_auitoolb.h>
+
+    AddHandler(new wxAuiToolBarXmlHandler);
+@endcode
+
+@since 3.1.0
 
 @subsubsection xrc_wxbannerwindow wxBannerWindow
 

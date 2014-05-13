@@ -74,6 +74,9 @@ static wxTopLevelWindowGTK *g_lastActiveFrame = NULL;
 // send any activate events at all
 static int g_sendActivateEvent = -1;
 
+extern wxCursor g_globalCursor;
+extern wxCursor g_busyCursor;
+
 #ifdef GDK_WINDOWING_X11
 // Whether _NET_REQUEST_FRAME_EXTENTS support is working
 static enum {
@@ -351,14 +354,21 @@ void wxTopLevelWindowGTK::GTKHandleRealized()
 {
     wxNonOwnedWindow::GTKHandleRealized();
 
-    gdk_window_set_decorations(gtk_widget_get_window(m_widget),
-                               (GdkWMDecoration)m_gdkDecor);
-    gdk_window_set_functions(gtk_widget_get_window(m_widget),
-                               (GdkWMFunction)m_gdkFunc);
+    GdkWindow* window = gtk_widget_get_window(m_widget);
+
+    gdk_window_set_decorations(window, (GdkWMDecoration)m_gdkDecor);
+    gdk_window_set_functions(window, (GdkWMFunction)m_gdkFunc);
 
     const wxIconBundle& icons = GetIcons();
     if (icons.GetIconCount())
         SetIcons(icons);
+
+    GdkCursor* cursor = g_globalCursor.GetCursor();
+    if (wxIsBusy() && !gtk_window_get_modal(GTK_WINDOW(m_widget)))
+        cursor = g_busyCursor.GetCursor();
+
+    if (cursor)
+        gdk_window_set_cursor(window, cursor);
 
 #ifdef __WXGTK3__
     if (gtk_window_get_has_resize_grip(GTK_WINDOW(m_widget)))
@@ -1116,14 +1126,6 @@ void wxTopLevelWindowGTK::DoSetSize( int x, int y, int width, int height, int si
         m_y = y;
     }
 
-    if ( m_x != old_x || m_y != old_y )
-    {
-        gtk_window_move( GTK_WINDOW(m_widget), m_x, m_y );
-        wxMoveEvent event(wxPoint(m_x, m_y), GetId());
-        event.SetEventObject(this);
-        HandleWindowEvent(event);
-    }
-
     const wxSize oldSize(m_width, m_height);
     if (width >= 0)
         m_width = width;
@@ -1132,6 +1134,15 @@ void wxTopLevelWindowGTK::DoSetSize( int x, int y, int width, int height, int si
     ConstrainSize();
     if (m_width < 1) m_width = 1;
     if (m_height < 1) m_height = 1;
+
+    if ( m_x != old_x || m_y != old_y )
+    {
+        gtk_window_move( GTK_WINDOW(m_widget), m_x, m_y );
+        wxMoveEvent event(wxPoint(m_x, m_y), GetId());
+        event.SetEventObject(this);
+        HandleWindowEvent(event);
+    }
+
     if (m_width != oldSize.x || m_height != oldSize.y)
     {
         m_deferShowAllowed = true;

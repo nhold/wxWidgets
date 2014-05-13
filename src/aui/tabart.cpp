@@ -161,13 +161,15 @@ static const unsigned char list_bits[] = {
 
 wxAuiGenericTabArt::wxAuiGenericTabArt()
 {
+    m_requestedSize.x = -1;
+    m_requestedSize.y = -1;
     m_normalFont = *wxNORMAL_FONT;
     m_selectedFont = *wxNORMAL_FONT;
-    m_selectedFont.SetWeight(wxBOLD);
+    m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     m_measuringFont = m_selectedFont;
 
     m_fixedTabSize = 20;
-    m_tabCtrlHeight = 0;
+    m_tabCtrlHeight = 100;
 
 #if defined( __WXMAC__ ) && wxOSX_USE_COCOA_OR_CARBON
     wxColor baseColour = wxColour( wxMacCreateCGColorFromHITheme(kThemeBrushToolbarBackground));
@@ -290,6 +292,25 @@ void wxAuiGenericTabArt::SetSizingInfo(const wxSize& tabCtrlSize, size_t tabCoun
     }
 }
 
+void wxAuiGenericTabArt::SetTabCtrlHeight(int size)
+{
+    m_requestedSize.y = size;
+}
+
+void wxAuiGenericTabArt::SetTabCtrlWidth(int size)
+{
+    m_requestedSize.x = size;
+}
+
+void wxAuiGenericTabArt::SetUniformBitmapSize(const wxSize& size)
+{
+    m_requiredBitmapSize = size;
+}
+
+wxSize wxAuiGenericTabArt::GetRequestedSize() const
+{
+    return wxSize(m_tabCtrlWidth, m_tabCtrlHeight);
+}
 
 void wxAuiGenericTabArt::DrawBorder(wxDC& dc, wxWindow* wnd, const wxRect& rect)
 {
@@ -381,7 +402,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     wxSize tabSize = GetTabSize(dc,
                                  wnd,
                                  page.GetCaption(),
-                                 page.GetBitmap(),
+                                 page.GetIcon(),
                                  page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                                  closeButtonState,
                                  xExtent);
@@ -701,17 +722,17 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     }
 
     int bitmapOffset = 0;
-    if (page.GetBitmap().IsOk())
+    if (page.GetIcon().IsOk())
     {
         bitmapOffset = tabX + 8;
 
         // draw bitmap
-        dc.DrawBitmap(page.GetBitmap(),
+        dc.DrawBitmap(page.GetIcon(),
                       bitmapOffset,
-                      drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
+                      drawnTabYOff + (drawnTabHeight/2) - (page.GetIcon().GetHeight()/2),
                       true);
 
-        textOffset = bitmapOffset + page.GetBitmap().GetWidth();
+        textOffset = bitmapOffset + page.GetIcon().GetWidth();
         textOffset += 3; // bitmap padding
 
     }
@@ -735,15 +756,15 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         wxRect focusRect;
         wxRect focusRectBitmap;
 
-        if (page.GetBitmap().IsOk())
-            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.GetBitmap().GetHeight()/2),
-                                            page.GetBitmap().GetWidth(), page.GetBitmap().GetHeight());
+        if (page.GetIcon().IsOk())
+            focusRectBitmap = wxRect(bitmapOffset, drawnTabYOff + (drawnTabHeight/2) - (page.GetIcon().GetHeight()/2),
+                                            page.GetIcon().GetWidth(), page.GetIcon().GetHeight());
 
-        if (page.GetBitmap().IsOk() && drawText.IsEmpty())
+        if (page.GetIcon().IsOk() && drawText.IsEmpty())
             focusRect = focusRectBitmap;
-        else if (!page.GetBitmap().IsOk() && !drawText.IsEmpty())
+        else if (!page.GetIcon().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText;
-        else if (page.GetBitmap().IsOk() && !drawText.IsEmpty())
+        else if (page.GetIcon().IsOk() && !drawText.IsEmpty())
             focusRect = focusRectText.Union(focusRectBitmap);
 
         focusRect.Inflate(2, 2);
@@ -974,8 +995,8 @@ int wxAuiGenericTabArt::ShowDropDown(wxWindow* wnd, const wxAuiPaneInfoPtrArray&
             caption = wxT(" ");
 
         wxMenuItem* item = new wxMenuItem(NULL, 1000+i, caption);
-        if (page.GetBitmap().IsOk())
-            item->SetBitmap(page.GetBitmap());
+        if (page.GetIcon().IsOk())
+            item->SetBitmap(page.GetIcon());
         menuPopup.Append(item);
     }
 
@@ -1023,7 +1044,7 @@ wxSize wxAuiGenericTabArt::GetBestTabSize(wxWindow* wnd, const wxAuiPaneInfoPtrA
         if (measureBmp.IsOk())
             bmp = measureBmp;
         else
-            bmp = page.GetBitmap();
+            bmp = page.GetIcon();
 
         int ext = 0;
         wxSize s = GetTabSize(dc,
@@ -1071,15 +1092,21 @@ void wxAuiGenericTabArt::SetActiveColour(const wxColour& colour)
     m_activeColour = colour;
 }
 
+wxSize wxAuiGenericTabArt::GetRequiredBitmapSize() const
+{
+    return m_requiredBitmapSize;
+}
+
 // -- wxAuiSimpleTabArt class implementation --
 
 wxAuiSimpleTabArt::wxAuiSimpleTabArt()
 {
     m_normalFont = *wxNORMAL_FONT;
     m_selectedFont = *wxNORMAL_FONT;
-    m_selectedFont.SetWeight(wxBOLD);
+    m_selectedFont.SetWeight(wxFONTWEIGHT_BOLD);
     m_measuringFont = m_selectedFont;
-
+    m_requestedSize.x = -1;
+    m_requestedSize.y = -1;
     m_flags = 0;
     m_fixedTabSize = 20;
 
@@ -1276,7 +1303,7 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     wxSize tabSize = GetTabSize(dc,
                                  wnd,
                                  page.GetCaption(),
-                                 page.GetBitmap(),
+                                 page.GetIcon(),
                                  page.HasFlag(wxAuiPaneInfo::optionActiveNotebook),
                                  closeButtonState,
                                  extent);
@@ -1688,6 +1715,31 @@ void wxAuiSimpleTabArt::SetSelectedFont(const wxFont& font)
 void wxAuiSimpleTabArt::SetMeasuringFont(const wxFont& font)
 {
     m_measuringFont = font;
+}
+
+void wxAuiSimpleTabArt::SetTabCtrlHeight(int size)
+{
+    m_requestedSize.y = size;
+}
+
+void wxAuiSimpleTabArt::SetTabCtrlWidth(int size)
+{
+    m_requestedSize.x = size;
+}
+
+void wxAuiSimpleTabArt::SetUniformBitmapSize(const wxSize& size)
+{
+    m_requiredBitmapSize = size;
+}
+
+wxSize wxAuiSimpleTabArt::GetRequestedSize() const
+{
+    return wxSize(m_tabCtrlWidth, m_tabCtrlHeight);
+}
+
+wxSize wxAuiSimpleTabArt::GetRequiredBitmapSize() const
+{
+    return m_requiredBitmapSize;
 }
 
 #endif // wxUSE_AUI
