@@ -2424,7 +2424,7 @@ void wxAuiManager::LayoutAddNotebook(wxAuiTabArt* tabArt,wxAuiTabContainer* note
 
 // This method is used to find out if it is allowed to set a pane as a new tab in a notebook
 // The default behaviour of this method is set so it's backward compatible with wxWidgets 2.8 to 3.0
-// It sends a EVT_AUI_PANE_DOCK_OVER that may be Vetoed() / Allowed() to overide the default behaviour.
+// It sends a EVT_AUI_PANE_DOCK_OVER that may be Vetoed() / Allowed() to override the default behaviour.
 bool wxAuiManager::CanDockOver(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &covered_pane) 
 {
     bool can_dock_over = false;
@@ -2440,7 +2440,7 @@ bool wxAuiManager::CanDockOver(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &c
         evt.SetPane(&evt_pane);
         evt.SetTargetPane(&evt_covered_pane);
         evt.SetCanVeto(true);
-        evt.Veto( !wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook) ); // By default, we allow docking over in wxAuiNotebook and forbid them elsewhere 
+        evt.Veto( !HasFlag(wxAUI_MGR_NB_ALLOW_NOTEBOOKS) );  
 
         GetManagedWindow()->ProcessWindowEvent(evt);
 

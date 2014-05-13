@@ -200,7 +200,7 @@ void wxAuiNotebook::SetWindowStyleFlag(long style)
     wxControl::SetWindowStyleFlag(style);
     
     // copy notebook dedicated style flags to the onboard manager flags
-    m_mgr.SetFlags( style & 0xFFFF );
+    m_mgr.SetFlags( (style & 0xFFFF) | wxAUI_MGR_NB_ALLOW_NOTEBOOKS );
    
     // split is done by allowing the pane normal docking
     // if the flag changes, we have to redo the layout
