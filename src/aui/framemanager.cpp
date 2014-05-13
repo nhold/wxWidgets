@@ -1043,6 +1043,7 @@ wxAuiManager* wxAuiManager::GetManager(wxWindow* window)
 {
     wxAuiManagerEvent evt(wxEVT_AUI_FIND_MANAGER);
     evt.SetManager(NULL);
+    evt.SetEventObject(window);
     evt.ResumePropagation(wxEVENT_PROPAGATE_MAX);
     if (!window->GetEventHandler()->ProcessEvent(evt))
         return NULL;
@@ -5041,9 +5042,13 @@ void wxAuiManager::OnSize(wxSizeEvent& evt)
 
 void wxAuiManager::OnFindManager(wxAuiManagerEvent& evt)
 {
+
+    // get the searched window
+    wxWindow *target = wxDynamicCast(evt.GetEventObject(),wxWindow);
+
     // get the window we are managing, if none, return NULL
     wxWindow* window = GetManagedWindow();
-    if (!window)
+    if (!window || !target)
     {
         evt.SetManager(NULL);
         return;
@@ -5054,6 +5059,12 @@ void wxAuiManager::OnFindManager(wxAuiManagerEvent& evt)
     {
         wxAuiFloatingFrame* floatFrame = static_cast<wxAuiFloatingFrame*>(window);
         evt.SetManager(floatFrame->GetOwnerManager());
+        return;
+    }
+
+    // if our managed window is the target, we should pass the event up to an upper manager
+    if (target == window) {
+        evt.Skip();
         return;
     }
 
