@@ -73,12 +73,7 @@ END_EVENT_TABLE()
 
 // -- wxAuiNotebook class implementation --
 bool wxAuiNotebook::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-{
-    //Necessary for backwards compatibility with old wxAuiNotebook control - if we don't strip these flags then we end up with an ugly border around notebooks (where there was none before) in old code.
-    style &= ~wxBORDER_MASK;
-    style |= wxBORDER_NONE;
-    style |= wxWANTS_CHARS;
-    
+{   
     if(!wxControl::Create(parent, id, pos, size, style))
         return false;
     
@@ -196,11 +191,12 @@ void wxAuiNotebook::SetWindowStyleFlag(long style)
     style &= ~wxBORDER_MASK;
     style |= wxBORDER_NONE;
     style |= wxWANTS_CHARS;
+    style |= wxAUI_MGR_NB_ALLOW_NOTEBOOKS;
     
     wxControl::SetWindowStyleFlag(style);
     
     // copy notebook dedicated style flags to the onboard manager flags
-    m_mgr.SetFlags( (style & 0xFFFF) | wxAUI_MGR_NB_ALLOW_NOTEBOOKS );
+    m_mgr.SetFlags( style & 0xFFFF );
    
     // split is done by allowing the pane normal docking
     // if the flag changes, we have to redo the layout

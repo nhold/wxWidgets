@@ -617,66 +617,6 @@ static void RemovePaneFromDocks(wxAuiDockInfoArray& docks, wxAuiPaneInfo& pane, 
     }
 }
 
-#if 0
-// This function works fine, and may be used in the future
-
-// RenumberDockRows() takes a dock and assigns sequential numbers
-// to existing rows.  Basically it takes out the gaps; so if a
-// dock has rows with numbers 0,2,5, they will become 0,1,2
-static void RenumberDockRows(wxAuiDockInfoPtrArray& docks)
-{
-    int i, dockCount;
-    for (i = 0, dockCount = docks.GetCount(); i < dockCount; ++i)
-    {
-        wxAuiDockInfo& dock = *docks.Item(i);
-        dock.dock_row = i;
-
-        int j, paneCount;
-        for (j = 0, paneCount = dock.panes.GetCount(); j < paneCount; ++j)
-            dock.panes.Item(j)->dock_row = i;
-    }
-}
-#endif
-
-// IsNotebookPane() determines if the pane in array panes at position paneIndex is currently forming part of a notebook.
-static bool IsNotebookPane(wxAuiPaneInfoArray& panes, int paneIndex)
-{
-    int paneCount = panes.GetCount();
-    wxAuiPaneInfo& p = panes[paneIndex];
-
-    if(p.IsFloating())
-        return false;
-
-
-    //Take hidden and floating panes into account
-    int indexPaneBefore=1;
-    while(paneIndex-indexPaneBefore>=0)
-    {
-        if(panes[paneIndex-indexPaneBefore].IsShown()&&!panes[paneIndex-indexPaneBefore].IsFloating())
-            break;
-        indexPaneBefore++;
-    }
-    int indexPaneAfter=1;
-    while(paneIndex+indexPaneAfter<paneCount)
-    {
-        if(panes[paneIndex+indexPaneAfter].IsShown()&&!panes[paneIndex+indexPaneAfter].IsFloating())
-            break;
-        indexPaneAfter++;
-    }
-    // If first visible pane before or after us in the array has the same position, layer and row as us then we are part of a notebook.
-    if(paneIndex+indexPaneAfter<paneCount && p.GetPosition() == panes.Item(paneIndex+indexPaneAfter).GetPosition() && p.GetLayer() == panes.Item(paneIndex+indexPaneAfter).GetLayer() && p.GetRow() == panes.Item(paneIndex+indexPaneAfter).GetRow() && p.GetDirection() == panes.Item(paneIndex+indexPaneAfter).GetDirection())
-    {
-        return true;
-    }
-    else if(paneIndex-indexPaneBefore >= 0 && p.GetPosition() == panes.Item(paneIndex-indexPaneBefore).GetPosition() && p.GetLayer() == panes.Item(paneIndex-indexPaneBefore).GetLayer() && p.GetRow() == panes.Item(paneIndex-indexPaneBefore).GetRow() && p.GetDirection() == panes.Item(paneIndex-indexPaneBefore).GetDirection())
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
 
 // SetActivePane() sets the active pane, as well as cycles through
 // every other pane and makes sure that all others' active flags
@@ -688,20 +628,18 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
     for (i = 0, paneCount = m_panes.GetCount(); i < paneCount; ++i)
     {
         wxAuiPaneInfo& pane = m_panes.Item(i);
-        pane.SetFlag(wxAuiPaneInfo::optionActive,false);
+        pane.SetFlag(wxAuiPaneInfo::optionActive, false);
         if (pane.GetWindow() == activePane)
         {
-            if(IsNotebookPane(m_panes,i))
+            activePaneInfo = &pane;
+            wxAuiTabContainer* ctrl;
+            int ctrlIndex;
+            if(FindTab(pane.GetWindow(), &ctrl, &ctrlIndex))
             {
-                activePaneInfo = &pane;
-                wxAuiTabContainer* ctrl;
-                int ctrlIndex;
-                if(FindTab(pane.GetWindow(), &ctrl, &ctrlIndex))
-                {
-                    ctrl->SetActivePage(pane.GetWindow());
-                }
+                ctrl->SetActivePage(pane.GetWindow());
             }
-            pane.SetFlag(wxAuiPaneInfo::optionActive,true);
+
+            pane.SetFlag(wxAuiPaneInfo::optionActive, true);
         }
     }
 
@@ -2454,7 +2392,7 @@ bool wxAuiManager::CanDockOver(wxAuiPaneInfo const &pane, wxAuiPaneInfo const &c
 // This method tells if a pane must be set into a notebook, even if it's alone
 bool wxAuiManager::MustDockInNotebook(const wxAuiPaneInfo &pane) const
 {
-return !pane.IsFloating() && pane.IsAlwaysDockInNotebook();
+    return !pane.IsFloating() && pane.IsAlwaysDockInNotebook();
 }
 
 
@@ -2521,7 +2459,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
             if (pane.IsMaximized())
                 hasMaximizedPane = true;
 
-            if(firstPaneInNotebook && CanDockOver(pane, *firstPaneInNotebook))
+            if (firstPaneInNotebook && CanDockOver(pane, *firstPaneInNotebook))
             {
                 // This page is part of an existing notebook so add it to the container.
                 // If it is the active page then it is visible, otherwise hide it.
@@ -2582,7 +2520,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
             }
             else
             {
-                if(firstPaneInNotebook)
+                if (firstPaneInNotebook)
                 {
                     // Right/Bottom notebook
                     if(HasFlag(wxAUI_MGR_NB_RIGHT))
@@ -2667,6 +2605,10 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                     firstPaneInNotebook = NULL;
                     notebookContainer = NULL;
                     notebookSizer = NULL;
+
+                    // Show the pane if necessary (all invisible panes have already been hidden)
+                    if (!m_doingHintCalculation && pane.IsShown() && !pane.GetWindow()->IsShown())
+                        ShowWnd(pane.GetWindow(), true);
                 }
             }
 
@@ -2900,6 +2842,11 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                     firstPaneInNotebook = NULL;
                     notebookContainer = NULL;
                     notebookSizer = NULL;
+
+                    // Show the pane if necessary (all invisible panes have already been hidden)
+                    if (!m_doingHintCalculation && pane.IsShown() && !pane.GetWindow()->IsShown())
+                        ShowWnd(pane.GetWindow(), true);
+
                 }
             }
 
@@ -3519,12 +3466,7 @@ void wxAuiManager::Update()
                     p.GetFrame()->SetSize(p.GetFloatingPosition().x, p.GetFloatingPosition().y,
                                      p.GetFloatingSize().x, p.GetFloatingSize().y,
                                      wxSIZE_USE_EXISTING);
-                /*
-                    p.frame->SetSize(p.floating_pos.x, p.floating_pos.y,
-                                     wxDefaultCoord, wxDefaultCoord,
-                                     wxSIZE_USE_EXISTING);
-                    //p.frame->Move(p.floating_pos.x, p.floating_pos.y);
-                */
+
                 }
 
                 if (p.GetFrame()->IsShown() != p.IsShown())
@@ -3547,15 +3489,11 @@ void wxAuiManager::Update()
         {
             if (p.GetWindow()->IsShown() != p.IsShown())
             {
-                // Only reveal windows that are not part of a notebook, notebook windows will be taken care of inside LayoutAll()
-                // Doing so here as well can cause flicker(especially under MSW) due to windows being shown here and then hidden inside LayoutAll()
-                // All windows must be hidden here though, even notebook ones.
+                // Hide windows we are sure are hidden
+                // Other panes will be processed later
                 if(!p.IsShown())
                     ShowWnd(p.GetWindow(),false);
-                else if(!IsNotebookPane(m_panes,i))
-                {
-                    ShowWnd(p.GetWindow(),true);
-                }
+                
             }
         }
 
@@ -3672,26 +3610,6 @@ void wxAuiManager::Update()
 
     Repaint();
 
-    // set frame's minimum size
-
-#if 0
-    // N.B. More work needs to be done on frame minimum sizes;
-    // this is some intresting code that imposes the minimum size,
-    // but we may want to include a more flexible mechanism or
-    // options for multiple minimum-size modes, e.g. strict or lax
-    wxSize minSize = sizer->GetMinSize();
-    wxSize frameSize = m_frame->GetSize();
-    wxSize clientSize = m_frame->GetClientSize();
-
-    wxSize minframe_size(minSize.x+frameSize.x-clientSize.x,
-                         minSize.y+frameSize.y-clientSize.y );
-
-    m_frame->SetMinSize(minframeSize);
-
-    if (frameSize.x < minframeSize.x ||
-        frameSize.y < minframeSize.y)
-            sizer->Fit(m_frame);
-#endif
 }
 
 
