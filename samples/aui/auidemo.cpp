@@ -43,7 +43,7 @@
 class MyApp : public wxApp
 {
 public:
-    bool OnInit() wxOVERRIDE;
+    bool OnInit();
 };
 
 DECLARE_APP(MyApp)
@@ -103,6 +103,7 @@ class MyFrame : public wxFrame
         ID_CustomizeToolbar,
         ID_DropDownToolbarItem,
         ID_SampleItem,
+		ID_ToggleNB,
         ID_FirstPerspective = ID_CreatePerspective+1000
     };
 
@@ -151,7 +152,7 @@ private:
     void OnGradient(wxCommandEvent& evt);
     void OnManagerFlag(wxCommandEvent& evt);
     void OnUpdateUI(wxUpdateUIEvent& evt);
-
+	void OnToggleNB(wxCommandEvent& WXUNUSED(evt));
     void OnPaneClose(wxAuiManagerEvent& evt);
 
 private:
@@ -160,7 +161,7 @@ private:
     wxArrayString m_perspectives;
     wxMenu* m_perspectives_menu;
 
-    wxDECLARE_EVENT_TABLE();
+    DECLARE_EVENT_TABLE()
 };
 
 
@@ -237,14 +238,14 @@ private:
 
     wxAuiManager* m_mgr;
 
-    wxDECLARE_EVENT_TABLE();
+    DECLARE_EVENT_TABLE()
 };
 
-wxBEGIN_EVENT_TABLE(wxSizeReportCtrl, wxControl)
+BEGIN_EVENT_TABLE(wxSizeReportCtrl, wxControl)
     EVT_PAINT(wxSizeReportCtrl::OnPaint)
     EVT_SIZE(wxSizeReportCtrl::OnSize)
     EVT_ERASE_BACKGROUND(wxSizeReportCtrl::OnEraseBackground)
-wxEND_EVENT_TABLE()
+END_EVENT_TABLE()
 
 
 class SettingsPanel : public wxPanel
@@ -526,10 +527,10 @@ private:
     wxBitmapButton* m_border_color;
     wxBitmapButton* m_gripper_color;
 
-    wxDECLARE_EVENT_TABLE();
+    DECLARE_EVENT_TABLE()
 };
 
-wxBEGIN_EVENT_TABLE(SettingsPanel, wxPanel)
+BEGIN_EVENT_TABLE(SettingsPanel, wxPanel)
     EVT_SPINCTRL(ID_PaneBorderSize, SettingsPanel::OnPaneBorderSize)
     EVT_SPINCTRL(ID_SashSize, SettingsPanel::OnSashSize)
     EVT_SPINCTRL(ID_CaptionSize, SettingsPanel::OnCaptionSize)
@@ -543,7 +544,7 @@ wxBEGIN_EVENT_TABLE(SettingsPanel, wxPanel)
     EVT_BUTTON(ID_ActiveCaptionTextColor, SettingsPanel::OnSetColor)
     EVT_BUTTON(ID_BorderColor, SettingsPanel::OnSetColor)
     EVT_BUTTON(ID_GripperColor, SettingsPanel::OnSetColor)
-wxEND_EVENT_TABLE()
+END_EVENT_TABLE()
 
 
 bool MyApp::OnInit()
@@ -562,7 +563,7 @@ bool MyApp::OnInit()
     return true;
 }
 
-wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
+BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_ERASE_BACKGROUND(MyFrame::OnEraseBackground)
     EVT_SIZE(MyFrame::OnSize)
     EVT_MENU(MyFrame::ID_CreateTree, MyFrame::OnCreateTree)
@@ -610,6 +611,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ID_HTMLContent, MyFrame::OnChangeContentPane)
     EVT_MENU(wxID_EXIT, MyFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+	EVT_MENU(ID_ToggleNB, MyFrame::OnToggleNB)
     EVT_UPDATE_UI(ID_AllowFloating, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_TransparentHint, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_VenetianBlindsHint, MyFrame::OnUpdateUI)
@@ -626,7 +628,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
                    MyFrame::OnRestorePerspective)
     EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, MyFrame::OnDropDownToolbarItem)
     EVT_AUI_PANE_CLOSE(MyFrame::OnPaneClose)
-wxEND_EVENT_TABLE()
+END_EVENT_TABLE()
 
 
 MyFrame::MyFrame(wxWindow* parent,
@@ -640,7 +642,7 @@ MyFrame::MyFrame(wxWindow* parent,
     // tell wxAuiManager to manage this frame
     m_mgr.SetManagedWindow(this);
 
-    // set frame icon
+	// set frame icon
     SetIcon(wxIcon(sample_xpm));
 
     // create menu
@@ -701,6 +703,7 @@ MyFrame::MyFrame(wxWindow* parent,
     options_menu->AppendRadioItem(ID_HorizontalGradient, _("Horizontal Caption Gradient"));
     options_menu->AppendSeparator();
     options_menu->Append(ID_Settings, _("Settings Pane"));
+	options_menu->Append(ID_ToggleNB, _("Toggle Dynamic Notebook Style"));
 
     m_perspectives_menu = new wxMenu;
     m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
@@ -797,6 +800,12 @@ void MyFrame::OnEraseBackground(wxEraseEvent& event)
 void MyFrame::OnSize(wxSizeEvent& event)
 {
     event.Skip();
+}
+
+void MyFrame::OnToggleNB(wxCommandEvent& WXUNUSED(evt))
+{
+	m_mgr.SetFlag(wxAUI_MGR_NB_ALLOW_NOTEBOOKS, (m_mgr.GetFlags() & wxAUI_MGR_NB_ALLOW_NOTEBOOKS)==0);
+	m_mgr.Update();
 }
 
 void MyFrame::OnSettings(wxCommandEvent& WXUNUSED(evt))
