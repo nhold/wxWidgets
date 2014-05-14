@@ -103,7 +103,7 @@ class MyFrame : public wxFrame
         ID_CustomizeToolbar,
         ID_DropDownToolbarItem,
         ID_SampleItem,
-		ID_ToggleNB,
+	ID_ToggleNB,
         ID_FirstPerspective = ID_CreatePerspective+1000
     };
 
@@ -152,7 +152,7 @@ private:
     void OnGradient(wxCommandEvent& evt);
     void OnManagerFlag(wxCommandEvent& evt);
     void OnUpdateUI(wxUpdateUIEvent& evt);
-	void OnToggleNB(wxCommandEvent& WXUNUSED(evt));
+    void OnToggleNB(wxCommandEvent& WXUNUSED(evt));
     void OnPaneClose(wxAuiManagerEvent& evt);
 
 private:
@@ -611,7 +611,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ID_HTMLContent, MyFrame::OnChangeContentPane)
     EVT_MENU(wxID_EXIT, MyFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-	EVT_MENU(ID_ToggleNB, MyFrame::OnToggleNB)
+    EVT_MENU(ID_ToggleNB, MyFrame::OnToggleNB)
     EVT_UPDATE_UI(ID_AllowFloating, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_TransparentHint, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_VenetianBlindsHint, MyFrame::OnUpdateUI)
@@ -641,6 +641,9 @@ MyFrame::MyFrame(wxWindow* parent,
 {
     // tell wxAuiManager to manage this frame
     m_mgr.SetManagedWindow(this);
+
+    // Enable dynamic notebooks
+    m_mgr.SetFlag(wxAUI_MGR_NB_ALLOW_NOTEBOOKS,true);
 
 	// set frame icon
     SetIcon(wxIcon(sample_xpm));
