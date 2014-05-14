@@ -202,8 +202,9 @@ public:
     virtual int GetPageImage(size_t n) const wxOVERRIDE;
     virtual bool SetPageImage(size_t n, int imageId) wxOVERRIDE;
 
-    wxWindow* GetCurrentPage() const;
+	int ChangeSelection(size_t n) wxOVERRIDE;
 
+    wxWindow* GetCurrentPage() const;
 
     virtual bool AddPage(wxWindow* page, const wxString& text, bool select,  int imageId);
     virtual bool DeleteAllPages() wxOVERRIDE;
