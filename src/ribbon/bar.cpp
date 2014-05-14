@@ -118,7 +118,10 @@ bool wxRibbonBar::DismissExpandedPanel()
 
 void wxRibbonBar::ShowPanels(wxRibbonDisplayMode mode)
 {
-    m_arePanelsShown = (mode == wxRIBBON_BAR_PINNED || mode == wxRIBBON_BAR_EXPANDED);
+    switch ( mode )
+    {
+    	m_arePanelsShown = (mode == wxRIBBON_BAR_PINNED || mode == wxRIBBON_BAR_EXPANDED);
+    }
 
     SetMinSize(wxSize(GetSize().GetWidth(), DoGetBestSize().GetHeight()));
     Realise();

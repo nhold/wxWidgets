@@ -48,17 +48,15 @@
     #include <sstream>
 #endif
 
+#ifndef HAVE_STD_STRING_COMPARE
 // string handling functions used by wxString:
 #if wxUSE_UNICODE_UTF8
-    #define wxStringMemcpy   memcpy
     #define wxStringMemcmp   memcmp
-    #define wxStringMemchr   memchr
     #define wxStringStrlen   strlen
 #else
-    #define wxStringMemcpy   wxTmemcpy
     #define wxStringMemcmp   wxTmemcmp
-    #define wxStringMemchr   wxTmemchr
     #define wxStringStrlen   wxStrlen
+#endif
 #endif
 
 // define a function declared in wx/buffer.h here as we don't have buffer.cpp
@@ -1185,7 +1183,7 @@ wxString wxString::FromAscii(const char *ascii, size_t len)
             wxASSERT_MSG( c < 0x80,
                           wxT("Non-ASCII value passed to FromAscii().") );
 
-            *dest++ = (wchar_t)c;
+            *dest++ = static_cast<wxStringCharType>(c);
         }
     }
 
@@ -2203,7 +2201,7 @@ bool wxString::Matches(const wxString& mask) const
                 // (however note that we don't quote '[' and ']' to allow
                 // using them for Unix shell like matching)
                 pattern += wxT('\\');
-                // fall through
+                wxFALLTHROUGH;
 
             default:
                 pattern += *pszMask;

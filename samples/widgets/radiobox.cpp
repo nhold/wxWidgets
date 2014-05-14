@@ -85,11 +85,11 @@ public:
     RadioWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~RadioWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_radio; }
-    virtual void RecreateWidget() { CreateRadio(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_radio; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateRadio(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -139,7 +139,7 @@ protected:
                *m_textLabelBtns;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(RadioWidgetsPage)
 };
 
@@ -147,7 +147,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(RadioWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(RadioWidgetsPage, WidgetsPage)
     EVT_BUTTON(RadioPage_Reset, RadioWidgetsPage::OnButtonReset)
 
     EVT_BUTTON(RadioPage_Update, RadioWidgetsPage::OnButtonRecreate)
@@ -169,7 +169,7 @@ BEGIN_EVENT_TABLE(RadioWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, RadioWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, RadioWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

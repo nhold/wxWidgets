@@ -57,6 +57,13 @@
 #if defined(__WXMSW__) || defined(__WXPM__)
     // must do everything ourselves
     #undef wxHAS_NATIVE_ENABLED_MANAGEMENT
+#elif defined(__WXOSX__)
+    #if wxOSX_USE_CARBON
+        #define wxHAS_NATIVE_ENABLED_MANAGEMENT
+    #else
+        // must do everything ourselves
+        #undef wxHAS_NATIVE_ENABLED_MANAGEMENT
+    #endif
 #else
     #define wxHAS_NATIVE_ENABLED_MANAGEMENT
 #endif
@@ -67,7 +74,6 @@
 
 class WXDLLIMPEXP_FWD_CORE wxCaret;
 class WXDLLIMPEXP_FWD_CORE wxControl;
-class WXDLLIMPEXP_FWD_CORE wxCursor;
 class WXDLLIMPEXP_FWD_CORE wxDC;
 class WXDLLIMPEXP_FWD_CORE wxDropTarget;
 class WXDLLIMPEXP_FWD_CORE wxLayoutConstraints;
@@ -876,8 +882,8 @@ public:
     bool HandleWindowEvent(wxEvent& event) const;
 
         // disable wxEvtHandler double-linked list mechanism:
-    virtual void SetNextHandler(wxEvtHandler *handler);
-    virtual void SetPreviousHandler(wxEvtHandler *handler);
+    virtual void SetNextHandler(wxEvtHandler *handler) wxOVERRIDE;
+    virtual void SetPreviousHandler(wxEvtHandler *handler) wxOVERRIDE;
 
 
     // Watcom doesn't allow reducing access with using access declaration, see
@@ -1525,8 +1531,8 @@ protected:
                     const wxString& name);
 
     // event handling specific to wxWindow
-    virtual bool TryBefore(wxEvent& event);
-    virtual bool TryAfter(wxEvent& event);
+    virtual bool TryBefore(wxEvent& event) wxOVERRIDE;
+    virtual bool TryAfter(wxEvent& event) wxOVERRIDE;
 
     enum WindowOrder
     {

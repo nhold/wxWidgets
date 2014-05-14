@@ -204,7 +204,7 @@ public:
         SetTransparent(0);
     }
 
-    virtual bool SetTransparent(wxByte alpha)
+    virtual bool SetTransparent(wxByte alpha) wxOVERRIDE
     {
         if (m_canSetShape)
         {
@@ -362,7 +362,7 @@ public:
         gtk_widget_modify_bg( m_widget, GTK_STATE_NORMAL, &col );
     }
 
-    bool SetTransparent(wxByte WXUNUSED(alpha))
+    bool SetTransparent(wxByte WXUNUSED(alpha)) wxOVERRIDE
     {
         return true;
     }

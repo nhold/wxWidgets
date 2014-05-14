@@ -76,7 +76,7 @@ public:
         m_scrollHelper = scrollHelper;
     }
 
-    virtual bool ProcessEvent(wxEvent& event);
+    virtual bool ProcessEvent(wxEvent& event) wxOVERRIDE;
 
 private:
     wxScrollHelperBase *m_scrollHelper;
@@ -98,7 +98,7 @@ public:
                       wxEventType eventTypeToSend,
                       int pos, int orient);
 
-    virtual void Notify();
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxWindow *m_win;
@@ -882,7 +882,7 @@ void wxAnyScrollHelperBase::HandleOnChar(wxKeyEvent& event)
 
         case WXK_LEFT:
             newEvent.SetOrientation(wxHORIZONTAL);
-            // fall through
+            wxFALLTHROUGH;
 
         case WXK_UP:
             newEvent.SetEventType(wxEVT_SCROLLWIN_LINEUP);
@@ -890,7 +890,7 @@ void wxAnyScrollHelperBase::HandleOnChar(wxKeyEvent& event)
 
         case WXK_RIGHT:
             newEvent.SetOrientation(wxHORIZONTAL);
-            // fall through
+            wxFALLTHROUGH;
 
         case WXK_DOWN:
             newEvent.SetEventType(wxEVT_SCROLLWIN_LINEDOWN);
@@ -1292,7 +1292,7 @@ wxScrollHelper::DoAdjustScrollbar(int orient,
 
         default:
             wxFAIL_MSG( wxS("unknown scrollbar visibility") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxSHOW_SB_DEFAULT:
             range = scrollUnits;

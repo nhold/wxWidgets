@@ -2132,16 +2132,16 @@ public:
 
     // implement base class virtual methods
     virtual size_t ToWChar(wchar_t *dst, size_t dstLen,
-                           const char *src, size_t srcLen = wxNO_LEN) const;
+                           const char *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
     virtual size_t FromWChar(char *dst, size_t dstLen,
-                             const wchar_t *src, size_t srcLen = wxNO_LEN) const;
-    virtual size_t GetMBNulLen() const;
+                             const wchar_t *src, size_t srcLen = wxNO_LEN) const wxOVERRIDE;
+    virtual size_t GetMBNulLen() const wxOVERRIDE;
 
 #if wxUSE_UNICODE_UTF8
-    virtual bool IsUTF8() const;
+    virtual bool IsUTF8() const wxOVERRIDE;
 #endif
 
-    virtual wxMBConv *Clone() const
+    virtual wxMBConv *Clone() const wxOVERRIDE
     {
         wxMBConv_iconv *p = new wxMBConv_iconv(m_name);
         p->m_minMBCharWidth = m_minMBCharWidth;
@@ -2586,11 +2586,9 @@ public:
         // wouldn't work if reading an incomplete MB char didn't result in an
         // error
         //
-        // Moreover, MB_ERR_INVALID_CHARS is only supported on Win 2K SP4 or
-        // Win XP or newer and it is not supported for UTF-[78] so we always
-        // use our own conversions in this case. See
-        //     http://blogs.msdn.com/michkap/archive/2005/04/19/409566.aspx
-        //     http://msdn.microsoft.com/library/en-us/intl/unicode_17si.asp
+        // Moreover, MB_ERR_INVALID_CHARS is not supported for UTF-8 under XP
+        // and for UTF-7 under any Windows version, so we always use our own
+        // conversions in this case.
         if ( m_CodePage == CP_UTF8 )
         {
             return wxMBConvUTF8().MB2WC(buf, psz, n);
@@ -2601,52 +2599,17 @@ public:
             return wxMBConvUTF7().MB2WC(buf, psz, n);
         }
 
-        int flags = 0;
-        if ( (m_CodePage < 50000 && m_CodePage != CP_SYMBOL) &&
-                IsAtLeastWin2kSP4() )
-        {
-            flags = MB_ERR_INVALID_CHARS;
-        }
-
         const size_t len = ::MultiByteToWideChar
                              (
                                 m_CodePage,     // code page
-                                flags,          // flags: fall on error
+                                MB_ERR_INVALID_CHARS,  // flags: fall on error
                                 psz,            // input string
                                 -1,             // its length (NUL-terminated)
                                 buf,            // output string
                                 buf ? n : 0     // size of output buffer
                              );
         if ( !len )
-        {
-            // function totally failed
             return wxCONV_FAILED;
-        }
-
-        // if we were really converting and didn't use MB_ERR_INVALID_CHARS,
-        // check if we succeeded, by doing a double trip:
-        if ( !flags && buf )
-        {
-            const size_t mbLen = strlen(psz);
-            wxCharBuffer mbBuf(mbLen);
-            if ( ::WideCharToMultiByte
-                   (
-                      m_CodePage,
-                      0,
-                      buf,
-                      -1,
-                      mbBuf.data(),
-                      mbLen + 1,        // size in bytes, not length
-                      NULL,
-                      NULL
-                   ) == 0 ||
-                  strcmp(mbBuf, psz) != 0 )
-            {
-                // we didn't obtain the same thing we started from, hence
-                // the conversion was lossy and we consider that it failed
-                return wxCONV_FAILED;
-            }
-        }
 
         // note that it returns count of written chars for buf != NULL and size
         // of the needed buffer for buf == NULL so in either case the length of
@@ -2820,33 +2783,6 @@ private:
         return s_isWin98Or2k == 1;
     }
 
-    static bool IsAtLeastWin2kSP4()
-    {
-#ifdef __WXWINCE__
-        return false;
-#else
-        static int s_isAtLeastWin2kSP4 = -1;
-
-        if ( s_isAtLeastWin2kSP4 == -1 )
-        {
-            OSVERSIONINFOEX ver;
-
-            memset(&ver, 0, sizeof(ver));
-            ver.dwOSVersionInfoSize = sizeof(ver);
-            GetVersionEx((OSVERSIONINFO*)&ver);
-
-            s_isAtLeastWin2kSP4 =
-              ((ver.dwMajorVersion > 5) || // Vista+
-               (ver.dwMajorVersion == 5 && ver.dwMinorVersion > 0) || // XP/2003
-               (ver.dwMajorVersion == 5 && ver.dwMinorVersion == 0 &&
-               ver.wServicePackMajor >= 4)) // 2000 SP4+
-              ? 1 : 0;
-        }
-
-        return s_isAtLeastWin2kSP4 == 1;
-#endif
-    }
-
 
     // the code page we're working with
     long m_CodePage;
@@ -2897,7 +2833,7 @@ public:
         Init();
     }
 
-    size_t MB2WC(wchar_t *buf, const char *psz, size_t WXUNUSED(n)) const
+    size_t MB2WC(wchar_t *buf, const char *psz, size_t WXUNUSED(n)) const wxOVERRIDE
     {
         size_t inbuf = strlen(psz);
         if (buf)
@@ -2908,7 +2844,7 @@ public:
         return inbuf;
     }
 
-    size_t WC2MB(char *buf, const wchar_t *psz, size_t WXUNUSED(n)) const
+    size_t WC2MB(char *buf, const wchar_t *psz, size_t WXUNUSED(n)) const wxOVERRIDE
     {
         const size_t inbuf = wxWcslen(psz);
         if (buf)
@@ -2920,7 +2856,7 @@ public:
         return inbuf;
     }
 
-    virtual size_t GetMBNulLen() const
+    virtual size_t GetMBNulLen() const wxOVERRIDE
     {
         switch ( m_enc )
         {
@@ -2937,7 +2873,7 @@ public:
         }
     }
 
-    virtual wxMBConv *Clone() const { return new wxMBConv_wxwin(m_enc); }
+    virtual wxMBConv *Clone() const wxOVERRIDE { return new wxMBConv_wxwin(m_enc); }
 
     bool IsOk() const { return m_ok; }
 

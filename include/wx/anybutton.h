@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/anybutton.h
 // Purpose:     wxAnyButtonBase class
-// Author:      Vadim Zetlin
+// Author:      Vadim Zeitlin
 // Created:     2000-08-15 (extracted from button.h)
-// Copyright:   (c) Vadim Zetlin
+// Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +102,7 @@ public:
     // Buttons on MSW can look bad if they are not native colours, because
     // then they become owner-drawn and not theme-drawn.  Disable it here
     // in wxAnyButtonBase to make it consistent.
-    virtual bool ShouldInheritColours() const { return false; }
+    virtual bool ShouldInheritColours() const wxOVERRIDE { return false; }
 
     // wxUniv-compatible and deprecated equivalents to SetBitmapXXX()
 #if WXWIN_COMPATIBILITY_2_8
@@ -150,7 +150,7 @@ public:
 
 protected:
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_NONE; }
 
     virtual wxBitmap DoGetBitmap(State WXUNUSED(which)) const
         { return wxBitmap(); }

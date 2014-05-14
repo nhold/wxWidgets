@@ -236,6 +236,8 @@ typedef short int WXTYPE;
 /*  other feature tests */
 /*  ---------------------------------------------------------------------------- */
 
+#ifdef __cplusplus
+
 /*  Every ride down a slippery slope begins with a single step.. */
 /*  */
 /*  Yes, using nested classes is indeed against our coding standards in */
@@ -269,6 +271,46 @@ typedef short int WXTYPE;
     #define wxEXPLICIT
 #endif /*  HAVE_EXPLICIT/!HAVE_EXPLICIT */
 
+/* check for override keyword support */
+#ifndef HAVE_OVERRIDE
+    #if __cplusplus >= 201103L
+        /* All C++11 compilers should have it. */
+        #define HAVE_OVERRIDE
+    #elif wxCHECK_VISUALC_VERSION(11)
+        /*
+           VC++ supports override keyword since version 8 but doesn't define
+           __cplusplus as indicating C++11 support (at least up to and
+           including 12), so handle its case specially.
+
+           Also note that while the keyword is supported, using it with
+           versions 8, 9 and 10 results in C4481 compiler warning ("nonstandard
+           extension used") and so we avoid using it there, you could disable
+           this warning and predefine HAVE_OVERRIDE if you don't care about it.
+         */
+        #define HAVE_OVERRIDE
+    #elif WX_HAS_CLANG_FEATURE(cxx_override_control)
+        #define HAVE_OVERRIDE
+    #endif
+#endif /* !HAVE_OVERRIDE */
+
+#ifdef HAVE_OVERRIDE
+    #define wxOVERRIDE override
+#else /*  !HAVE_OVERRIDE */
+    #define wxOVERRIDE
+#endif /*  HAVE_OVERRIDE/!HAVE_EXPLICIT */
+
+/* wxFALLTHROUGH is used to notate explicit fallthroughs in switch statements */
+
+#if __cplusplus >= 201103L && defined(__has_warning)
+    #if WX_HAS_CLANG_FEATURE(cxx_attributes)
+        #define wxFALLTHROUGH [[clang::fallthrough]]
+    #endif
+#endif
+
+#ifndef wxFALLTHROUGH
+    #define wxFALLTHROUGH ((void)0)
+#endif
+
 /* these macros are obsolete, use the standard C++ casts directly now */
 #define wx_static_cast(t, x) static_cast<t>(x)
 #define wx_const_cast(t, x) const_cast<t>(x)
@@ -279,7 +321,7 @@ typedef short int WXTYPE;
    truncate from a larger to smaller type, static_cast<> can't be used for it
    as it results in warnings when using some compilers (SGI mipspro for example)
  */
-#if defined(__INTELC__) && defined(__cplusplus)
+#if defined(__INTELC__)
     template <typename T, typename X>
     inline T wx_truncate_cast_impl(X x)
     {
@@ -298,7 +340,7 @@ typedef short int WXTYPE;
 
     #define wx_truncate_cast(t, x) wx_truncate_cast_impl<t>(x)
 
-#elif defined(__cplusplus) && defined(__VISUALC__) && __VISUALC__ >= 1310
+#elif defined(__VISUALC__) && __VISUALC__ >= 1310
     template <typename T, typename X>
     inline T wx_truncate_cast_impl(X x)
     {
@@ -382,6 +424,8 @@ typedef short int WXTYPE;
         #endif
     #endif
 #endif /* defined(__has_include) */
+
+#endif /* __cplusplus */
 
 /* provide replacement for C99 va_copy() if the compiler doesn't have it */
 
@@ -2080,8 +2124,10 @@ enum wxBackgroundStyle
      */
     wxBG_STYLE_PAINT,
 
-
-    /* this is a Mac-only style, don't use in portable code */
+    /*
+        Indicates that the window background is not erased, letting the parent
+        window show through.
+     */
     wxBG_STYLE_TRANSPARENT,
 
     /* this style is deprecated and doesn't do anything, don't use */
@@ -3204,9 +3250,9 @@ typedef WXHWND          WXWidget;
 #endif
 
 #ifdef __WIN64__
-typedef unsigned __int64   WXWPARAM;
-typedef __int64            WXLPARAM;
-typedef __int64            WXLRESULT;
+typedef wxUint64           WXWPARAM;
+typedef wxInt64            WXLPARAM;
+typedef wxInt64            WXLRESULT;
 #else
 typedef wxW64 unsigned int WXWPARAM;
 typedef wxW64 long         WXLPARAM;

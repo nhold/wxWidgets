@@ -70,12 +70,12 @@ public:
     SearchCtrlWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~SearchCtrlWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_srchCtrl; }
-    virtual wxTextEntryBase *GetTextEntry() const { return m_srchCtrl; }
-    virtual void RecreateWidget();
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_srchCtrl; }
+    virtual wxTextEntryBase *GetTextEntry() const wxOVERRIDE { return m_srchCtrl; }
+    virtual void RecreateWidget() wxOVERRIDE;
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
 
@@ -98,7 +98,7 @@ protected:
     wxCheckBox*         m_menuBtnCheck;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(SearchCtrlWidgetsPage)
 };
 
@@ -106,14 +106,14 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(SearchCtrlWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(SearchCtrlWidgetsPage, WidgetsPage)
     EVT_CHECKBOX(ID_SEARCH_CB, SearchCtrlWidgetsPage::OnToggleSearchButton)
     EVT_CHECKBOX(ID_CANCEL_CB, SearchCtrlWidgetsPage::OnToggleCancelButton)
     EVT_CHECKBOX(ID_MENU_CB, SearchCtrlWidgetsPage::OnToggleSearchMenu)
 
     EVT_SEARCHCTRL_SEARCH_BTN(wxID_ANY, SearchCtrlWidgetsPage::OnSearch)
     EVT_SEARCHCTRL_CANCEL_BTN(wxID_ANY, SearchCtrlWidgetsPage::OnSearchCancel)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

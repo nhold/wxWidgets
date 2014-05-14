@@ -133,6 +133,7 @@ enum wxLanguage
     wxLANGUAGE_ITALIAN_SWISS,
     wxLANGUAGE_JAPANESE,
     wxLANGUAGE_JAVANESE,
+    wxLANGUAGE_KABYLE,
     wxLANGUAGE_KANNADA,
     wxLANGUAGE_KASHMIRI,
     wxLANGUAGE_KASHMIRI_INDIA,
@@ -255,11 +256,12 @@ enum wxLanguage
     wxLANGUAGE_ZHUANG,
     wxLANGUAGE_ZULU,
 
-    /// Obsolete synonym.
-    wxLANGUAGE_CAMBODIAN = wxLANGUAGE_KHMER,
-
     /// For custom, user-defined languages.
-    wxLANGUAGE_USER_DEFINED
+    wxLANGUAGE_USER_DEFINED,
+
+
+    /// Obsolete synonym.
+    wxLANGUAGE_CAMBODIAN = wxLANGUAGE_KHMER
 };
 
 // --- --- --- generated code ends here --- --- ---

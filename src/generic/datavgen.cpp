@@ -1633,8 +1633,11 @@ wxDragResult wxDataViewMainWindow::OnDragOver( wxDataFormat format, wxCoord x,
         m_dropHint = true;
         m_dropHintLine = row;
         RefreshRow( row );
-    } else
+    }
+    else
+    {
         RemoveDropHint();
+    }
 
     return def;
 }
@@ -2101,11 +2104,11 @@ void wxDataViewMainWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
                 dataitem = wxDataViewItem( wxUIntToPtr(item+1) );
             }
 
-            cell->PrepareForItem(model, dataitem, col->GetModelColumn());
-
             // update cell_rect
             cell_rect.y = GetLineStart( item );
             cell_rect.height = GetLineHeight( item );
+
+            cell->PrepareForItem(model, dataitem, col->GetModelColumn());
 
             // draw the background
             bool selected = m_selection.Index( item ) != wxNOT_FOUND;
@@ -4259,7 +4262,7 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
         {
             // we make the rectangle we are looking in a bit bigger than the actual
             // visual expander so the user can hit that little thing reliably
-            wxRect rect(xpos+itemOffset,
+            wxRect rect(xpos + itemOffset,
                         GetLineStart( current ) + (GetLineHeight(current) - m_lineHeight)/2,
                         m_lineHeight, m_lineHeight);
 
@@ -4485,6 +4488,11 @@ void wxDataViewMainWindow::OnMouse( wxMouseEvent &event )
                               col->GetWidth() - itemOffset,
                               GetLineHeight( current ) );
                               
+            cell->PrepareForItem(model, item, col->GetModelColumn());
+
+            // Note that PrepareForItem() should be called after GetLineStart()
+            // call in cell_rect initialization above as GetLineStart() calls
+            // PrepareForItem() for other items from inside it.
             cell->PrepareForItem(model, item, col->GetModelColumn());
 
             // Report position relative to the cell's custom area, i.e.
@@ -4789,9 +4797,12 @@ bool wxDataViewCtrl::AssociateModel( wxDataViewModel *model )
         m_notifier = new wxGenericDataViewModelNotifier( m_clientArea );
         model->AddNotifier( m_notifier );
     }
-    else if (m_notifier)
+    else
     {
-        m_notifier->Cleared();
+        // Our previous notifier has either been already deleted when the
+        // previous model was DecRef()'d in the base class AssociateModel() or
+        // is not associated with us any more because if the model is still
+        // alive, it's not used by this control.
         m_notifier = NULL;
     }
 

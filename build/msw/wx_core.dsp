@@ -1752,6 +1752,10 @@ SOURCE=..\..\include\wx\msw\ole\oleutils.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\msw\ownerdrawnbutton.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\msw\ownerdrw.h
 # End Source File
 # Begin Source File
@@ -2884,6 +2888,10 @@ SOURCE=..\..\include\wx\position.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\preferences.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\print.h
 # End Source File
 # Begin Source File
@@ -3157,6 +3165,10 @@ SOURCE=..\..\include\wx\taskbar.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\tbarbase.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\testing.h
 # End Source File
 # Begin Source File
 

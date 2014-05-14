@@ -50,9 +50,9 @@ class MyApp: public wxApp
 public:
     MyApp() { m_lang = wxLANGUAGE_UNKNOWN; }
 
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
-    virtual bool OnInit();
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual bool OnInit() wxOVERRIDE;
 
 protected:
     wxLanguage m_lang;  // language specified by user
@@ -77,7 +77,7 @@ public:
     void OnTest3(wxCommandEvent& event);
     void OnTestMsgBox(wxCommandEvent& event);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
     wxLocale& m_locale;
 };
@@ -154,7 +154,7 @@ wxCOMPILE_TIME_ASSERT( WXSIZEOF(langNames) == WXSIZEOF(langIds),
 // wxWidgets macros
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(INTERNAT_TEST, MyFrame::OnTestLocaleAvail)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
     EVT_MENU(wxID_EXIT, MyFrame::OnQuit)
@@ -165,7 +165,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(INTERNAT_TEST_2, MyFrame::OnTest2)
     EVT_MENU(INTERNAT_TEST_3, MyFrame::OnTest3)
     EVT_MENU(INTERNAT_TEST_MSGBOX, MyFrame::OnTestMsgBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 IMPLEMENT_APP(MyApp)
 

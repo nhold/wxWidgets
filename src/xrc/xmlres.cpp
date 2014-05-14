@@ -1386,7 +1386,7 @@ class wxXmlSubclassFactoryCXX : public wxXmlSubclassFactory
 public:
     ~wxXmlSubclassFactoryCXX() {}
 
-    wxObject *Create(const wxString& className)
+    wxObject *Create(const wxString& className) wxOVERRIDE
     {
         wxClassInfo* classInfo = wxClassInfo::FindClass(className);
 
@@ -1560,7 +1560,7 @@ wxString wxXmlResourceHandlerImpl::GetText(const wxString& param, bool translate
                         str2 << wxT('\\');
                         break;
                     }
-                    // else fall-through to default: branch below
+                    wxFALLTHROUGH;// else fall-through to default: branch below
 
                 default:
                     str2 << wxT('\\') << *dt;
@@ -2859,12 +2859,12 @@ class wxXmlResourceModule: public wxModule
 DECLARE_DYNAMIC_CLASS(wxXmlResourceModule)
 public:
     wxXmlResourceModule() {}
-    bool OnInit()
+    bool OnInit() wxOVERRIDE
     {
         wxXmlResource::AddSubclassFactory(new wxXmlSubclassFactoryCXX);
         return true;
     }
-    void OnExit()
+    void OnExit() wxOVERRIDE
     {
         delete wxXmlResource::Set(NULL);
         delete wxIdRangeManager::Set(NULL);

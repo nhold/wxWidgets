@@ -105,7 +105,7 @@ of MSW, MAC and OS2
 class MyAppTraits : public wxGUIAppTraits
 {
 public:
-    virtual wxLog *CreateLogTarget();
+    virtual wxLog *CreateLogTarget() wxOVERRIDE;
 };
 
 #endif // wxUSE_LOG
@@ -116,16 +116,16 @@ class MyApp: public wxApp
 public:
     MyApp() { m_startupProgressStyle = -1; }
 
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 
 #if wxUSE_CMDLINE_PARSER
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
 #endif // wxUSE_CMDLINE_PARSER
 
 protected:
 #if wxUSE_LOG
-    virtual wxAppTraits *CreateTraits() { return new MyAppTraits; }
+    virtual wxAppTraits *CreateTraits() wxOVERRIDE { return new MyAppTraits; }
 #endif // wxUSE_LOG
 
 private:
@@ -148,7 +148,7 @@ public:
     void OnClose(wxCloseEvent& event);
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // A custom modal dialog
@@ -164,7 +164,7 @@ private:
              *m_btnModeless,
              *m_btnDelete;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // USE_MODAL_PRESENTATION
@@ -195,7 +195,7 @@ private:
 
     wxSizer *m_buttonsSizer;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // Test harness for wxMessageDialog.
@@ -215,6 +215,8 @@ protected:
 
     virtual void AddAdditionalTextOptions(wxSizer *WXUNUSED(sizer)) { }
     virtual void AddAdditionalFlags(wxSizer *WXUNUSED(sizer)) { }
+
+    void ShowResult(int res);
 
     void OnApply(wxCommandEvent& event);
     void OnClose(wxCommandEvent& event);
@@ -264,7 +266,9 @@ private:
     wxCheckBox *m_chkNoDefault,
                *m_chkCentre;
 
-    DECLARE_EVENT_TABLE()
+    wxStaticText *m_labelResult;
+
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(TestMessageBoxDialog);
 };
 
@@ -276,8 +280,8 @@ public:
 
 protected:
     // overrides method in base class
-    virtual void AddAdditionalTextOptions(wxSizer *sizer);
-    virtual void AddAdditionalFlags(wxSizer *sizer);
+    virtual void AddAdditionalTextOptions(wxSizer *sizer) wxOVERRIDE;
+    virtual void AddAdditionalFlags(wxSizer *sizer) wxOVERRIDE;
 
     void OnApply(wxCommandEvent& event);
 
@@ -286,7 +290,7 @@ private:
     wxCheckBox *m_initialValueCheckBox;
     wxTextCtrl *m_textDetailed;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 #endif // wxUSE_RICHMSGDLG
 
@@ -305,7 +309,7 @@ private:
     bool   m_catchListBoxDClick;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -510,7 +514,7 @@ private:
               *m_infoBarAdvanced;
 #endif // wxUSE_INFOBAR
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 class MyCanvas: public wxScrolledWindow
@@ -526,7 +530,7 @@ public:
 private:
     void OnPaint(wxPaintEvent& event);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 

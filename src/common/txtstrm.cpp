@@ -92,7 +92,7 @@ wxChar wxTextInputStream::NextChar()
                 // loop iteration we shouldn't be able to decode 2 or more of
                 // them with an extra single byte, something fishy is going on
                 wxFAIL_MSG("unexpected decoding result");
-                // fall through nevertheless and return at least something
+                wxFALLTHROUGH;// fall through nevertheless and return at least something
 
             case 1:
                 // we finally decoded a character
@@ -146,6 +146,21 @@ bool wxTextInputStream::EatEOL(const wxChar &c)
     return false;
 }
 
+wxUint64 wxTextInputStream::Read64(int base)
+{
+    wxASSERT_MSG( !base || (base > 1 && base <= 36), wxT("invalid base") );
+    if(!m_input) return 0;
+
+    wxString word = ReadWord();
+    if(word.empty())
+        return 0;
+
+    wxUint64 res;
+    if(!word.ToULongLong(&res, base))
+        return 0;
+    return res;
+}
+
 wxUint32 wxTextInputStream::Read32(int base)
 {
     wxASSERT_MSG( !base || (base > 1 && base <= 36), wxT("invalid base") );
@@ -165,6 +180,21 @@ wxUint16 wxTextInputStream::Read16(int base)
 wxUint8 wxTextInputStream::Read8(int base)
 {
     return (wxUint8)Read32(base);
+}
+
+wxInt64 wxTextInputStream::Read64S(int base)
+{
+    wxASSERT_MSG( !base || (base > 1 && base <= 36), wxT("invalid base") );
+    if(!m_input) return 0;
+
+    wxString word = ReadWord();
+    if(word.empty())
+        return 0;
+
+    wxInt64 res;
+    if(!word.ToLongLong(&res, base))
+        return 0;
+    return res;
 }
 
 wxInt32 wxTextInputStream::Read32S(int base)
@@ -287,6 +317,12 @@ wxTextInputStream& wxTextInputStream::operator>>(wxInt32& i)
     return *this;
 }
 
+wxTextInputStream& wxTextInputStream::operator>>(wxInt64& i)
+{
+    i = (wxInt64)Read64();
+    return *this;
+}
+
 wxTextInputStream& wxTextInputStream::operator>>(wxUint16& i)
 {
     i = Read16();
@@ -296,6 +332,12 @@ wxTextInputStream& wxTextInputStream::operator>>(wxUint16& i)
 wxTextInputStream& wxTextInputStream::operator>>(wxUint32& i)
 {
     i = Read32();
+    return *this;
+}
+
+wxTextInputStream& wxTextInputStream::operator>>(wxUint64& i)
+{
+    i = Read64();
     return *this;
 }
 
@@ -354,6 +396,11 @@ void wxTextOutputStream::SetMode(wxEOL mode)
     }
 }
 
+void wxTextOutputStream::Write64(wxUint64 i)
+{
+    WriteString(wxString::Format("%" wxLongLongFmtSpec "u", i));
+}
+
 void wxTextOutputStream::Write32(wxUint32 i)
 {
     wxString str;
@@ -410,7 +457,7 @@ void wxTextOutputStream::WriteString(const wxString& string)
 
                 default:
                     wxFAIL_MSG( wxT("unknown EOL mode in wxTextOutputStream") );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxEOL_UNIX:
                     // don't treat '\n' specially
@@ -495,6 +542,13 @@ wxTextOutputStream& wxTextOutputStream::operator<<(wxInt32 c)
     return *this;
 }
 
+wxTextOutputStream& wxTextOutputStream::operator<<(wxInt64 c)
+{
+    WriteString(wxString::Format("%" wxLongLongFmtSpec "d", c));
+
+    return *this;
+}
+
 wxTextOutputStream& wxTextOutputStream::operator<<(wxUint16 c)
 {
     wxString str;
@@ -509,6 +563,13 @@ wxTextOutputStream& wxTextOutputStream::operator<<(wxUint32 c)
     wxString str;
     str.Printf(wxT("%lu"), (unsigned long)c);
     WriteString(str);
+
+    return *this;
+}
+
+wxTextOutputStream& wxTextOutputStream::operator<<(wxUint64 c)
+{
+    WriteString(wxString::Format("%" wxLongLongFmtSpec "u", c));
 
     return *this;
 }

@@ -66,11 +66,11 @@ public:
     TimePickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~TimePickerWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_timePicker; }
-    virtual void RecreateWidget() { CreateTimePicker(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_timePicker; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateTimePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -95,7 +95,7 @@ protected:
     wxTextCtrl *m_textCur;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(TimePickerWidgetsPage)
 };
 
@@ -103,12 +103,12 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(TimePickerWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(TimePickerWidgetsPage, WidgetsPage)
     EVT_BUTTON(TimePickerPage_Reset, TimePickerWidgetsPage::OnButtonReset)
     EVT_BUTTON(TimePickerPage_Set, TimePickerWidgetsPage::OnButtonSet)
 
     EVT_TIME_CHANGED(wxID_ANY, TimePickerWidgetsPage::OnTimeChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

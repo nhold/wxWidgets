@@ -156,7 +156,7 @@ public:
 
     virtual ~wxBlindPlateWindow();
 
-    virtual bool AcceptsFocus() const
+    virtual bool AcceptsFocus() const wxOVERRIDE
     {
         return false;
     }
@@ -1438,6 +1438,7 @@ void wxWindowMac::WarpPointer(int x_pos, int y_pos)
     DoClientToScreen(&x, &y);
     CGPoint cgpoint = CGPointMake( x, y );
     CGWarpMouseCursorPosition( cgpoint );
+    CGAssociateMouseAndMouseCursorPosition(true);
 
     // At least GTK sends a mouse moved event after WarpMouse
     wxMouseEvent event(wxEVT_MOTION);
@@ -2178,7 +2179,7 @@ WXWindow wxWindowMac::MacGetTopLevelWindowRef() const
 
 bool wxWindowMac::MacHasScrollBarCorner() const
 {
-#if wxUSE_SCROLLBAR
+#if wxUSE_SCROLLBAR && !wxOSX_USE_IPHONE
     /* Returns whether the scroll bars in a wxScrolledWindow should be
      * shortened. Scroll bars should be shortened if either:
      *

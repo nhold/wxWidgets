@@ -15,9 +15,11 @@
 
 #if wxUSE_GRAPHICS_CONTEXT
 
+#include "wx/affinematrix2d.h"
 #include "wx/geometry.h"
+#include "wx/colour.h"
 #include "wx/dynarray.h"
-#include "wx/dc.h"
+#include "wx/font.h"
 #include "wx/image.h"
 #include "wx/vector.h"
 
@@ -123,8 +125,8 @@ public:
     wxGraphicsRenderer* GetRenderer() const;
     wxGraphicsObjectRefData* GetGraphicsData() const;
 protected:
-    virtual wxObjectRefData* CreateRefData() const;
-    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const;
+    virtual wxObjectRefData* CreateRefData() const wxOVERRIDE;
+    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const wxOVERRIDE;
 
     DECLARE_DYNAMIC_CLASS(wxGraphicsObject)
 };
@@ -867,6 +869,10 @@ public:
 
     // create a subimage from a native image representation
     virtual wxGraphicsBitmap CreateSubBitmap( const wxGraphicsBitmap &bitmap, wxDouble x, wxDouble y, wxDouble w, wxDouble h  ) = 0;
+
+    virtual wxString GetName() const = 0;
+    virtual void
+    GetVersion(int* major, int* minor = NULL, int* micro = NULL) const = 0;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxGraphicsRenderer);

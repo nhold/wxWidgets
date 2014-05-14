@@ -14,8 +14,8 @@ class MyApp: public wxApp
 public:
     MyApp() {}
 
-    virtual bool OnInit();
-    virtual int OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
     void Draw(wxDC& dc);
 
@@ -66,7 +66,7 @@ private:
     MyCanvas* m_canvas;
     wxPreviewFrameModalityKind m_previewModality;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // Define a new white canvas
@@ -76,10 +76,10 @@ public:
     MyCanvas(wxFrame *frame, const wxPoint& pos, const wxSize& size, long style = wxRETAINED);
 
     //void OnPaint(wxPaintEvent& evt);
-    virtual void OnDraw(wxDC& dc);
+    virtual void OnDraw(wxDC& dc) wxOVERRIDE;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // Defines a new printout class to print our document
@@ -89,10 +89,10 @@ public:
     MyPrintout(MyFrame* frame, const wxString &title = wxT("My printout"))
         : wxPrintout(title) { m_frame=frame; }
 
-    virtual bool OnPrintPage(int page);
-    virtual bool HasPage(int page);
-    virtual bool OnBeginDocument(int startPage, int endPage);
-    virtual void GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo);
+    virtual bool OnPrintPage(int page) wxOVERRIDE;
+    virtual bool HasPage(int page) wxOVERRIDE;
+    virtual bool OnBeginDocument(int startPage, int endPage) wxOVERRIDE;
+    virtual void GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo) wxOVERRIDE;
 
     void DrawPageOne();
     void DrawPageTwo();

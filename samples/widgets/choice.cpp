@@ -77,12 +77,12 @@ class ChoiceWidgetsPage : public ItemContainerWidgetsPage
 public:
     ChoiceWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxControl *GetWidget() const { return m_choice; }
-    virtual wxItemContainer* GetContainer() const { return m_choice; }
-    virtual void RecreateWidget() { CreateChoice(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_choice; }
+    virtual wxItemContainer* GetContainer() const wxOVERRIDE { return m_choice; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateChoice(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -136,7 +136,7 @@ protected:
                *m_textDelete;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(ChoiceWidgetsPage)
 };
 
@@ -144,7 +144,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(ChoiceWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(ChoiceWidgetsPage, WidgetsPage)
     EVT_BUTTON(ChoicePage_Reset, ChoiceWidgetsPage::OnButtonReset)
     EVT_BUTTON(ChoicePage_Change, ChoiceWidgetsPage::OnButtonChange)
     EVT_BUTTON(ChoicePage_Delete, ChoiceWidgetsPage::OnButtonDelete)
@@ -171,7 +171,7 @@ BEGIN_EVENT_TABLE(ChoiceWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, ChoiceWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, ChoiceWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

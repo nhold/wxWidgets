@@ -66,7 +66,7 @@ public:
 
     virtual ~wxBitmapRefData();
 
-    virtual bool IsOk() const { return m_ok; }
+    virtual bool IsOk() const wxOVERRIDE { return m_ok; }
 
     void Free();
     void SetOk( bool isOk) { m_ok = isOk; }
@@ -1822,13 +1822,13 @@ class WXDLLEXPORT wxBundleResourceHandler: public wxBitmapHandler
 public:
     inline wxBundleResourceHandler()
     {
-    };
+    }
     
     virtual bool LoadFile(wxBitmap *bitmap,
                           const wxString& name,
                           wxBitmapType type,
                           int desiredWidth,
-                          int desiredHeight);
+                          int desiredHeight) wxOVERRIDE;
 };
 
 IMPLEMENT_ABSTRACT_CLASS(wxBundleResourceHandler, wxBitmapHandler);
@@ -1843,7 +1843,7 @@ public:
         SetName(wxT("PNG resource"));
         SetExtension("PNG");
         SetType(wxBITMAP_TYPE_PNG_RESOURCE);
-    };
+    }
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxPNGResourceHandler, wxBundleResourceHandler)
@@ -1858,7 +1858,7 @@ public:
         SetName(wxT("JPEG resource"));
         SetExtension("JPEG");
         SetType(wxBITMAP_TYPE_JPEG_RESOURCE);
-    };
+    }
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxJPEGResourceHandler, wxBundleResourceHandler)

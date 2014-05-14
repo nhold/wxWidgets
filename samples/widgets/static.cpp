@@ -93,8 +93,8 @@ public:
     StaticWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~StaticWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_statText; }
-    virtual Widgets GetWidgets() const
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_statText; }
+    virtual Widgets GetWidgets() const wxOVERRIDE
     {
         Widgets widgets;
         widgets.push_back(m_sizerStatBox->GetStaticBox());
@@ -108,10 +108,10 @@ public:
 
         return widgets;
     }
-    virtual void RecreateWidget() { CreateStatic(); }
+    virtual void RecreateWidget() wxOVERRIDE { CreateStatic(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -171,7 +171,7 @@ protected:
 #endif // wxUSE_MARKUP
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(StaticWidgetsPage)
 };
 
@@ -179,7 +179,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(StaticWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(StaticWidgetsPage, WidgetsPage)
     EVT_BUTTON(StaticPage_Reset, StaticWidgetsPage::OnButtonReset)
     EVT_BUTTON(StaticPage_LabelText, StaticWidgetsPage::OnButtonLabelText)
 #if wxUSE_MARKUP
@@ -189,7 +189,7 @@ BEGIN_EVENT_TABLE(StaticWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, StaticWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, StaticWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

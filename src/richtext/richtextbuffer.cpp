@@ -312,7 +312,7 @@ int wxRichTextFloatCollector::GetFitPosition(int direction, int start, int heigh
         return GetFitPosition(m_right, start, height);
     else
     {
-        wxASSERT("Never should be here");
+        wxFAIL_MSG("Never should be here");
         return start;
     }
 }
@@ -342,7 +342,7 @@ void wxRichTextFloatCollector::CollectFloat(wxRichTextParagraph* para, wxRichTex
             break;
         default:
             delete map;
-            wxASSERT("Unrecognised float attribute.");
+            wxFAIL_MSG("Unrecognised float attribute.");
     }
 
     m_para = para;
@@ -5150,11 +5150,12 @@ bool wxRichTextParagraph::Layout(wxDC& dc, wxRichTextDrawingContext& context, co
         }
         while (doLoop);
 
-        if (child->IsTopLevel())
+        // 2014-03-08: also need to set object positions
+        //if (child->IsTopLevel())
         {
             // We can move it to the correct position at this point
             // TODO: probably need to add margin
-            child->Move(GetPosition() + wxPoint(currentWidth + (wxMax(leftIndent, leftIndent + leftSubIndent)), currentPosition.y));
+            child->Move(GetPosition() + wxPoint(currentWidth + startOffset, currentPosition.y));
         }
 
         // Cases:
@@ -8767,6 +8768,11 @@ bool wxRichTextBuffer::PasteFromClipboard(long position)
                     container->InsertParagraphsWithUndo(this, position+1, *richTextBuffer, GetRichTextCtrl(), 0);
                     if (GetRichTextCtrl())
                         GetRichTextCtrl()->ShowPosition(position + richTextBuffer->GetOwnRange().GetEnd());
+                    if (richTextBuffer->GetStyleSheet())
+                    {
+                        delete richTextBuffer->GetStyleSheet();
+                        richTextBuffer->SetStyleSheet(NULL);                        
+                    }
                     delete richTextBuffer;
                 }
             }
@@ -9213,9 +9219,11 @@ bool wxRichTextField::Draw(wxDC& dc, wxRichTextDrawingContext& context, const wx
     if (fieldType && fieldType->Draw(this, dc, context, range, selection, rect, descent, style))
         return true;
 
-    // Fallback; but don't draw guidelines.
-    style &= ~wxRICHTEXT_DRAW_GUIDELINES;
-    return wxRichTextParagraphLayoutBox::Draw(dc, context, range, selection, rect, descent, style);
+    // Fallback so unknown fields don't become invisible.
+    wxString fieldTypeStr(GetFieldType());
+    wxRichTextFieldTypeStandard defaultFieldType;
+    defaultFieldType.SetLabel(wxString::Format(wxT("unknown field %s"), fieldTypeStr.c_str()));
+    return defaultFieldType.Draw(this, dc, context, range, selection, rect, descent, style);
 }
 
 bool wxRichTextField::Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style)
@@ -9224,8 +9232,11 @@ bool wxRichTextField::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
     if (fieldType && fieldType->Layout(this, dc, context, rect, parentRect, style))
         return true;
 
-    // Fallback
-    return wxRichTextParagraphLayoutBox::Layout(dc, context, rect, parentRect, style);
+    // Fallback so unknown fields don't become invisible.
+    wxString fieldTypeStr(GetFieldType());
+    wxRichTextFieldTypeStandard defaultFieldType;
+    defaultFieldType.SetLabel(wxString::Format(wxT("unknown field %s"), fieldTypeStr.c_str()));
+    return defaultFieldType.Layout(this, dc, context, rect, parentRect, style);
 }
 
 bool wxRichTextField::GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position, const wxSize& parentSize, wxArrayInt* partialExtents) const
@@ -9234,7 +9245,11 @@ bool wxRichTextField::GetRangeSize(const wxRichTextRange& range, wxSize& size, i
     if (fieldType)
         return fieldType->GetRangeSize((wxRichTextField*) this, range, size, descent, dc, context, flags, position, parentSize, partialExtents);
 
-    return wxRichTextParagraphLayoutBox::GetRangeSize(range, size, descent, dc, context, flags, position, parentSize, partialExtents);
+    // Fallback so unknown fields don't become invisible.
+    wxString fieldTypeStr(GetFieldType());
+    wxRichTextFieldTypeStandard defaultFieldType;
+    defaultFieldType.SetLabel(wxString::Format(wxT("unknown field %s"), fieldTypeStr.c_str()));
+    return defaultFieldType.GetRangeSize((wxRichTextField*) this, range, size, descent, dc, context, flags, position, parentSize, partialExtents);
 }
 
 /// Calculate range
@@ -10131,6 +10146,11 @@ bool wxRichTextTable::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
     wxArrayInt minColWidthsNoWrap;
     minColWidthsNoWrap.Add(0, m_colCount);
 
+    // Record the maximum spanning widths
+    wxArrayInt spanningWidths, spanningWidthsSpanLengths;
+    spanningWidths.Add(0, m_colCount);
+    spanningWidthsSpanLengths.Add(0, m_colCount);
+
     wxSize tableSize(tableWidth, 0);
 
     int i, j, k;
@@ -10322,11 +10342,7 @@ bool wxRichTextTable::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
     // (3) Process absolute or proportional widths of spanning columns,
     // now that we know what our fixed column widths are going to be.
     // Spanned cells will try to adjust columns so the span will fit.
-    // Even existing fixed column widths can be expanded if necessary.
-    // Actually, currently fixed columns widths aren't adjusted; instead,
-    // the algorithm favours earlier rows and adjusts unspecified column widths
-    // the first time only. After that, we can't know whether the column has been
-    // specified explicitly or not. (We could make a note if necessary.)
+    // Currently fixed columns widths aren't adjusted.
     for (j = 0; j < m_rowCount; j++)
     {
         int visibleCellCount = 0;
@@ -10366,15 +10382,6 @@ bool wxRichTextTable::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
                         }
                         else
                         {
-                            // Do we want to do this? It's the only chance we get to
-                            // use the cell's min/max sizes, so we need to work out
-                            // how we're going to balance the unspecified spanning cell
-                            // width with the possibility more-constrained constituent cell widths.
-                            // Say there's a tiny bitmap giving it a max width of 10 pixels. We
-                            // don't want to constraint all the spanned columns to fit into this cell.
-                            // OK, let's say that if any of the constituent columns don't fit,
-                            // then we simply stop constraining the columns; instead, we'll just fit the spanning
-                            // cells to the columns later.
                             cellWidth = cell->GetMinSize().x;
                             
                             if (cell->GetMaxSize().x > cellWidth)
@@ -10387,44 +10394,69 @@ bool wxRichTextTable::Layout(wxDC& dc, wxRichTextDrawingContext& context, const 
 
                         if (spanningWidth > 0)
                         {
-                            // Now share the spanning width between columns within that span
-                            int spanningWidthLeft = spanningWidth;
-                            int stretchColCount = 0;
-                            for (k = i; k < (i+spans); k++)
+                            if (spanningWidth > spanningWidths[i])
                             {
-                                int minColWidth = wxMax(minColWidths[k], minColWidthsNoWrap[k]);
-
-                                if (colWidths[k] > 0) // absolute or proportional width has been specified
-                                    spanningWidthLeft -= colWidths[k];
-                                else if (minColWidth > 0)
-                                    spanningWidthLeft -= minColWidth;
-                                else
-                                    stretchColCount ++;
-                            }
-                            // Now divide what's left between the remaining columns
-                            int colShare = 0;
-                            if (stretchColCount > 0)
-                                colShare = spanningWidthLeft / stretchColCount;
-                            int colShareRemainder = spanningWidthLeft - (colShare * stretchColCount);
-
-                            // If fixed-width columns are currently too big, then we'll later
-                            // stretch the spanned cell to fit.
-
-                            if (spanningWidthLeft > 0)
-                            {
-                                for (k = i; k < (i+spans); k++)
-                                {
-                                    int minColWidth = wxMax(minColWidths[k], minColWidthsNoWrap[k]);
-                                    if (colWidths[k] <= 0 && minColWidth <= 0) // absolute or proportional width has not been specified
-                                    {
-                                        int newWidth = colShare;
-                                        if (k == (i+spans-1))
-                                            newWidth += colShareRemainder; // ensure all pixels are filled
-                                        colWidths[k] = newWidth;
-                                    }
-                                }
+                                // Remember the largest spanning cell for this column,
+                                // so we can adjust the spanned columns in the next step.
+                                spanningWidths[i] = spanningWidth;
+                                spanningWidthsSpanLengths[i] = spans;
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // Complete the spanning width calculation, now we have the maximum spanning size
+    // for each spanning cell
+    for (i = 0; i < m_colCount; i++)
+    {
+        int spanningWidth = spanningWidths[i];
+        int spans = spanningWidthsSpanLengths[i];
+        if (spanningWidth > 0)
+        {
+            // Now share the spanning width between columns within that span
+            int spanningWidthLeft = spanningWidth;
+            int stretchColCount = 0;
+            for (k = i; k < (i+spans); k++)
+            {
+                int minColWidth = wxMax(minColWidths[k], minColWidthsNoWrap[k]);
+
+                if (colWidths[k] > 0) // absolute or proportional width has been specified
+                    spanningWidthLeft -= colWidths[k];
+                else if (minColWidth > 0)
+                {
+                    spanningWidthLeft -= minColWidth;
+                    // Allow this to stretch, otherwise we're likely to not allow
+                    // any stretching and the spanned column will end up tiny.
+                    stretchColCount ++;
+                }
+                else
+                    stretchColCount ++;
+            }
+            // Now divide what's left between the remaining columns
+            int colShare = 0;
+            if (stretchColCount > 0)
+                colShare = spanningWidthLeft / stretchColCount;
+            int colShareRemainder = spanningWidthLeft - (colShare * stretchColCount);
+
+            // If fixed-width columns are currently too big, then we'll later
+            // stretch the spanned cell to fit.
+            if (spanningWidthLeft > 0)
+            {
+                for (k = i; k < (i+spans); k++)
+                {
+                    int minColWidth = wxMax(minColWidths[k], minColWidthsNoWrap[k]);
+                    if (colWidths[k] <= 0) // absolute or proportional width has not been specified
+                    {
+                        int newWidth = colShare;
+                        if (minColWidth > 0)
+                            newWidth += minColWidth;
+
+                        if (k == (i+spans-1))
+                            newWidth += colShareRemainder; // ensure all pixels are filled
+                        minColWidths[k] = newWidth;
                     }
                 }
             }
@@ -11368,12 +11400,13 @@ class wxRichTextModule: public wxModule
 DECLARE_DYNAMIC_CLASS(wxRichTextModule)
 public:
     wxRichTextModule() {}
-    bool OnInit()
+    bool OnInit() wxOVERRIDE
     {
         wxRichTextBuffer::SetRenderer(new wxRichTextStdRenderer);
         wxRichTextBuffer::InitStandardHandlers();
         wxRichTextParagraph::InitDefaultTabs();
 
+#if wxUSE_XML
         wxRichTextXMLHandler::RegisterNodeName(wxT("text"), wxT("wxRichTextPlainText"));
         wxRichTextXMLHandler::RegisterNodeName(wxT("symbol"), wxT("wxRichTextPlainText"));
         wxRichTextXMLHandler::RegisterNodeName(wxT("image"), wxT("wxRichTextImage"));
@@ -11383,15 +11416,18 @@ public:
         wxRichTextXMLHandler::RegisterNodeName(wxT("cell"), wxT("wxRichTextCell"));
         wxRichTextXMLHandler::RegisterNodeName(wxT("table"), wxT("wxRichTextTable"));
         wxRichTextXMLHandler::RegisterNodeName(wxT("field"), wxT("wxRichTextField"));
+#endif // wxUSE_XML
 
         return true;
     }
-    void OnExit()
+    void OnExit() wxOVERRIDE
     {
         wxRichTextBuffer::CleanUpHandlers();
         wxRichTextBuffer::CleanUpDrawingHandlers();
         wxRichTextBuffer::CleanUpFieldTypes();
+#if wxUSE_XML
         wxRichTextXMLHandler::ClearNodeToClassMap();
+#endif // wxUSE_XML
         wxRichTextDecimalToRoman(-1);
         wxRichTextParagraph::ClearDefaultTabs();
         wxRichTextCtrl::ClearAvailableFontNames();
@@ -12213,17 +12249,24 @@ wxRichTextImage::~wxRichTextImage()
 void wxRichTextImage::Init()
 {
     m_originalImageSize = wxSize(-1, -1);
+    m_imageState = ImageState_Unloaded;
 }
 
 /// Create a cached image at the required size
-bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, bool resetCache, const wxSize& parentSize)
+bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, wxSize& retImageSize, bool resetCache, const wxSize& parentSize)
 {
     if (!m_imageBlock.IsOk())
+    {
+        m_imageState = ImageState_Bad;
         return false;
+    }
 
     // Don't repeat unless absolutely necessary
     if (m_imageCache.IsOk() && !resetCache && !context.GetLayingOut())
+    {
+        retImageSize = wxSize(m_imageCache.GetWidth(), m_imageCache.GetHeight());
         return true;
+    }
 
     if (!context.GetImagesEnabled())
     {
@@ -12231,7 +12274,9 @@ bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context
         {
             wxBitmap bitmap(image_placeholder24x24_xpm);
             m_imageCache = bitmap;
+            m_imageState = ImageState_Loaded;
         }
+        retImageSize = wxSize(m_imageCache.GetWidth(), m_imageCache.GetHeight());
         return true;
     }
 
@@ -12243,13 +12288,15 @@ bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context
     if (resetCache || m_originalImageSize.GetWidth() <= 0 || m_originalImageSize.GetHeight() <= 0)
     {
         m_imageCache = wxNullBitmap;
+        m_imageState = ImageState_Unloaded;
 
-        m_imageBlock.Load(image);
-        if (!image.IsOk())
+        if (!m_imageBlock.Load(image) || !image.IsOk())
         {
             wxBitmap bitmap(image_placeholder24x24_xpm);
             m_imageCache = bitmap;
             m_originalImageSize = wxSize(bitmap.GetWidth(), bitmap.GetHeight());
+            m_imageState = ImageState_Bad;
+            retImageSize = wxSize(m_imageCache.GetWidth(), m_imageCache.GetHeight());
             return false;
         }
 
@@ -12359,23 +12406,48 @@ bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context
     width = wxMax(1, width);
     height = wxMax(1, height);
 
+    retImageSize = wxSize(width, height);
+
+    bool changed = false;
+    return LoadAndScaleImageCache(image, retImageSize, context.GetDelayedImageLoading(), changed);
+}
+
+// Do the loading and scaling
+bool wxRichTextImage::LoadAndScaleImageCache(wxImage& image, const wxSize& sz, bool delayLoading, bool& changed)
+{
+    int width = sz.x;
+    int height = sz.y;
+
     if (m_imageCache.IsOk() && m_imageCache.GetWidth() == width && m_imageCache.GetHeight() == height)
     {
         // Do nothing, we didn't need to change the image cache
+        changed = false;
     }
     else
     {
+        changed = true;
+
+        if (delayLoading)
+        {
+            if (m_imageCache.IsOk())
+                m_imageCache = wxNullBitmap;
+            m_imageState = ImageState_Unloaded;
+            return true;
+        }
+
         if (!image.IsOk())
         {
-            m_imageBlock.Load(image);
-            if (!image.IsOk())
+            if (!m_imageBlock.Load(image) || !image.IsOk())
             {
                 wxBitmap bitmap(image_placeholder24x24_xpm);
                 m_imageCache = bitmap;
                 m_originalImageSize = wxSize(bitmap.GetWidth(), bitmap.GetHeight());
+                m_imageState = ImageState_Bad;
                 return false;
             }
         }
+
+        m_originalImageSize = wxSize(image.GetWidth(), image.GetHeight());
 
         if (image.GetWidth() == width && image.GetHeight() == height)
             m_imageCache = wxBitmap(image);
@@ -12397,6 +12469,11 @@ bool wxRichTextImage::LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context
         }
     }
 
+    if (m_imageCache.IsOk())
+        m_imageState = ImageState_Loaded;
+    else
+        m_imageState = ImageState_Bad;
+
     return m_imageCache.IsOk();
 }
 
@@ -12405,9 +12482,6 @@ bool wxRichTextImage::Draw(wxDC& dc, wxRichTextDrawingContext& context, const wx
 {
     if (!IsShown())
         return true;
-
-    if (!m_imageCache.IsOk())
-        return false;
 
     wxRichTextAttr attr(GetAttributes());
     AdjustAttributes(attr, context);
@@ -12419,7 +12493,14 @@ bool wxRichTextImage::Draw(wxDC& dc, wxRichTextDrawingContext& context, const wx
     marginRect = rect; // outer rectangle, will calculate contentRect
     GetBoxRects(dc, GetBuffer(), attr, marginRect, borderRect, contentRect, paddingRect, outlineRect);
 
-    dc.DrawBitmap(m_imageCache, contentRect.x, contentRect.y, true);
+    if (m_imageCache.IsOk())
+        dc.DrawBitmap(m_imageCache, contentRect.x, contentRect.y, true);
+    else
+    {
+        dc.SetPen(*wxLIGHT_GREY_PEN);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(contentRect);
+    }
 
     if (selection.WithinSelection(GetRange().GetStart(), this))
     {
@@ -12436,10 +12517,10 @@ bool wxRichTextImage::Draw(wxDC& dc, wxRichTextDrawingContext& context, const wx
 /// Lay the item out
 bool wxRichTextImage::Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int WXUNUSED(style))
 {
-    if (!LoadImageCache(dc, context, false, parentRect.GetSize()))
+    wxSize imageSize;
+    if (!LoadImageCache(dc, context, imageSize, false, parentRect.GetSize()))
         return false;
 
-    wxSize imageSize(m_imageCache.GetWidth(), m_imageCache.GetHeight());
     wxRect marginRect, borderRect, contentRect, paddingRect, outlineRect;
     contentRect = wxRect(wxPoint(0,0), imageSize);
 
@@ -12465,7 +12546,8 @@ bool wxRichTextImage::GetRangeSize(const wxRichTextRange& range, wxSize& size, i
     if (!range.IsWithin(GetRange()))
         return false;
 
-    if (!((wxRichTextImage*)this)->LoadImageCache(dc, context, false, parentSize))
+    wxSize imageSize;
+    if (!((wxRichTextImage*)this)->LoadImageCache(dc, context, imageSize, false, parentSize))
     {
         size.x = 0; size.y = 0;
         if (partialExtents)
@@ -12476,7 +12558,6 @@ bool wxRichTextImage::GetRangeSize(const wxRichTextRange& range, wxSize& size, i
     wxRichTextAttr attr(GetAttributes());
     ((wxRichTextObject*)this)->AdjustAttributes(attr, context);
 
-    wxSize imageSize(m_imageCache.GetWidth(), m_imageCache.GetHeight());
     wxRect marginRect, borderRect, contentRect, paddingRect, outlineRect;
     contentRect = wxRect(wxPoint(0,0), imageSize);
     GetBoxRects(dc, GetBuffer(), attr, marginRect, borderRect, contentRect, paddingRect, outlineRect);
@@ -13075,6 +13156,7 @@ size_t wxRichTextBufferDataObject::GetDataSize() const
 
     {
         wxStringOutputStream stream(& bufXML);
+        m_richTextBuffer->SetHandlerFlags(wxRICHTEXT_HANDLER_INCLUDE_STYLESHEET);
         if (!m_richTextBuffer->SaveFile(stream, wxRICHTEXT_TYPE_XML))
         {
             wxLogError(wxT("Could not write the buffer to an XML stream.\nYou may have forgotten to add the XML file handler."));
@@ -13099,6 +13181,7 @@ bool wxRichTextBufferDataObject::GetDataHere(void *pBuf) const
 
     {
         wxStringOutputStream stream(& bufXML);
+        m_richTextBuffer->SetHandlerFlags(wxRICHTEXT_HANDLER_INCLUDE_STYLESHEET);
         if (!m_richTextBuffer->SaveFile(stream, wxRICHTEXT_TYPE_XML))
         {
             wxLogError(wxT("Could not write the buffer to an XML stream.\nYou may have forgotten to add the XML file handler."));
@@ -13129,6 +13212,7 @@ bool wxRichTextBufferDataObject::SetData(size_t WXUNUSED(len), const void *buf)
     m_richTextBuffer = new wxRichTextBuffer;
 
     wxStringInputStream stream(bufXML);
+    m_richTextBuffer->SetHandlerFlags(wxRICHTEXT_HANDLER_INCLUDE_STYLESHEET);
     if (!m_richTextBuffer->LoadFile(stream, wxRICHTEXT_TYPE_XML))
     {
         wxLogError(wxT("Could not read the buffer from an XML stream.\nYou may have forgotten to add the XML file handler."));
@@ -15040,6 +15124,7 @@ wxRichTextDrawingContext::wxRichTextDrawingContext(wxRichTextBuffer* buffer)
     {
         EnableVirtualAttributes(m_buffer->GetRichTextCtrl()->GetVirtualAttributesEnabled());
         m_enableImages = m_buffer->GetRichTextCtrl()->GetImagesEnabled();
+        m_enableDelayedImageLoading = m_buffer->GetRichTextCtrl()->GetDelayedImageLoading();
     }
 }
 

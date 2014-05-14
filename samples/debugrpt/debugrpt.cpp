@@ -61,7 +61,7 @@ protected:
     // this is called with the contents of the server response: you will
     // probably want to parse the XML document in OnServerReply() instead of
     // just dumping it as I do
-    virtual bool OnServerReply(const wxArrayString& reply)
+    virtual bool OnServerReply(const wxArrayString& reply) wxOVERRIDE
     {
         if ( reply.IsEmpty() )
         {
@@ -169,7 +169,7 @@ private:
     int m_numLines;
 
     wxDECLARE_NO_COPY_CLASS(MyFrame);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // ----------------------------------------------------------------------------
@@ -187,10 +187,10 @@ public:
     MyApp();
 
     // create our main window here
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 
     // called when a crash occurs in this application
-    virtual void OnFatalException();
+    virtual void OnFatalException() wxOVERRIDE;
 
     // this is where we really generate the debug report
     void GenerateReport(wxDebugReport::Context ctx);
@@ -216,7 +216,7 @@ IMPLEMENT_APP(MyApp)
 // MyFrame
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(DebugRpt_Quit, MyFrame::OnQuit)
     EVT_MENU(DebugRpt_Crash, MyFrame::OnReportForCrash)
     EVT_MENU(DebugRpt_Current, MyFrame::OnReportForCurrent)
@@ -225,7 +225,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(DebugRpt_About, MyFrame::OnAbout)
 
     EVT_PAINT(MyFrame::OnPaint)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame()
        : wxFrame(NULL, wxID_ANY, wxT("wxWidgets Debug Report Sample"),

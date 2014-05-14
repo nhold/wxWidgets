@@ -103,12 +103,12 @@ class BitmapComboBoxWidgetsPage : public ItemContainerWidgetsPage
 public:
     BitmapComboBoxWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxControl *GetWidget() const { return m_combobox; }
-    virtual wxItemContainer* GetContainer() const { return m_combobox; }
-    virtual void RecreateWidget() { CreateCombo(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_combobox; }
+    virtual wxItemContainer* GetContainer() const wxOVERRIDE { return m_combobox; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateCombo(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -185,7 +185,7 @@ protected:
                *m_textDelete;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(BitmapComboBoxWidgetsPage)
 };
 
@@ -193,7 +193,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(BitmapComboBoxWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(BitmapComboBoxWidgetsPage, WidgetsPage)
     EVT_BUTTON(BitmapComboBoxPage_Reset, BitmapComboBoxWidgetsPage::OnButtonReset)
     EVT_BUTTON(BitmapComboBoxPage_Change, BitmapComboBoxWidgetsPage::OnButtonChange)
     EVT_BUTTON(BitmapComboBoxPage_Delete, BitmapComboBoxWidgetsPage::OnButtonDelete)
@@ -230,7 +230,7 @@ BEGIN_EVENT_TABLE(BitmapComboBoxWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, BitmapComboBoxWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, BitmapComboBoxWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

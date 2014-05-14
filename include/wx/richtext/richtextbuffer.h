@@ -404,12 +404,12 @@ public:
         Returns the floating-pointing value of the dimension in mm.
 
     */
-    float GetValueMM() const { return float(m_value) / 10.0; }
+    float GetValueMM() const { return m_value / 10.0f; }
 
     /**
         Sets the value of the dimension in mm.
     */
-    void SetValueMM(float value) { m_value = (int) ((value * 10.0) + 0.5); m_flags |= wxTEXT_ATTR_VALUE_VALID; }
+    void SetValueMM(float value) { m_value = (int) ((value * 10.0f) + 0.5f); m_flags |= wxTEXT_ATTR_VALUE_VALID; }
 
     /**
         Sets the integer value of the dimension.
@@ -2211,7 +2211,8 @@ public:
     */
     wxRichTextDrawingContext(wxRichTextBuffer* buffer);
 
-    void Init() { m_buffer = NULL; m_enableVirtualAttributes = true; m_enableImages = true; m_layingOut = false; }
+    void Init()
+    { m_buffer = NULL; m_enableVirtualAttributes = true; m_enableImages = true; m_layingOut = false; m_enableDelayedImageLoading = false; }
 
     /**
         Does this object have virtual attributes?
@@ -2293,9 +2294,22 @@ public:
 
     bool GetLayingOut() const { return m_layingOut; }
 
+    /**
+        Enable or disable delayed image loading
+    */
+
+    void EnableDelayedImageLoading(bool b) { m_enableDelayedImageLoading = b; }
+
+    /**
+        Returns @true if delayed image loading is enabled.
+    */
+
+    bool GetDelayedImageLoading() const { return m_enableDelayedImageLoading; }
+
     wxRichTextBuffer*   m_buffer;
     bool                m_enableVirtualAttributes;
     bool                m_enableImages;
+    bool                m_enableDelayedImageLoading;
     bool                m_layingOut;
 };
 
@@ -2428,7 +2442,6 @@ public:
     virtual bool Merge(wxRichTextObject* WXUNUSED(object), wxRichTextDrawingContext& WXUNUSED(context)) { return false; }
 
     /**
-        JACS
         Returns @true if this object can potentially be split, by virtue of having
         different virtual attributes for individual sub-objects.
     */
@@ -4742,6 +4755,8 @@ class WXDLLIMPEXP_RICHTEXT wxRichTextImage: public wxRichTextObject
 {
     DECLARE_DYNAMIC_CLASS(wxRichTextImage)
 public:
+    enum { ImageState_Unloaded, ImageState_Loaded, ImageState_Bad };
+
 // Constructors
 
     /**
@@ -4824,12 +4839,12 @@ public:
     /**
         Sets the image cache.
     */
-    void SetImageCache(const wxBitmap& bitmap) { m_imageCache = bitmap; m_originalImageSize = wxSize(bitmap.GetWidth(), bitmap.GetHeight()); }
+    void SetImageCache(const wxBitmap& bitmap) { m_imageCache = bitmap; m_originalImageSize = wxSize(bitmap.GetWidth(), bitmap.GetHeight()); m_imageState = ImageState_Loaded; }
 
     /**
         Resets the image cache.
     */
-    void ResetImageCache() { m_imageCache = wxNullBitmap; m_originalImageSize = wxSize(-1, -1); }
+    void ResetImageCache() { m_imageCache = wxNullBitmap; m_originalImageSize = wxSize(-1, -1); m_imageState = ImageState_Unloaded; }
 
     /**
         Returns the image block containing the raw data.
@@ -4851,7 +4866,12 @@ public:
     /**
         Creates a cached image at the required size.
     */
-    virtual bool LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+    virtual bool LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, wxSize& retImageSize, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+
+    /**
+        Do the loading and scaling
+    */
+    virtual bool LoadAndScaleImageCache(wxImage& image, const wxSize& sz, bool delayLoading, bool& changed);
 
     /**
         Gets the original image size.
@@ -4863,10 +4883,21 @@ public:
     */
     void SetOriginalImageSize(const wxSize& sz) { m_originalImageSize = sz; }
 
+    /**
+        Gets the image state.
+    */
+    int GetImageState() const { return m_imageState; }
+
+    /**
+        Sets the image state.
+    */
+    void SetImageState(int state) { m_imageState = state; }
+
 protected:
     wxRichTextImageBlock    m_imageBlock;
     wxBitmap                m_imageCache;
     wxSize                  m_originalImageSize;
+    int                     m_imageState;
 };
 
 class WXDLLIMPEXP_FWD_RICHTEXT wxRichTextCommand;
@@ -6691,7 +6722,7 @@ public:
     virtual bool GetDataHere(const wxDataFormat&, void *buf) const { return GetDataHere(buf); }
     virtual bool SetData(const wxDataFormat&, size_t len, const void *buf) { return SetData(len, buf); }
 
-private:
+protected:
     wxDataFormat            m_formatRichTextBuffer;     // our custom format
     wxRichTextBuffer*       m_richTextBuffer;           // our data
     static const wxChar*    ms_richTextBufferFormatId;  // our format id

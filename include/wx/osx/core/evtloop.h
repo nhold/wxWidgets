@@ -11,8 +11,8 @@
 #ifndef _WX_OSX_CORE_EVTLOOP_H_
 #define _WX_OSX_CORE_EVTLOOP_H_
 
-DECLARE_WXOSX_OPAQUE_CFREF( CFRunLoop );
-DECLARE_WXOSX_OPAQUE_CFREF( CFRunLoopObserver );
+DECLARE_WXOSX_OPAQUE_CFREF( CFRunLoop )
+DECLARE_WXOSX_OPAQUE_CFREF( CFRunLoopObserver )
 
 class WXDLLIMPEXP_FWD_BASE wxCFEventLoopPauseIdleEvents;
 
@@ -54,6 +54,10 @@ protected:
     // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
     // terminating when Exit() is called
     virtual int DoRun();
+
+    // may be overridden to perform some action at the start of each new event
+    // loop iteration
+    virtual void OnNextIteration() {}
 
     virtual void DoYieldFor(long eventsToProcess);
 

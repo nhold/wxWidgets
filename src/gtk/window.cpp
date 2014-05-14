@@ -59,7 +59,7 @@ typedef guint KeySym;
 
 // gdk_window_set_composited() is only supported since 2.12
 #define wxGTK_VERSION_REQUIRED_FOR_COMPOSITING 2,12,0
-#define wxGTK_HAS_COMPOSITING_SUPPORT GTK_CHECK_VERSION(2,12,0)
+#define wxGTK_HAS_COMPOSITING_SUPPORT (GTK_CHECK_VERSION(2,12,0) && wxUSE_CAIRO)
 
 //-----------------------------------------------------------------------------
 // documentation on internals
@@ -219,6 +219,10 @@ static wxWindowGTK *gs_deferredFocusOut = NULL;
 GdkEvent    *g_lastMouseEvent = NULL;
 int          g_lastButtonNumber = 0;
 
+#ifdef __WXGTK3__
+static GList* gs_sizeRevalidateList;
+#endif
+
 //-----------------------------------------------------------------------------
 // debug
 //-----------------------------------------------------------------------------
@@ -235,6 +239,74 @@ const char* wxDumpGtkWidget(GtkWidget* w)
     s.Printf("GtkWidget %p, type \"%s\"", w, G_OBJECT_TYPE_NAME(w));
 
     return s.c_str();
+}
+
+//-----------------------------------------------------------------------------
+// global top level GtkWidget/GdkWindow
+//-----------------------------------------------------------------------------
+
+static bool wxGetTopLevel(GtkWidget** widget, GdkWindow** window)
+{
+    wxWindowList::const_iterator i = wxTopLevelWindows.begin();
+    for (; i != wxTopLevelWindows.end(); ++i)
+    {
+        const wxWindow* win = *i;
+        if (win->m_widget)
+        {
+            GdkWindow* gdkwin = gtk_widget_get_window(win->m_widget);
+            if (gdkwin)
+            {
+                if (widget)
+                    *widget = win->m_widget;
+                if (window)
+                    *window = gdkwin;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+GdkWindow* wxGetTopLevelGDK()
+{
+    GdkWindow* window;
+    if (!wxGetTopLevel(NULL, &window))
+        window = gdk_get_default_root_window();
+    return window;
+}
+
+PangoContext* wxGetPangoContext()
+{
+    PangoContext* context;
+    GtkWidget* widget;
+    if (wxGetTopLevel(&widget, NULL))
+    {
+        context = gtk_widget_get_pango_context(widget);
+        g_object_ref(context);
+    }
+    else
+    {
+        if ( GdkScreen *screen = gdk_screen_get_default() )
+        {
+            context = gdk_pango_context_get_for_screen(screen);
+        }
+#if PANGO_VERSION_CHECK(1,22,0)
+        else // No default screen.
+        {
+            // This may happen in console applications which didn't open the
+            // display, use the default font map for them -- it's better than
+            // nothing.
+            if (wx_pango_version_check(1,22,0) == 0)
+            {
+                context = pango_font_map_create_context(
+                                pango_cairo_font_map_get_default ());
+            }
+            //else: pango_font_map_create_context() not available
+        }
+#endif // Pango 1.22+
+    }
+
+    return context;
 }
 
 //-----------------------------------------------------------------------------
@@ -1530,10 +1602,10 @@ gtk_window_button_release_callback( GtkWidget *WXUNUSED(widget),
 
 //-----------------------------------------------------------------------------
 
-static void SendSetCursorEvent(wxWindow* win, int x, int y)
+static void SendSetCursorEvent(wxWindowGTK* win, int x, int y)
 {
     wxSetCursorEvent event(x, y);
-    wxWindow* w = win;
+    wxWindowGTK* w = win;
     do {
         if (w->GTKProcessEvent(event))
         {
@@ -2032,6 +2104,17 @@ static void unrealize(GtkWidget*, wxWindow* win)
     win->GTKHandleUnrealize();
 }
 
+#if GTK_CHECK_VERSION(3,8,0)
+//-----------------------------------------------------------------------------
+// "layout" from GdkFrameClock
+//-----------------------------------------------------------------------------
+
+static void frame_clock_layout(GdkFrameClock*, wxWindow* win)
+{
+    win->GTKSizeRevalidate();
+}
+#endif // GTK_CHECK_VERSION(3,8,0)
+
 } // extern "C"
 
 void wxWindowGTK::GTKHandleRealized()
@@ -2041,14 +2124,20 @@ void wxWindowGTK::GTKHandleRealized()
 
     GdkWindow* const window = GTKGetDrawingWindow();
 
-    if (m_imContext)
+    if (m_wxwindow)
     {
-        gtk_im_context_set_client_window
-        (
-            m_imContext,
-            window ? window
-                       : gtk_widget_get_window(m_widget)
-        );
+        if (m_imContext == NULL)
+        {
+            // Create input method handler
+            m_imContext = gtk_im_multicontext_new();
+
+            // Cannot handle drawing preedited text yet
+            gtk_im_context_set_use_preedit(m_imContext, false);
+
+            g_signal_connect(m_imContext,
+                "commit", G_CALLBACK(gtk_wxwindow_commit_cb), this);
+        }
+        gtk_im_context_set_client_window(m_imContext, window);
     }
 
     // Use composited window if background is transparent, if supported.
@@ -2077,13 +2166,26 @@ void wxWindowGTK::GTKHandleRealized()
     }
 #endif
 
+    const bool isTopLevel = IsTopLevel();
+#if GTK_CHECK_VERSION(3,8,0)
+    if (isTopLevel && gtk_check_version(3,8,0) == NULL)
+    {
+        GdkFrameClock* clock = gtk_widget_get_frame_clock(m_widget);
+        if (clock &&
+            !g_signal_handler_find(clock, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, this))
+        {
+            g_signal_connect(clock, "layout", G_CALLBACK(frame_clock_layout), this);
+        }
+    }
+#endif
+
     wxWindowCreateEvent event(static_cast<wxWindow*>(this));
     event.SetEventObject( this );
     GTKProcessEvent( event );
 
     GTKUpdateCursor(false, true);
 
-    if (m_wxwindow && IsTopLevel())
+    if (m_wxwindow && isTopLevel)
     {
         // attaching to style changed signal after realization avoids initial
         // changes we don't care about
@@ -2174,19 +2276,6 @@ bool wxGetKeyState(wxKeyCode WXUNUSED(key))
 }
 #endif // __WINDOWS__
 
-static GdkDisplay* GetDisplay()
-{
-    wxWindow* tlw = NULL;
-    if (!wxTopLevelWindows.empty())
-        tlw = wxTopLevelWindows.front();
-    GdkDisplay* display;
-    if (tlw && tlw->m_widget)
-        display = gtk_widget_get_display(tlw->m_widget);
-    else
-        display = gdk_display_get_default();
-    return display;
-}
-
 wxMouseState wxGetMouseState()
 {
     wxMouseState ms;
@@ -2195,7 +2284,7 @@ wxMouseState wxGetMouseState()
     gint y;
     GdkModifierType mask;
 
-    GdkDisplay* display = GetDisplay();
+    GdkDisplay* display = gdk_window_get_display(wxGetTopLevelGDK());
 #ifdef __WXGTK3__
     GdkDeviceManager* manager = gdk_display_get_device_manager(display);
     GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
@@ -2476,6 +2565,8 @@ wxWindowGTK::~wxWindowGTK()
 #ifdef __WXGTK3__
     if (m_styleProvider)
         g_object_unref(m_styleProvider);
+
+    gs_sizeRevalidateList = g_list_remove(gs_sizeRevalidateList, this);
 #endif
 
     if (m_widget)
@@ -2548,15 +2639,6 @@ void wxWindowGTK::PostCreation()
             if (GetLayoutDirection() == wxLayout_LeftToRight)
                 gtk_widget_set_redraw_on_allocate(m_wxwindow, HasFlag(wxFULL_REPAINT_ON_RESIZE));
         }
-
-        // Create input method handler
-        m_imContext = gtk_im_multicontext_new();
-
-        // Cannot handle drawing preedited text yet
-        gtk_im_context_set_use_preedit( m_imContext, FALSE );
-
-        g_signal_connect (m_imContext, "commit",
-                          G_CALLBACK (gtk_wxwindow_commit_cb), this);
     }
 
     // focus handling
@@ -3541,8 +3623,15 @@ wxWindowGTK::AdjustForLayoutDirection(wxCoord x,
 void wxWindowGTK::DoMoveInTabOrder(wxWindow *win, WindowOrder move)
 {
     wxWindowBase::DoMoveInTabOrder(win, move);
-    m_dirtyTabOrder = true;
-    wxTheApp->WakeUpIdle();
+
+    // Update the TAB order at GTK+ level too, but do it slightly later in case
+    // we're changing the TAB order of several controls at once, as is common.
+    wxWindow* const parent = GetParent();
+    if ( parent )
+    {
+        parent->m_dirtyTabOrder = true;
+        wxTheApp->WakeUpIdle();
+    }
 }
 
 bool wxWindowGTK::DoNavigateIn(int flags)
@@ -3696,7 +3785,7 @@ void wxWindowGTK::GTKUpdateCursor(bool isBusyOrGlobalCursor, bool isRealize, con
             isBusyOrGlobalCursor = true;
         else if (wxIsBusy())
         {
-            wxWindow* win = wxGetTopLevelParent(this);
+            wxWindow* win = wxGetTopLevelParent(static_cast<wxWindow*>(this));
             if (win && win->m_widget && !gtk_window_get_modal(GTK_WINDOW(win->m_widget)))
                 isBusyOrGlobalCursor = true;
         }
@@ -4512,6 +4601,32 @@ GdkWindow *wxWindowGTK::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
     return m_wxwindow ? GTKGetDrawingWindow() : gtk_widget_get_window(m_widget);
 }
 
+#ifdef __WXGTK3__
+void wxWindowGTK::GTKSizeRevalidate()
+{
+    GList* next;
+    for (GList* p = gs_sizeRevalidateList; p; p = next)
+    {
+        next = p->next;
+        wxWindow* win = static_cast<wxWindow*>(p->data);
+        if (wxGetTopLevelParent(win) == this)
+        {
+            win->InvalidateBestSize();
+            gs_sizeRevalidateList = g_list_delete_link(gs_sizeRevalidateList, p);
+        }
+    }
+}
+
+extern "C" {
+static gboolean before_resize(void* data)
+{
+    wxWindow* win = static_cast<wxWindow*>(data);
+    win->InvalidateBestSize();
+    return false;
+}
+}
+#endif // __WXGTK3__
+
 bool wxWindowGTK::SetFont( const wxFont &font )
 {
     if (!wxWindowBase::SetFont(font))
@@ -4523,6 +4638,24 @@ bool wxWindowGTK::SetFont( const wxFont &font )
         // even if the font changed from valid to wxNullFont):
         GTKApplyWidgetStyle(true);
     }
+
+#ifdef __WXGTK3__
+    // Starting with GTK 3.6, style information is cached, and the cache is only
+    // updated before resizing, or when showing a TLW. If a different size font
+    // is set, our best size calculation will be wrong. All we can do is
+    // invalidate the best size right before the style cache is updated, so any
+    // subsequent best size requests use the correct font.
+    if (gtk_check_version(3,8,0) == NULL)
+        gs_sizeRevalidateList = g_list_append(gs_sizeRevalidateList, this);
+    else if (gtk_check_version(3,6,0) == NULL)
+    {
+        wxWindow* tlw = wxGetTopLevelParent(static_cast<wxWindow*>(this));
+        if (tlw->m_widget && gtk_widget_get_visible(tlw->m_widget))
+            g_idle_add_full(GTK_PRIORITY_RESIZE - 1, before_resize, this, NULL);
+        else
+            gs_sizeRevalidateList = g_list_append(gs_sizeRevalidateList, this);
+    }
+#endif
 
     return true;
 }
@@ -4813,7 +4946,7 @@ wxWindow* wxFindWindowAtPointer(wxPoint& pt)
 // Get the current mouse position.
 void wxGetMousePosition(int* x, int* y)
 {
-    GdkDisplay* display = GetDisplay();
+    GdkDisplay* display = gdk_window_get_display(wxGetTopLevelGDK());
 #ifdef __WXGTK3__
     GdkDeviceManager* manager = gdk_display_get_device_manager(display);
     GdkDevice* device = gdk_device_manager_get_client_pointer(manager);

@@ -78,19 +78,19 @@ public:
     // ----------------------------
 
     // program startup
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 
     // 2nd-level exception handling: we get all the exceptions occurring in any
     // event handler here
-    virtual bool OnExceptionInMainLoop();
+    virtual bool OnExceptionInMainLoop() wxOVERRIDE;
 
     // 3rd, and final, level exception handling: whenever an unhandled
     // exception is caught, this function is called
-    virtual void OnUnhandledException();
+    virtual void OnUnhandledException() wxOVERRIDE;
 
     // and now for something different: this function is called in case of a
     // crash (e.g. dereferencing null pointer, division by 0, ...)
-    virtual void OnFatalException();
+    virtual void OnFatalException() wxOVERRIDE;
 
     // you can override this function to do something different (e.g. log the
     // assert to file) whenever an assertion fails
@@ -98,7 +98,7 @@ public:
                                  int line,
                                  const wxChar *func,
                                  const wxChar *cond,
-                                 const wxChar *msg);
+                                 const wxChar *msg) wxOVERRIDE;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -128,7 +128,7 @@ protected:
 
     // 1st-level exception handling: we overload ProcessEvent() to be able to
     // catch exceptions which occur in MyFrame methods here
-    virtual bool ProcessEvent(wxEvent& event);
+    virtual bool ProcessEvent(wxEvent& event) wxOVERRIDE;
 
     // provoke assert in main or worker thread
     //
@@ -140,7 +140,7 @@ protected:
 
 private:
     // any class wishing to process wxWidgets events must use this macro
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // A simple dialog which has only some buttons to throw exceptions
@@ -155,7 +155,7 @@ public:
     void OnCrash(wxCommandEvent& event);
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // A trivial exception class
@@ -209,7 +209,7 @@ enum
 // the event tables connect the wxWidgets events with the functions (event
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(Except_Quit,  MyFrame::OnQuit)
     EVT_MENU(Except_About, MyFrame::OnAbout)
     EVT_MENU(Except_Dialog, MyFrame::OnDialog)
@@ -226,13 +226,13 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 #if wxUSE_THREADS
     EVT_MENU(Except_ShowAssertInThread, MyFrame::OnShowAssertInThread)
 #endif // wxUSE_THREADS
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-BEGIN_EVENT_TABLE(MyDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(MyDialog, wxDialog)
     EVT_BUTTON(Except_ThrowInt, MyDialog::OnThrowInt)
     EVT_BUTTON(Except_ThrowObject, MyDialog::OnThrowObject)
     EVT_BUTTON(Except_Crash, MyDialog::OnCrash)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a
@@ -485,7 +485,7 @@ void MyFrame::OnShowAssertInThread(wxCommandEvent& WXUNUSED(event))
         }
 
     protected:
-        virtual void *Entry()
+        virtual void *Entry() wxOVERRIDE
         {
             wxFAIL_MSG("Test assert in another thread.");
 

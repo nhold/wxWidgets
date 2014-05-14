@@ -79,11 +79,11 @@ public:
     HyperlinkWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~HyperlinkWidgetsPage() {}
 
-    virtual wxControl *GetWidget() const { return m_hyperlink; }
-    virtual void RecreateWidget() { CreateHyperlink(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_hyperlink; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateHyperlink(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -121,7 +121,7 @@ protected:
     wxCheckBox *m_checkGeneric;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(HyperlinkWidgetsPage)
 };
 
@@ -129,14 +129,14 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(HyperlinkWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(HyperlinkWidgetsPage, WidgetsPage)
     EVT_BUTTON(HyperlinkPage_Reset, HyperlinkWidgetsPage::OnButtonReset)
     EVT_BUTTON(HyperlinkPage_SetLabel, HyperlinkWidgetsPage::OnButtonSetLabel)
     EVT_BUTTON(HyperlinkPage_SetURL, HyperlinkWidgetsPage::OnButtonSetURL)
 
     EVT_RADIOBOX(wxID_ANY, HyperlinkWidgetsPage::OnAlignment)
     EVT_CHECKBOX(wxID_ANY, HyperlinkWidgetsPage::OnGeneric)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

@@ -74,11 +74,11 @@ public:
     FilePickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~FilePickerWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_filePicker; }
-    virtual void RecreateWidget() { RecreatePicker(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_filePicker; }
+    virtual void RecreateWidget() wxOVERRIDE { RecreatePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
 
@@ -124,7 +124,7 @@ protected:
     wxBoxSizer *m_sizer;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(FilePickerWidgetsPage)
 };
 
@@ -132,7 +132,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(FilePickerWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(FilePickerWidgetsPage, WidgetsPage)
     EVT_BUTTON(PickerPage_Reset, FilePickerWidgetsPage::OnButtonReset)
     EVT_BUTTON(PickerPage_SetDir, FilePickerWidgetsPage::OnButtonSetDir)
 
@@ -142,7 +142,7 @@ BEGIN_EVENT_TABLE(FilePickerWidgetsPage, WidgetsPage)
     EVT_RADIOBOX(wxID_ANY, FilePickerWidgetsPage::OnCheckBox)
 
     EVT_UPDATE_UI(PickerPage_CurrentPath, FilePickerWidgetsPage::OnUpdatePath)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

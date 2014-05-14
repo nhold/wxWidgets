@@ -45,6 +45,7 @@
     #include "wx/statusbr.h"
     #include "wx/intl.h"
     #include "wx/frame.h"
+    #include "wx/textctrl.h"
 #endif
 
 
@@ -146,8 +147,8 @@ class wxPGGlobalVarsClassManager : public wxModule
     DECLARE_DYNAMIC_CLASS(wxPGGlobalVarsClassManager)
 public:
     wxPGGlobalVarsClassManager() {}
-    virtual bool OnInit() { wxPGGlobalVars = new wxPGGlobalVarsClass(); return true; }
-    virtual void OnExit() { wxDELETE(wxPGGlobalVars); }
+    virtual bool OnInit() wxOVERRIDE { wxPGGlobalVars = new wxPGGlobalVarsClass(); return true; }
+    virtual void OnExit() wxOVERRIDE { wxDELETE(wxPGGlobalVars); }
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxPGGlobalVarsClassManager, wxModule)
@@ -211,15 +212,13 @@ wxPGGlobalVarsClass::wxPGGlobalVarsClass()
 
 wxPGGlobalVarsClass::~wxPGGlobalVarsClass()
 {
-    size_t i;
-
     delete m_defaultRenderer;
 
     // This will always have one ref
     delete m_fontFamilyChoices;
 
 #if wxUSE_VALIDATORS
-    for ( i=0; i<m_arrValidators.size(); i++ )
+    for ( size_t i = 0; i < m_arrValidators.size(); i++ )
         delete ((wxValidator*)m_arrValidators[i]);
 #endif
 
@@ -3858,7 +3857,7 @@ public:
     }
 
 private:
-    bool ProcessEvent( wxEvent& event )
+    bool ProcessEvent( wxEvent& event ) wxOVERRIDE
     {
         // Always skip
         event.Skip();

@@ -38,8 +38,8 @@ public:
     TestGLContext& GetContext(wxGLCanvas *canvas, bool useStereo);
 
     // virtual wxApp methods
-    virtual bool OnInit();
-    virtual int OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
 private:
     // the GL context we use for all our mono rendering windows
@@ -59,7 +59,7 @@ private:
     void OnNewWindow(wxCommandEvent& event);
     void OnNewStereoWindow(wxCommandEvent& event);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 class TestGLCanvas : public wxGLCanvas
@@ -81,7 +81,7 @@ private:
     bool m_useStereo,
          m_stereoWarningAlreadyDisplayed;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 enum

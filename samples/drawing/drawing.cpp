@@ -76,9 +76,9 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 
-    virtual int OnExit() { DeleteBitmaps(); return 0; }
+    virtual int OnExit() wxOVERRIDE { DeleteBitmaps(); return 0; }
 
 protected:
     void DeleteBitmaps();
@@ -111,7 +111,7 @@ public:
 #if wxUSE_COLOURDLG
     wxColour SelectColour();
 #endif // wxUSE_COLOURDLG
-    void PrepareDC(wxDC& dc);
+    void PrepareDC(wxDC& dc) wxOVERRIDE;
 
     int         m_backgroundMode;
     int         m_textureBackground;
@@ -129,7 +129,7 @@ public:
 
 private:
     // any class wishing to process wxWidgets events must use this macro
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // define a scrollable canvas for drawing onto
@@ -195,7 +195,7 @@ private:
 #endif
     bool         m_useBuffer;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // ----------------------------------------------------------------------------
@@ -394,12 +394,12 @@ void MyApp::DeleteBitmaps()
 
 // the event tables connect the wxWidgets events with the functions (event
 // handlers) which process them.
-BEGIN_EVENT_TABLE(MyCanvas, wxScrolledWindow)
+wxBEGIN_EVENT_TABLE(MyCanvas, wxScrolledWindow)
     EVT_PAINT  (MyCanvas::OnPaint)
     EVT_MOTION (MyCanvas::OnMouseMove)
     EVT_LEFT_DOWN (MyCanvas::OnMouseDown)
     EVT_LEFT_UP (MyCanvas::OnMouseUp)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #include "smile.xpm"
 
@@ -1741,7 +1741,7 @@ void MyCanvas::OnMouseUp(wxMouseEvent &event)
 // the event tables connect the wxWidgets events with the functions (event
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU      (File_Quit,     MyFrame::OnQuit)
     EVT_MENU      (File_About,    MyFrame::OnAbout)
     EVT_MENU      (File_Clip,     MyFrame::OnClip)
@@ -1755,7 +1755,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU_RANGE(MenuShow_First,   MenuShow_Last,   MyFrame::OnShow)
 
     EVT_MENU_RANGE(MenuOption_First, MenuOption_Last, MyFrame::OnOption)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
