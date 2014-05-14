@@ -190,7 +190,7 @@ public:
     int GetIndentSize() wxOVERRIDE;
 
     int GetBorderWidth(
-                 wxWindow* wnd) wxOVERRIDE;
+                 wxWindow* wnd);
 
     int GetAdditionalBorderSpace(
                  wxWindow* wnd) wxOVERRIDE;
@@ -310,7 +310,7 @@ public:
     int GetIndentSize() wxOVERRIDE;
 
     int GetBorderWidth(
-                 wxWindow* wnd) wxOVERRIDE;
+                 wxWindow* wnd);
 
     int GetAdditionalBorderSpace(
                  wxWindow* wnd) wxOVERRIDE;
