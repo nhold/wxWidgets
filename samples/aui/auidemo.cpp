@@ -640,6 +640,9 @@ MyFrame::MyFrame(wxWindow* parent,
     // tell wxAuiManager to manage this frame
     m_mgr.SetManagedWindow(this);
 
+    // Enable dynamic notebooks
+    m_mgr.SetFlag(wxAUI_MGR_NB_ALLOW_NOTEBOOKS,true);
+
     // set frame icon
     SetIcon(wxIcon(sample_xpm));
 
