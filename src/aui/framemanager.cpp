@@ -2226,8 +2226,8 @@ void wxAuiManager::LayoutAddPane(wxSizer* cont, wxAuiDockInfo& dock, wxAuiPaneIn
     }
 
 
-    // add the verticle sizer (caption, pane window) to the
-    // horizontal sizer (gripper, verticle sizer)
+    // add the vertical sizer (caption, pane window) to the
+    // horizontal sizer (gripper, vertical sizer)
     horzPaneSizer->Add(vertPaneSizer, 1, wxEXPAND);
 
     // finally, add the pane sizer to the dock sizer
@@ -2237,27 +2237,23 @@ void wxAuiManager::LayoutAddPane(wxSizer* cont, wxAuiDockInfo& dock, wxAuiPaneIn
         int border_flags = wxALL;
         if(!allowtitlebar)
         {
-            wxAuiNotebook* nb = wxDynamicCast(pane.GetWindow()->GetParent(), wxAuiNotebook);
-            if (nb)
+            if (m_tab_art->m_flags & wxAUI_NB_TOP)
             {
-                if (m_tab_art->m_flags & wxAUI_NB_TOP)
-                {
-                    border_flags &= ~wxTOP;
-                }
-                if (m_tab_art->m_flags & wxAUI_NB_BOTTOM)
-                {
-                    border_flags &= ~wxBOTTOM;
-                }
-                if (m_tab_art->m_flags & wxAUI_NB_LEFT)
-                {
-                    border_flags &= ~wxLEFT;
-                }
-                if (m_tab_art->m_flags & wxAUI_NB_RIGHT)
-                {
-                    border_flags &= ~wxRIGHT;
-                }
-                paneBorderSize = m_tab_art->GetAdditionalBorderSpace(nb);
+                border_flags &= ~wxTOP;
             }
+            if (m_tab_art->m_flags & wxAUI_NB_BOTTOM)
+            {
+                border_flags &= ~wxBOTTOM;
+            }
+            if (m_tab_art->m_flags & wxAUI_NB_LEFT)
+            {
+                border_flags &= ~wxLEFT;
+            }
+            if (m_tab_art->m_flags & wxAUI_NB_RIGHT)
+            {
+                border_flags &= ~wxRIGHT;
+            }
+            paneBorderSize = m_tab_art->GetAdditionalBorderSpace(pane.GetWindow());
         }
         // allowing space for the pane's border
         sizerItem = cont->Add(horzPaneSizer, paneProportion,
