@@ -53,7 +53,7 @@
 class MyApp: public wxApp
 {
 public:
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // ----------------------------------------------------------------------------
@@ -159,7 +159,7 @@ private:
     wxLog *m_logOld;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -176,7 +176,7 @@ public:
                                    wxALIGN_CENTER)
        { }
 
-    virtual bool Render( wxRect rect, wxDC *dc, int state )
+    virtual bool Render( wxRect rect, wxDC *dc, int state ) wxOVERRIDE
     {
         dc->SetBrush( *wxLIGHT_GREY_BRUSH );
         dc->SetPen( *wxTRANSPARENT_PEN );
@@ -196,7 +196,7 @@ public:
                               wxDataViewModel *WXUNUSED(model),
                               const wxDataViewItem &WXUNUSED(item),
                               unsigned int WXUNUSED(col),
-                              const wxMouseEvent *mouseEvent)
+                              const wxMouseEvent *mouseEvent) wxOVERRIDE
     {
         wxString position;
         if ( mouseEvent )
@@ -207,18 +207,18 @@ public:
         return false;
     }
 
-    virtual wxSize GetSize() const
+    virtual wxSize GetSize() const wxOVERRIDE
     {
         return wxSize(60,20);
     }
 
-    virtual bool SetValue( const wxVariant &value )
+    virtual bool SetValue( const wxVariant &value ) wxOVERRIDE
     {
         m_value = value.GetString();
         return true;
     }
 
-    virtual bool GetValue( wxVariant &WXUNUSED(value) ) const { return true; }
+    virtual bool GetValue( wxVariant &WXUNUSED(value) ) const wxOVERRIDE { return true; }
 
 private:
     wxString m_value;
@@ -301,7 +301,7 @@ enum
     ID_ADD_TREE_CONTAINER_ITEM = 403
 };
 
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU_RANGE( ID_MULTIPLE, ID_VERT_RULES, MyFrame::OnStyleChange )
     EVT_MENU( ID_EXIT, MyFrame::OnQuit )
     EVT_MENU( ID_ABOUT, MyFrame::OnAbout )
@@ -364,7 +364,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 
     EVT_DATAVIEW_COLUMN_HEADER_CLICK(ID_ATTR_CTRL, MyFrame::OnAttrHeaderClick)
 
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame(wxFrame *frame, const wxString &title, int x, int y, int w, int h):
   wxFrame(frame, wxID_ANY, title, wxPoint(x, y), wxSize(w, h))
@@ -862,8 +862,8 @@ void MyFrame::OnDropPossible( wxDataViewEvent &event )
 {
     wxDataViewItem item( event.GetItem() );
 
-    // only allow drags for item, not containers
-    if (m_music_model->IsContainer( item ) )
+    // only allow drags for item or background, not containers
+    if ( item.IsOk() && m_music_model->IsContainer( item ) )
         event.Veto();
 
     if (event.GetDataFormat() != wxDF_UNICODETEXT)
@@ -875,7 +875,7 @@ void MyFrame::OnDrop( wxDataViewEvent &event )
     wxDataViewItem item( event.GetItem() );
 
     // only allow drops for item, not containers
-    if (m_music_model->IsContainer( item ) )
+    if ( item.IsOk() && m_music_model->IsContainer( item ) )
     {
         event.Veto();
         return;
@@ -890,7 +890,10 @@ void MyFrame::OnDrop( wxDataViewEvent &event )
     wxTextDataObject obj;
     obj.SetData( wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer() );
 
-    wxLogMessage( "Text dropped: %s", obj.GetText() );
+    if ( item.IsOk() )
+        wxLogMessage( "Text dropped on item %s: %s", m_music_model->GetTitle( item ), obj.GetText() );
+    else
+        wxLogMessage( "Text dropped on background: %s", obj.GetText() );
 }
 
 #endif // wxUSE_DRAG_AND_DROP

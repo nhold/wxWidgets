@@ -179,7 +179,8 @@ inline wxDataViewItem wxDataViewItemFromMaybeNilItem(id item)
     // not just some arbitrary object, so we serialize the pointer into the
     // string. Notice the use of NSInteger which is big enough to store a
     // pointer in both 32 and 64 bit builds.
-    return [NSString stringWithFormat:@"%lu", reinterpret_cast<NSUInteger>(column)];
+    return [NSString stringWithFormat:@"%lu",
+                (unsigned long)reinterpret_cast<NSUInteger>(column)];
 }
 
 -(id) initWithColumnPointer:(const wxDataViewColumn*)column
@@ -1751,7 +1752,7 @@ outlineView:(NSOutlineView*)outlineView
     return NO;
 }
 
--(void) outlineView:(wxCocoaOutlineView*)outlineView
+-(void) outlineView:(NSOutlineView*)outlineView
     willDisplayCell:(id)cell
     forTableColumn:(NSTableColumn*)tableColumn
     item:(id)item
@@ -2657,6 +2658,9 @@ wxDataViewRenderer::OSXOnCellChanged(NSObject *object,
         return;
     }
 
+    if ( !Validate(value) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
     model->ChangeValue(value, item, col);
 }
@@ -2806,8 +2810,12 @@ wxDataViewTextRenderer::OSXOnCellChanged(NSObject *value,
                                          const wxDataViewItem& item,
                                          unsigned col)
 {
+    wxVariant valueText(ObjectToString(value));
+    if ( !Validate(valueText) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(ObjectToString(value), item, col);
+    model->ChangeValue(valueText, item, col);
 }
 
 IMPLEMENT_CLASS(wxDataViewTextRenderer,wxDataViewRenderer)
@@ -2887,8 +2895,12 @@ wxDataViewChoiceRenderer::OSXOnCellChanged(NSObject *value,
     wxCHECK_RET( choiceIndex >= 0 && (size_t)choiceIndex < GetChoices().size(),
                  wxS("Choice index out of range.") );
 
+    wxVariant valueChoice(GetChoice(choiceIndex));
+    if ( !Validate(valueChoice) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(GetChoice(choiceIndex), item, col);
+    model->ChangeValue(valueChoice, item, col);
 }
 
 bool wxDataViewChoiceRenderer::MacRender()
@@ -2995,8 +3007,12 @@ wxDataViewDateRenderer::OSXOnCellChanged(NSObject *value,
                                          const wxDataViewItem& item,
                                          unsigned col)
 {
+    wxVariant valueDate(ObjectToDate(value));
+    if ( !Validate(valueDate) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(ObjectToDate(value), item, col);
+    model->ChangeValue(valueDate, item, col);
 }
 
 IMPLEMENT_ABSTRACT_CLASS(wxDataViewDateRenderer,wxDataViewRenderer)
@@ -3050,6 +3066,9 @@ wxDataViewIconTextRenderer::OSXOnCellChanged(NSObject *value,
     wxVariant valueIconText;
     valueIconText << wxDataViewIconText(ObjectToString(value));
 
+    if ( !Validate(valueIconText) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
     model->ChangeValue(valueIconText, item, col);
 }
@@ -3094,8 +3113,12 @@ wxDataViewToggleRenderer::OSXOnCellChanged(NSObject *value,
                                            const wxDataViewItem& item,
                                            unsigned col)
 {
+    wxVariant valueToggle(ObjectToBool(value));
+    if ( !Validate(valueToggle) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(ObjectToBool(value), item, col);
+    model->ChangeValue(valueToggle, item, col);
 }
 
 IMPLEMENT_ABSTRACT_CLASS(wxDataViewToggleRenderer,wxDataViewRenderer)
@@ -3139,8 +3162,12 @@ wxDataViewProgressRenderer::OSXOnCellChanged(NSObject *value,
                                              const wxDataViewItem& item,
                                              unsigned col)
 {
+    wxVariant valueProgress(ObjectToLong(value));
+    if ( !Validate(valueProgress) )
+        return;
+
     wxDataViewModel *model = GetOwner()->GetOwner()->GetModel();
-    model->ChangeValue(ObjectToLong(value), item, col);
+    model->ChangeValue(valueProgress, item, col);
 }
 
 IMPLEMENT_ABSTRACT_CLASS(wxDataViewProgressRenderer,wxDataViewRenderer)
@@ -3311,7 +3338,7 @@ void wxDataViewColumn::SetWidth(int width)
 
         case wxCOL_WIDTH_DEFAULT:
             width = wxDVC_DEFAULT_WIDTH;
-            // fall through
+            wxFALLTHROUGH;
 
         default:
             [m_NativeDataPtr->GetNativeColumnPtr() setWidth:width];

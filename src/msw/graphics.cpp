@@ -587,6 +587,9 @@ public :
     // create a subimage from a native image representation
     virtual wxGraphicsBitmap CreateSubBitmap( const wxGraphicsBitmap &bitmap, wxDouble x, wxDouble y, wxDouble w, wxDouble h  );
 
+    virtual wxString GetName() const wxOVERRIDE;
+    virtual void GetVersion(int *major, int *minor, int *micro) const wxOVERRIDE;
+
 protected :
     bool EnsureIsLoaded();
     void Load();
@@ -1421,7 +1424,7 @@ void wxGDIPlusContext::Init(Graphics* graphics, int width, int height)
     m_context->SetTextRenderingHint(TextRenderingHintSystemDefault);
     m_context->SetPixelOffsetMode(PixelOffsetModeHalf);
     m_context->SetSmoothingMode(SmoothingModeHighQuality);
-    m_context->SetInterpolationMode(InterpolationModeHighQuality);
+
     m_state1 = m_context->Save();
     m_state2 = m_context->Save();
 }
@@ -1486,11 +1489,11 @@ void wxGDIPlusContext::StrokeLines( size_t n, const wxPoint2DDouble *points)
    if ( !m_pen.IsNull() )
    {
        wxGDIPlusOffsetHelper helper( m_context , ShouldOffset() );
-       Point *cpoints = new Point[n];
+       PointF *cpoints = new PointF[n];
        for (size_t i = 0; i < n; i++)
        {
-           cpoints[i].X = (int)(points[i].m_x );
-           cpoints[i].Y = (int)(points[i].m_y );
+           cpoints[i].X = static_cast<REAL>(points[i].m_x);
+           cpoints[i].Y = static_cast<REAL>(points[i].m_y);
 
        } // for (size_t i = 0; i < n; i++)
        m_context->DrawLines( ((wxGDIPlusPenData*)m_pen.GetGraphicsData())->GetGDIPlusPen() , cpoints , n ) ;
@@ -1504,11 +1507,11 @@ void wxGDIPlusContext::DrawLines( size_t n, const wxPoint2DDouble *points, wxPol
         return;
 
     wxGDIPlusOffsetHelper helper( m_context , ShouldOffset() );
-    Point *cpoints = new Point[n];
+    PointF *cpoints = new PointF[n];
     for (size_t i = 0; i < n; i++)
     {
-        cpoints[i].X = (int)(points[i].m_x );
-        cpoints[i].Y = (int)(points[i].m_y );
+        cpoints[i].X = static_cast<REAL>(points[i].m_x);
+        cpoints[i].Y = static_cast<REAL>(points[i].m_y);
 
     } // for (int i = 0; i < n; i++)
     if ( !m_brush.IsNull() )
@@ -1549,21 +1552,31 @@ bool wxGDIPlusContext::SetAntialiasMode(wxAntialiasMode antialias)
     if (m_antialias == antialias)
         return true;
 
-    m_antialias = antialias;
+    // MinGW currently doesn't provide InterpolationModeInvalid in its headers,
+    // so use our own definition.
+    static const SmoothingMode
+        wxSmoothingModeInvalid = static_cast<SmoothingMode>(-1);
 
-    SmoothingMode antialiasMode;
+    SmoothingMode antialiasMode = wxSmoothingModeInvalid;
     switch (antialias)
     {
         case wxANTIALIAS_DEFAULT:
             antialiasMode = SmoothingModeHighQuality;
             break;
+
         case wxANTIALIAS_NONE:
             antialiasMode = SmoothingModeNone;
             break;
-        default:
-            return false;
     }
-    m_context->SetSmoothingMode(antialiasMode);
+
+    wxCHECK_MSG( antialiasMode != wxSmoothingModeInvalid, false,
+                 wxS("Unknown antialias mode") );
+
+    if ( m_context->SetSmoothingMode(antialiasMode) != Gdiplus::Ok )
+        return false;
+
+    m_antialias = antialias;
+
     return true;
 }
 
@@ -1572,7 +1585,12 @@ bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality interpolat
     if (m_interpolation == interpolation)
         return true;
 
-    InterpolationMode interpolationMode = InterpolationModeDefault;
+    // MinGW currently doesn't provide InterpolationModeInvalid in its headers,
+    // so use our own definition.
+    static const InterpolationMode
+        wxInterpolationModeInvalid = static_cast<InterpolationMode>(-1);
+
+    InterpolationMode interpolationMode = wxInterpolationModeInvalid;
     switch (interpolation)
     {
         case wxINTERPOLATION_DEFAULT:
@@ -1594,10 +1612,10 @@ bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality interpolat
         case wxINTERPOLATION_BEST:
             interpolationMode = InterpolationModeHighQualityBicubic;
             break;
-
-        default:
-            return false;
     }
+
+    wxCHECK_MSG( interpolationMode != wxInterpolationModeInvalid, false,
+                 wxS("Unknown interpolation mode") );
 
     if ( m_context->SetInterpolationMode(interpolationMode) != Gdiplus::Ok )
         return false;
@@ -2278,6 +2296,21 @@ wxGraphicsBitmap wxGDIPlusRenderer::CreateSubBitmap( const wxGraphicsBitmap &bit
     }
     else
         return wxNullGraphicsBitmap;
+}
+
+wxString wxGDIPlusRenderer::GetName() const
+{
+    return "gdiplus";
+}
+
+void wxGDIPlusRenderer::GetVersion(int *major, int *minor, int *micro) const
+{
+    if ( major )
+        *major = wxPlatformInfo::Get().GetOSMajorVersion();
+    if ( minor )
+        *minor = wxPlatformInfo::Get().GetOSMinorVersion();
+    if ( micro )
+        *micro = 0;
 }
 
 // Shutdown GDI+ at app exit, before possible dll unload

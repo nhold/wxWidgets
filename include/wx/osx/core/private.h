@@ -313,7 +313,7 @@ public :
     virtual void        SetBitmap( const wxBitmap& bitmap ) = 0;
     virtual void        SetBitmapPosition( wxDirection dir ) = 0;
     virtual void        SetupTabs( const wxNotebook& WXUNUSED(notebook) ) {}
-    virtual int         TabHitTest( const wxPoint & WXUNUSED(pt), long *flags ) {*flags=1; return -1;};
+    virtual int         TabHitTest( const wxPoint & WXUNUSED(pt), long *flags ) {*flags=1; return -1;}
     virtual void        GetBestRect( wxRect *r ) const = 0;
     virtual bool        IsEnabled() const = 0;
     virtual void        Enable( bool enable ) = 0;
@@ -866,6 +866,8 @@ public :
     virtual bool IsFullScreen() const= 0;
 
     virtual void ShowWithoutActivating() { Show(true); }
+
+    virtual bool EnableFullScreenView(bool enable) = 0;
 
     virtual bool ShowFullScreen(bool show, long style)= 0;
 

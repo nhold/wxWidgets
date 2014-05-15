@@ -35,13 +35,13 @@
 #include "wx/apptrait.h"
 
 #include <gtk/gtk.h>
-#include <glib.h>
+#include "wx/gtk/private/gtk2-compat.h"
+
+GdkWindow* wxGetTopLevelGDK();
 
 // ============================================================================
 // wxEventLoop implementation
 // ============================================================================
-
-extern GtkWidget *wxGetRootWindow();
 
 // ----------------------------------------------------------------------------
 // wxEventLoop running and exiting
@@ -149,7 +149,7 @@ class wxGUIEventLoopSourcesManager : public wxEventLoopSourcesManagerBase
 {
 public:
     virtual wxEventLoopSource*
-    AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags)
+    AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags) wxOVERRIDE
     {
         wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
 
@@ -393,7 +393,7 @@ void wxGUIEventLoop::DoYieldFor(long eventsToProcess)
     //      then we fall into a never-ending loop...
 
     // put all unprocessed GDK events back in the queue
-    GdkDisplay* disp = gtk_widget_get_display(wxGetRootWindow());
+    GdkDisplay* disp = gdk_window_get_display(wxGetTopLevelGDK());
     for (size_t i=0; i<m_arrGdkEvents.GetCount(); i++)
     {
         GdkEvent* ev = (GdkEvent*)m_arrGdkEvents[i];

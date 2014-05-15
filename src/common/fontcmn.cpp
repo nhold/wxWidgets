@@ -510,6 +510,16 @@ wxFont wxFont::Bold() const
     return font;
 }
 
+wxFont wxFont::GetBaseFont() const
+{
+    wxFont font(*this);
+    font.SetStyle(wxFONTSTYLE_NORMAL);
+    font.SetWeight(wxFONTWEIGHT_NORMAL );
+    font.SetUnderlined(false);
+    font.SetStrikethrough(false);
+    return font;
+}
+
 wxFont& wxFont::MakeItalic()
 {
     SetStyle(wxFONTSTYLE_ITALIC);
@@ -798,7 +808,7 @@ wxString wxNativeFontInfo::ToUserString() const
     {
         default:
             wxFAIL_MSG( wxT("unknown font weight") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxFONTWEIGHT_NORMAL:
             break;
@@ -816,7 +826,7 @@ wxString wxNativeFontInfo::ToUserString() const
     {
         default:
             wxFAIL_MSG( wxT("unknown font style") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxFONTSTYLE_NORMAL:
             break;

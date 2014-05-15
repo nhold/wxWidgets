@@ -80,8 +80,6 @@
 
 #if defined(__WXMSW__)
     // tested
-    #define wxPG_NAT_BUTTON_BORDER_ANY          1
-    #define wxPG_NAT_BUTTON_BORDER_X            1
     #define wxPG_NAT_BUTTON_BORDER_Y            1
 
     #define wxPG_CHECKMARK_XADJ                 1
@@ -100,8 +98,6 @@
     #define wxPG_CHECKMARK_HADJ                 (-2)
     #define wxPG_CHECKMARK_DEFLATE              3
 
-    #define wxPG_NAT_BUTTON_BORDER_ANY      1
-    #define wxPG_NAT_BUTTON_BORDER_X        1
     #define wxPG_NAT_BUTTON_BORDER_Y        1
 
     #define wxPG_TEXTCTRLYADJUST            0
@@ -114,8 +110,6 @@
     #define wxPG_CHECKMARK_HADJ                 -6
     #define wxPG_CHECKMARK_DEFLATE              0
 
-    #define wxPG_NAT_BUTTON_BORDER_ANY      0
-    #define wxPG_NAT_BUTTON_BORDER_X        0
     #define wxPG_NAT_BUTTON_BORDER_Y        0
 
     #define wxPG_TEXTCTRLYADJUST            0
@@ -128,8 +122,6 @@
     #define wxPG_CHECKMARK_HADJ                 0
     #define wxPG_CHECKMARK_DEFLATE              0
 
-    #define wxPG_NAT_BUTTON_BORDER_ANY      0
-    #define wxPG_NAT_BUTTON_BORDER_X        0
     #define wxPG_NAT_BUTTON_BORDER_Y        0
 
     #define wxPG_TEXTCTRLYADJUST            0
@@ -661,7 +653,7 @@ public:
     virtual void OnDrawItem( wxDC& dc,
                              const wxRect& rect,
                              int item,
-                             int flags ) const
+                             int flags ) const wxOVERRIDE
     {
         wxPropertyGrid* pg = GetGrid();
 
@@ -677,7 +669,7 @@ public:
         }
     }
 
-    virtual wxCoord OnMeasureItem( size_t item ) const
+    virtual wxCoord OnMeasureItem( size_t item ) const wxOVERRIDE
     {
         wxPropertyGrid* pg = GetGrid();
         wxRect rect;
@@ -695,7 +687,7 @@ public:
         return pg;
     }
 
-    virtual wxCoord OnMeasureItemWidth( size_t item ) const
+    virtual wxCoord OnMeasureItemWidth( size_t item ) const wxOVERRIDE
     {
         wxPropertyGrid* pg = GetGrid();
         wxRect rect;
@@ -706,7 +698,7 @@ public:
     }
 
     virtual void PositionTextCtrl( int textCtrlXAdjust,
-                                   int WXUNUSED(textCtrlYAdjust) )
+                                   int WXUNUSED(textCtrlYAdjust) ) wxOVERRIDE
     {
         wxPropertyGrid* pg = GetGrid();
     #ifdef wxPG_TEXTCTRLXADJUST

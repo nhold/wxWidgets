@@ -500,8 +500,8 @@ class wxRichTextFormattingDialogModule: public wxModule
 DECLARE_DYNAMIC_CLASS(wxRichTextFormattingDialogModule)
 public:
     wxRichTextFormattingDialogModule() {}
-    bool OnInit() { wxRichTextFormattingDialog::SetFormattingDialogFactory(new wxRichTextFormattingDialogFactory); return true; }
-    void OnExit() { wxRichTextFormattingDialog::SetFormattingDialogFactory(NULL); }
+    bool OnInit() wxOVERRIDE { wxRichTextFormattingDialog::SetFormattingDialogFactory(new wxRichTextFormattingDialogFactory); return true; }
+    void OnExit() wxOVERRIDE { wxRichTextFormattingDialog::SetFormattingDialogFactory(NULL); }
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxRichTextFormattingDialogModule, wxModule)
@@ -637,7 +637,7 @@ void wxRichTextFormattingDialog::SetDimensionValue(wxTextAttrDimension& dim, wxT
         else if (dim.GetUnits() == wxTEXT_ATTR_UNITS_TENTHS_MM)
         {
             unitsIdx = 1; // By default, the 2nd in the list.
-            float value = float(dim.GetValue()) / 100.0;
+            float value = dim.GetValue() / 100.0f;
             valueCtrl->SetValue(wxString::Format(wxT("%.2f"), value));
         }
         else if (dim.GetUnits() == wxTEXT_ATTR_UNITS_PERCENTAGE)
@@ -648,7 +648,7 @@ void wxRichTextFormattingDialog::SetDimensionValue(wxTextAttrDimension& dim, wxT
         else if (dim.GetUnits() == wxTEXT_ATTR_UNITS_HUNDREDTHS_POINT)
         {
             unitsIdx = 3; // By default, the 4th in the list.
-            float value = float(dim.GetValue()) / 100.0;
+            float value = dim.GetValue() / 100.0f;
             valueCtrl->SetValue(wxString::Format(wxT("%.2f"), value));
         }
         else if (dim.GetUnits() == wxTEXT_ATTR_UNITS_POINTS)

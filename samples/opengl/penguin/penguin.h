@@ -45,7 +45,7 @@ struct GLData
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 
@@ -69,7 +69,7 @@ public:
 private:
     TestGLCanvas *m_canvas;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -100,7 +100,7 @@ private:
     DXFRenderer  m_renderer;
 
     wxDECLARE_NO_COPY_CLASS(TestGLCanvas);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // #ifndef _WX_PENGUIN_H_

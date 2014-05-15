@@ -98,7 +98,7 @@ public:
     ToolbarCommandCapture() { m_lastId = 0; }
     int GetCommandId() const { return m_lastId; }
 
-    bool ProcessEvent(wxEvent& evt)
+    bool ProcessEvent(wxEvent& evt) wxOVERRIDE
     {
         if (evt.GetEventType() == wxEVT_MENU)
         {
@@ -784,7 +784,7 @@ static wxOrientation GetOrientation(long style)
             return wxVERTICAL;
         default:
             wxFAIL_MSG("toolbar cannot be locked in both horizontal and vertical orientations (maybe no lock was intended?)");
-            // fall through
+            wxFALLTHROUGH;
         case 0:
             return wxBOTH;
     }

@@ -56,18 +56,6 @@
 
 const char wxGridNameStr[] = "grid";
 
-#if defined(__WXMOTIF__)
-    #define WXUNUSED_MOTIF(identifier)  WXUNUSED(identifier)
-#else
-    #define WXUNUSED_MOTIF(identifier)  identifier
-#endif
-
-#if defined(__WXGTK__)
-    #define WXUNUSED_GTK(identifier)    WXUNUSED(identifier)
-#else
-    #define WXUNUSED_GTK(identifier)    identifier
-#endif
-
 // Required for wxIs... functions
 #include <ctype.h>
 
@@ -3724,29 +3712,31 @@ void wxGrid::ProcessColLabelMouseEvent( wxMouseEvent& event )
                     // get the position of the column we're over
                     int pos = XToPos(x);
 
-                    // we may need to adjust the drop position but don't bother
-                    // checking for it if we can't anyhow
-                    if ( pos > 1 )
-                    {
-                        // also find the index of the column we're over: notice
-                        // that the existing "col" variable may be invalid but
-                        // we need a valid one here
-                        const int colValid = GetColAt(pos);
+                    // insert the column being dragged either before or after
+                    // it, depending on where exactly it was dropped, so
+                    // find the index of the column we're over: notice
+                    // that the existing "col" variable may be invalid but
+                    // we need a valid one here
+                    const int colValid = GetColAt(pos);
 
-                        // if we're on the "near" (usually left but right in
-                        // RTL case) part of the column, the actual position we
-                        // should be placed in is actually the one before it
-                        bool onNearPart;
-                        const int middle = GetColLeft(colValid) +
-                                                GetColWidth(colValid)/2;
-                        if ( GetLayoutDirection() == wxLayout_LeftToRight )
-                            onNearPart = (x <= middle);
-                        else // wxLayout_RightToLeft
-                            onNearPart = (x > middle);
+                    // and check if we're on the "near" (usually left but right
+                    // in RTL case) part of the column
+                    bool onNearPart;
+                    const int middle = GetColLeft(colValid) +
+                                            GetColWidth(colValid)/2;
+                    if ( GetLayoutDirection() == wxLayout_LeftToRight )
+                        onNearPart = (x <= middle);
+                    else // wxLayout_RightToLeft
+                        onNearPart = (x > middle);
 
-                        if ( onNearPart )
-                            pos--;
-                    }
+                    // adjust for the column being dragged itself
+                    if ( pos < GetColPos(m_dragRowOrCol) )
+                        pos++;
+
+                    // and if it's on the near part of the target column,
+                    // insert it before it, not after
+                    if ( onNearPart )
+                        pos--;
 
                     DoEndMoveCol(pos);
                 }
@@ -4467,7 +4457,11 @@ void wxGrid::RefreshAfterColPosChange()
         {
             int colID = GetColAt( colPos );
 
-            colRight += m_colWidths[colID];
+            // Ignore the currently hidden columns.
+            const int width = m_colWidths[colID];
+            if ( width > 0 )
+                colRight += width;
+
             m_colRights[colID] = colRight;
         }
     }
@@ -4970,7 +4964,7 @@ void wxGrid::OnKeyDown( wxKeyEvent& event )
                             MoveCursorRight(false);
                             break;
                         }
-                        //else: fall through
+                        wxFALLTHROUGH;
 
                     default:
                         event.Skip();
@@ -5185,7 +5179,7 @@ wxGrid::UpdateBlockBeingSelected(int topRow, int leftCol,
         {
             default:
                 wxFAIL_MSG( "unknown selection mode" );
-                // fall through
+                wxFALLTHROUGH;
 
             case wxGridSelectCells:
                 // arbitrary blocks selection allowed so just use the cell
@@ -8419,8 +8413,11 @@ wxGrid::AutoSizeColOrRow(int colOrRow, bool setAsMin, wxGridDirection direction)
         wxGridCellRenderer *renderer = attr->GetRenderer(this, row, col);
         if ( renderer )
         {
-            wxSize size = renderer->GetBestSize(*this, *attr, dc, row, col);
-            extent = column ? size.x : size.y;
+            extent = column
+                        ? renderer->GetBestWidth(*this, *attr, dc, row, col,
+                                                 GetRowHeight(row))
+                        : renderer->GetBestHeight(*this, *attr, dc, row, col,
+                                                  GetColWidth(col));
 
             if ( span != CellSpan_None )
             {

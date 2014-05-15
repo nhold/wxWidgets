@@ -40,6 +40,7 @@
     #include "wx/wxcrtvararg.h"
 #endif
 
+#include "wx/stack.h"
 #include "wx/sysopt.h"
 
 #if wxUSE_CLIPBOARD
@@ -176,14 +177,15 @@ private:
 namespace
 {
 
-// The length of the text being currently inserted into the control.
+// This stack stores the length of the text being currently inserted into the
+// current control.
 //
-// This is used to pass information from DoWriteText() to AdjustSpaceLimit()
-// and is global as text can only be inserted into one text control at a time
-// by a single thread and this operation can only be done from the main thread
-// (and we don't want to waste space in every wxTextCtrl object for this field
-// unnecessarily).
-int gs_lenOfInsertedText = 0;
+// It is used to pass information from DoWriteText() to AdjustSpaceLimit()
+// and is global as text can only be inserted into a few text controls at a
+// time (but possibly more than into one, if wxEVT_TEXT event handler does
+// something that results in another text control update), and we don't want to
+// waste space in every wxTextCtrl object for this field unnecessarily.
+wxStack<int> gs_lenOfInsertedText;
 
 } // anonymous namespace
 
@@ -1154,28 +1156,26 @@ void wxTextCtrl::DoWriteText(const wxString& value, int flags)
         // Remember the length of the text we're inserting so that
         // AdjustSpaceLimit() could adjust the limit to be big enough for it:
         // and also signal us whether it did it by resetting it to 0.
-        gs_lenOfInsertedText = valueDos.length();
+        gs_lenOfInsertedText.push(valueDos.length());
 
         ::SendMessage(GetHwnd(), selectionOnly ? EM_REPLACESEL : WM_SETTEXT,
                       // EM_REPLACESEL takes 1 to indicate the operation should be redoable
                       selectionOnly ? 1 : 0, wxMSW_CONV_LPARAM(valueDos));
 
-        if ( !gs_lenOfInsertedText )
+        const int lenActuallyInserted = gs_lenOfInsertedText.top();
+        gs_lenOfInsertedText.pop();
+
+        if ( lenActuallyInserted == -1 )
         {
             // Text size limit has been hit and added text has been truncated.
             // But the max length has been increased by the EN_MAXTEXT message
-            // handler, which also reset gs_lenOfInsertedText to 0), so we
-            // should be able to set it successfully now if we try again.
+            // handler, which also reset the top of the lengths stack to -1),
+            // so we should be able to set it successfully now if we try again.
             if ( selectionOnly )
                 Undo();
 
             ::SendMessage(GetHwnd(), selectionOnly ? EM_REPLACESEL : WM_SETTEXT,
                           selectionOnly ? 1 : 0, wxMSW_CONV_LPARAM(valueDos));
-        }
-        else
-        {
-            // EN_MAXTEXT handler wasn't called, so reset the flag ourselves.
-            gs_lenOfInsertedText = 0;
         }
 
         if ( !ucf.GotUpdate() && (flags & SetValue_SendEvent) )
@@ -1377,23 +1377,6 @@ void wxTextCtrl::DoSetSelection(long from, long to, int flags)
         }
 #endif // wxUSE_RICHEDIT
     }
-}
-
-// ----------------------------------------------------------------------------
-// Working with files
-// ----------------------------------------------------------------------------
-
-bool wxTextCtrl::DoLoadFile(const wxString& file, int fileType)
-{
-    if ( wxTextCtrlBase::DoLoadFile(file, fileType) )
-    {
-        // update the size limit if needed
-        AdjustSpaceLimit();
-
-        return true;
-    }
-
-    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -2156,13 +2139,23 @@ bool wxTextCtrl::AdjustSpaceLimit()
     unsigned int len = ::GetWindowTextLength(GetHwnd());
     if ( len >= limit )
     {
+        unsigned long increaseBy;
+
         // We need to increase the size of the buffer and to avoid increasing
         // it too many times make sure that we make it at least big enough to
-        // fit all the text we are currently inserting into the control.
-        unsigned long increaseBy = gs_lenOfInsertedText;
+        // fit all the text we are currently inserting into the control, if
+        // we're inserting any, i.e. if we're called from DoWriteText().
+        if ( !gs_lenOfInsertedText.empty() )
+        {
+            increaseBy = gs_lenOfInsertedText.top();
 
-        // Don't let it affect any future unrelated calls to this function.
-        gs_lenOfInsertedText = 0;
+            // Indicate to the caller that we increased the limit.
+            gs_lenOfInsertedText.top() = -1;
+        }
+        else // Not inserting text, must be text actually typed by user.
+        {
+            increaseBy = 0;
+        }
 
         // But also increase it by at least 32KB chunks -- again, to avoid
         // doing it too often -- and round it up to 32KB in any case.
@@ -2520,6 +2513,11 @@ bool wxTextCtrl::SetForegroundColour(const wxColour& colour)
 
 bool wxTextCtrl::SetFont(const wxFont& font)
 {
+    // Native text control sends EN_CHANGE when the font changes, producing
+    // a wxEVT_TEXT event as if the user changed the value. This is not
+    // the case, so supress the event.
+    wxEventBlocker block(this, wxEVT_TEXT);
+
     if ( !wxTextCtrlBase::SetFont(font) )
         return false;
 

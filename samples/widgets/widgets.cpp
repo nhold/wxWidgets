@@ -136,7 +136,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -218,7 +218,7 @@ private:
 #endif // wxUSE_MENUS
 
     // any class wishing to process wxWidgets events must use this macro
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #if USE_LOG
@@ -240,7 +240,7 @@ public:
 
 private:
     // implement sink functions
-    virtual void DoLogTextAtLevel(wxLogLevel level, const wxString& msg)
+    virtual void DoLogTextAtLevel(wxLogLevel level, const wxString& msg) wxOVERRIDE
     {
         if ( level == wxLOG_Trace )
         {
@@ -278,7 +278,7 @@ IMPLEMENT_APP(WidgetsApp)
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(WidgetsFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(WidgetsFrame, wxFrame)
 #if USE_LOG
     EVT_BUTTON(Widgets_ClearLog, WidgetsFrame::OnButtonClearLog)
 #endif // USE_LOG
@@ -320,7 +320,7 @@ BEGIN_EVENT_TABLE(WidgetsFrame, wxFrame)
 
     EVT_MENU(wxID_EXIT, WidgetsFrame::OnExit)
 #endif // wxUSE_MENUS
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -1053,7 +1053,7 @@ void WidgetsFrame::OnAutoCompleteCustom(wxCommandEvent& WXUNUSED(event))
     class CustomTextCompleter : public wxTextCompleterSimple
     {
     public:
-        virtual void GetCompletions(const wxString& prefix, wxArrayString& res)
+        virtual void GetCompletions(const wxString& prefix, wxArrayString& res) wxOVERRIDE
         {
             // This is used for illustrative purposes only and shows how many
             // completions we return every time when we're called.

@@ -1196,7 +1196,7 @@ void wxThread::Exit(ExitCode status)
 #ifdef wxUSE_BEGIN_THREAD
     _endthreadex(wxPtrToUInt(status));
 #else // !VC++
-    ::ExitThread((DWORD)status);
+    ::ExitThread(wxPtrToUInt(status));
 #endif // VC++/!VC++
 
     wxFAIL_MSG(wxT("Couldn't return from ExitThread()!"));
@@ -1224,6 +1224,13 @@ unsigned long wxThread::GetId() const
     wxCriticalSectionLocker lock(const_cast<wxCriticalSection &>(m_critsect));
 
     return (unsigned long)m_internal->GetId();
+}
+
+WXHANDLE wxThread::MSWGetHandle() const
+{
+    wxCriticalSectionLocker lock(const_cast<wxCriticalSection &>(m_critsect));
+
+    return m_internal->GetHandle();
 }
 
 bool wxThread::IsRunning() const

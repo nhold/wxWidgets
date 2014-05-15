@@ -182,6 +182,11 @@ public:
     // set the frame icons
     virtual void SetIcons(const wxIconBundle& icons) { m_icons = icons; }
 
+    virtual bool EnableFullScreenView(bool WXUNUSED(enable) = true)
+    {
+        return false;
+    }
+
     // maximize the window to cover entire screen
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) = 0;
 
@@ -200,7 +205,7 @@ public:
     virtual wxString GetTitle() const = 0;
 
     // enable/disable close button [x]
-    virtual bool EnableCloseButton(bool WXUNUSED(enable) ) { return false; }
+    virtual bool EnableCloseButton(bool WXUNUSED(enable) = true) { return false; }
 
     // Attracts the users attention to this window if the application is
     // inactive (should be called when a background event occurs)
@@ -259,9 +264,9 @@ public:
     // -------------------------------
 
     // override some base class virtuals
-    virtual bool Destroy();
-    virtual bool IsTopLevel() const { return true; }
-    virtual bool IsTopNavigationDomain() const { return true; }
+    virtual bool Destroy() wxOVERRIDE;
+    virtual bool IsTopLevel() const wxOVERRIDE { return true; }
+    virtual bool IsTopNavigationDomain() const wxOVERRIDE { return true; }
     virtual bool IsVisible() const { return IsShown(); }
 
     // event handlers
@@ -276,11 +281,11 @@ public:
     void OnActivate(wxActivateEvent &WXUNUSED(event)) { }
 
     // do the window-specific processing after processing the update event
-    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) ;
+    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) wxOVERRIDE ;
 
     // a different API for SetSizeHints
-    virtual void SetMinSize(const wxSize& minSize);
-    virtual void SetMaxSize(const wxSize& maxSize);
+    virtual void SetMinSize(const wxSize& minSize) wxOVERRIDE;
+    virtual void SetMaxSize(const wxSize& maxSize) wxOVERRIDE;
 
     virtual void OSXSetModified(bool modified) { m_modified = modified; }
     virtual bool OSXIsModified() const { return m_modified; }
@@ -297,15 +302,15 @@ public:
 protected:
     // the frame client to screen translation should take account of the
     // toolbar which may shift the origin of the client area
-    virtual void DoClientToScreen(int *x, int *y) const;
-    virtual void DoScreenToClient(int *x, int *y) const;
+    virtual void DoClientToScreen(int *x, int *y) const wxOVERRIDE;
+    virtual void DoScreenToClient(int *x, int *y) const wxOVERRIDE;
 
     // add support for wxCENTRE_ON_SCREEN
-    virtual void DoCentre(int dir);
+    virtual void DoCentre(int dir) wxOVERRIDE;
 
     // no need to do client to screen translation to get our position in screen
     // coordinates: this is already the case
-    virtual void DoGetScreenPosition(int *x, int *y) const
+    virtual void DoGetScreenPosition(int *x, int *y) const wxOVERRIDE
     {
         DoGetPosition(x, y);
     }

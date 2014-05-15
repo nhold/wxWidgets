@@ -127,11 +127,13 @@ void wxButtonCocoaImpl::SetPressedBitmap( const wxBitmap& bitmap )
 {
     NSButton* button = GetNSButton();
     [button setAlternateImage: bitmap.GetNSImage()];
+#if wxUSE_TOGGLEBTN
     if ( GetWXPeer()->IsKindOf(wxCLASSINFO(wxToggleButton)) )
     {
         [button setButtonType:NSToggleButton];
     }
     else
+#endif
     {
         [button setButtonType:NSMomentaryChangeButton];
     }
@@ -237,7 +239,7 @@ SetBezelStyleFromBorderFlags(NSButton *v,
                 break;
 
             case wxBORDER_SIMPLE:
-                bezel = NSShadowlessSquareBezelStyle;
+                bezel = NSSmallSquareBezelStyle;
                 break;
 
             case wxBORDER_SUNKEN:
@@ -247,14 +249,14 @@ SetBezelStyleFromBorderFlags(NSButton *v,
 
             default:
                 wxFAIL_MSG( "Unknown border style" );
-                // fall through
+                wxFALLTHROUGH;
 
             case 0:
             case wxBORDER_STATIC:
             case wxBORDER_RAISED:
             case wxBORDER_THEME:
                 bezel = isSimpleText ? NSRoundedBezelStyle
-                                     : NSRegularSquareBezelStyle;
+                                     : NSSmallSquareBezelStyle;
                 break;
         }
 
@@ -480,7 +482,7 @@ public :
     {
     }
 
-    virtual void controlAction(WXWidget slf, void* _cmd, void *sender)
+    virtual void controlAction(WXWidget slf, void* _cmd, void *sender) wxOVERRIDE
     {
         wxDisclosureNSButton* db = (wxDisclosureNSButton*)m_osxView;
         [db toggle];

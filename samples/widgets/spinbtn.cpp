@@ -86,8 +86,8 @@ public:
     SpinBtnWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~SpinBtnWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_spinbtn; }
-    virtual Widgets GetWidgets() const
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_spinbtn; }
+    virtual Widgets GetWidgets() const wxOVERRIDE
     {
         Widgets widgets(WidgetsPage::GetWidgets());
         widgets.push_back(m_spinctrl);
@@ -95,10 +95,10 @@ public:
         return widgets;
     }
 
-    virtual void RecreateWidget() { CreateSpin(); }
+    virtual void RecreateWidget() wxOVERRIDE { CreateSpin(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -166,7 +166,7 @@ protected:
                *m_textBase;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(SpinBtnWidgetsPage)
 };
 
@@ -174,7 +174,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(SpinBtnWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(SpinBtnWidgetsPage, WidgetsPage)
     EVT_BUTTON(SpinBtnPage_Reset, SpinBtnWidgetsPage::OnButtonReset)
     EVT_BUTTON(SpinBtnPage_SetValue, SpinBtnWidgetsPage::OnButtonSetValue)
     EVT_BUTTON(SpinBtnPage_SetMinAndMax, SpinBtnWidgetsPage::OnButtonSetMinAndMax)
@@ -200,7 +200,7 @@ BEGIN_EVENT_TABLE(SpinBtnWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, SpinBtnWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, SpinBtnWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

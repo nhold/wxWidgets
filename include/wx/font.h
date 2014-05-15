@@ -393,7 +393,7 @@ public:
 
     // this doesn't do anything and is kept for compatibility only
 #if WXWIN_COMPATIBILITY_2_8
-    wxDEPRECATED_INLINE(void SetNoAntiAliasing(bool no = true), wxUnusedVar(no););
+    wxDEPRECATED_INLINE(void SetNoAntiAliasing(bool no = true), wxUnusedVar(no);)
     wxDEPRECATED_INLINE(bool GetNoAntiAliasing() const, return false;)
 #endif // WXWIN_COMPATIBILITY_2_8
 
@@ -507,6 +507,7 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxFontBase* font);
     wxFont& Scale(float x); \
     /* functions for creating fonts based on this one */ \
     wxFont Bold() const; \
+    wxFont GetBaseFont() const; \
     wxFont Italic() const; \
     wxFont Underlined() const; \
     wxFont Strikethrough() const; \

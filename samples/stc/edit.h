@@ -98,6 +98,9 @@ public:
     //! extra
     void OnChangeCase (wxCommandEvent &event);
     void OnConvertEOL (wxCommandEvent &event);
+    void OnMultipleSelections(wxCommandEvent& event);
+    void OnMultiPaste(wxCommandEvent& event);
+    void OnMultipleSelectionsTyping(wxCommandEvent& event);
     // stc
     void OnMarginClick (wxStyledTextEvent &event);
     void OnCharAdded  (wxStyledTextEvent &event);
@@ -134,7 +137,7 @@ private:
     int m_FoldingMargin;
     int m_DividerID;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 //----------------------------------------------------------------------------

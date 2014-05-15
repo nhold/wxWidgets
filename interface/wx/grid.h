@@ -48,9 +48,39 @@ public:
 
     /**
         Get the preferred size of the cell for its contents.
+
+        This method must be overridden in the derived classes to return the
+        minimal fitting size for displaying the content of the given grid cell.
+
+        @see GetBestHeight(), GetBestWidth()
     */
     virtual wxSize GetBestSize(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc,
                                int row, int col) = 0;
+
+    /**
+        Get the preferred height of the cell at the given width.
+
+        Some renderers may not have a well-defined best size, but only be able
+        to provide the best height at the given width, e.g. this is the case of
+        the standard wxGridCellAutoWrapStringRenderer. In this case, they
+        should override this method, in addition to GetBestSize().
+
+        @see GetBestWidth()
+
+        @since 3.1.0
+    */
+    virtual wxSize GetBestHeight(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc,
+                               int row, int col, int width);
+
+    /**
+        Get the preferred width of the cell at the given height.
+
+        See GetBestHeight(), this method is symmetric to it.
+
+        @since 3.1.0
+    */
+    virtual wxSize GetBestWidth(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc,
+                               int row, int col, int height);
 
 protected:
     /**
@@ -2466,6 +2496,8 @@ public:
 
         Vertical alignment should be one of @c wxALIGN_TOP, @c wxALIGN_CENTRE
         or @c wxALIGN_BOTTOM.
+
+        @deprecated Please use SetCellAlignment(row, col, horiz, vert) instead.
     */
     void SetCellAlignment(int align, int row, int col);
 
@@ -2485,10 +2517,14 @@ public:
     void SetCellTextColour(int row, int col, const wxColour& colour);
     /**
         Sets the text colour for the given cell.
+
+        @deprecated Please use SetCellTextColour(row, col, colour)
     */
     void SetCellTextColour(const wxColour& val, int row, int col);
     /**
         Sets the text colour for all cells by default.
+
+        @deprecated Please use SetDefaultCellTextColour(colour) instead.
     */
     void SetCellTextColour(const wxColour& colour);
 
@@ -4479,6 +4515,14 @@ public:
                             int horizontalAlignment = wxALIGN_LEFT,
                             int verticalAlignment = wxALIGN_TOP,
                             int textOrientation = wxHORIZONTAL ) const;
+
+    wxColour GetCellHighlightColour() const;
+    int      GetCellHighlightPenWidth() const;
+    int      GetCellHighlightROPenWidth() const;
+
+    void SetCellHighlightColour( const wxColour& );
+    void SetCellHighlightPenWidth(int width);
+    void SetCellHighlightROPenWidth(int width);   
 
     
 protected:

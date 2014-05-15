@@ -1038,6 +1038,10 @@ bool wxTopLevelWindowGTK::Show( bool show )
         wxSizeEvent event(GetSize(), GetId());
         event.SetEventObject(this);
         HandleWindowEvent(event);
+
+#ifdef __WXGTK3__
+        GTKSizeRevalidate();
+#endif
     }
 
     bool change = base_type::Show(show);
@@ -1254,6 +1258,15 @@ void wxTopLevelWindowGTK::GTKUpdateDecorSize(const DecorSize& decorSize)
         if (m_minWidth > 0 || m_minHeight > 0 || m_maxWidth > 0 || m_maxHeight > 0)
         {
             // update size hints, they depend on m_decorSize
+            if (!m_deferShow)
+            {
+                // if size hints match old size, assume hints were set to
+                // maintain current client size, and adjust hints accordingly
+                if (m_minWidth == m_height) m_minWidth += diff.x;
+                if (m_maxWidth == m_height) m_maxWidth += diff.x;
+                if (m_minHeight == m_height) m_minHeight += diff.y;
+                if (m_maxHeight == m_height) m_maxHeight += diff.y;
+            }
             DoSetSizeHints(m_minWidth, m_minHeight, m_maxWidth, m_maxHeight, m_incWidth, m_incHeight);
         }
         if (m_deferShow)
@@ -1291,6 +1304,9 @@ void wxTopLevelWindowGTK::GTKUpdateDecorSize(const DecorSize& decorSize)
         sizeEvent.SetEventObject(this);
         HandleWindowEvent(sizeEvent);
 
+#ifdef __WXGTK3__
+        GTKSizeRevalidate();
+#endif
         gtk_widget_show(m_widget);
 
         wxShowEvent showEvent(GetId(), true);
@@ -1503,17 +1519,26 @@ void wxTopLevelWindowGTK::SetWindowStyleFlag( long style )
 
 bool wxTopLevelWindowGTK::SetTransparent(wxByte alpha)
 {
-    GdkWindow* window = NULL;
-    if (m_widget)
-        window = gtk_widget_get_window(m_widget);
+    if (m_widget == NULL)
+        return false;
+#if GTK_CHECK_VERSION(2,12,0)
+#ifndef __WXGTK3__
+    if (gtk_check_version(2,12,0) == NULL)
+#endif
+    {
+        gtk_window_set_opacity(GTK_WINDOW(m_widget), alpha / 255.0);
+        return true;
+    }
+#endif // GTK_CHECK_VERSION(2,12,0)
+#ifndef __WXGTK3__
+#ifdef GDK_WINDOWING_X11
+    GdkWindow* window = gtk_widget_get_window(m_widget);
     if (window == NULL)
         return false;
 
-#ifdef GDK_WINDOWING_X11
     Display* dpy = GDK_WINDOW_XDISPLAY(window);
     Window win = GDK_WINDOW_XID(window);
 
-    // Using pure Xlib to not have a GTK version check mess due to gtk2.0 not having GdkDisplay
     if (alpha == 0xff)
         XDeleteProperty(dpy, win, XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False));
     else
@@ -1528,6 +1553,7 @@ bool wxTopLevelWindowGTK::SetTransparent(wxByte alpha)
 #else // !GDK_WINDOWING_X11
     return false;
 #endif // GDK_WINDOWING_X11 / !GDK_WINDOWING_X11
+#endif // !__WXGTK3__
 }
 
 bool wxTopLevelWindowGTK::CanSetTransparent()

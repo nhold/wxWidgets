@@ -34,6 +34,7 @@
     #include "wx/utils.h"
     #include "wx/timer.h"
     #include "wx/module.h"
+    #include "wx/filefn.h"
 #endif
 
 #include "wx/apptrait.h"
@@ -528,7 +529,7 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     WX_SOCKLEN_T fromlen = sizeof(from);
     const wxSOCKET_T fd = accept(m_fd, &from.addr, &fromlen);
 
-    wxScopeGuard closeSocket = wxMakeGuard(close, fd);
+    wxScopeGuard closeSocket = wxMakeGuard(wxClose, fd);
 
     // accepting is similar to reading in the sense that it resets "ready for
     // read" flag on the socket
@@ -2130,14 +2131,14 @@ wxDatagramSocket& wxDatagramSocket::SendTo( const wxSockAddress& addr,
 class wxSocketModule : public wxModule
 {
 public:
-    virtual bool OnInit()
+    virtual bool OnInit() wxOVERRIDE
     {
         // wxSocketBase will call Initialize() itself only if sockets are
         // really used, don't do it from here
         return true;
     }
 
-    virtual void OnExit()
+    virtual void OnExit() wxOVERRIDE
     {
         if ( wxSocketBase::IsInitialized() )
             wxSocketBase::Shutdown();

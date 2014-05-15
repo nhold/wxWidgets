@@ -16,7 +16,7 @@
 
 // TODO: implement wxEventLoopSource for MSW (it should wrap a HANDLE and be
 //       monitored using MsgWaitForMultipleObjects())
-#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__WXMSW__))
+#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__WINDOWS__))
     #define wxUSE_EVENTLOOP_SOURCE 1
 #else
     #define wxUSE_EVENTLOOP_SOURCE 0
@@ -238,12 +238,12 @@ public:
 
     // sets the "should exit" flag and wakes up the loop so that it terminates
     // soon
-    virtual void ScheduleExit(int rc = 0);
+    virtual void ScheduleExit(int rc = 0) wxOVERRIDE;
 
 protected:
     // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
     // terminating when Exit() is called
-    virtual int DoRun();
+    virtual int DoRun() wxOVERRIDE;
 
     // may be overridden to perform some action at the start of each new event
     // loop iteration
@@ -278,7 +278,7 @@ private:
 #endif
 
 // include the header defining wxConsoleEventLoop
-#if defined(__UNIX__) && !defined(__WXMSW__)
+#if defined(__UNIX__) && !defined(__WINDOWS__)
     #include "wx/unix/evtloop.h"
 #elif defined(__WINDOWS__)
     #include "wx/msw/evtloopconsole.h"
@@ -377,7 +377,7 @@ public:
     }
 
 protected:
-    virtual void OnExit()
+    virtual void OnExit() wxOVERRIDE
     {
         delete m_windowDisabler;
         m_windowDisabler = NULL;
@@ -417,7 +417,7 @@ private:
     wxEventLoopBase *m_evtLoopOld;
 };
 
-#if wxUSE_CONSOLE_EVENTLOOP
+#if wxUSE_GUI || wxUSE_CONSOLE_EVENTLOOP
 
 class wxEventLoopGuarantor
 {
@@ -445,6 +445,6 @@ private:
     wxEventLoop *m_evtLoopNew;
 };
 
-#endif // wxUSE_CONSOLE_EVENTLOOP
+#endif // wxUSE_GUI || wxUSE_CONSOLE_EVENTLOOP
 
 #endif // _WX_EVTLOOP_H_

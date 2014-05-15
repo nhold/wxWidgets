@@ -62,7 +62,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit();
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -94,7 +94,7 @@ protected:
 
 private:
     // any class wishing to process wxWidgets events must use this macro
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // ----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ enum
 // the event tables connect the wxWidgets events with the functions (event
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_TEXT(wxID_ANY,MyFrame::OnComboBoxUpdate)
     EVT_TEXT_ENTER(wxID_ANY,MyFrame::OnComboBoxUpdate)
     EVT_COMBOBOX(wxID_ANY,MyFrame::OnComboBoxUpdate)
@@ -132,7 +132,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ComboCtrl_About,    MyFrame::OnAbout)
 
     EVT_IDLE(MyFrame::OnIdle)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a
@@ -179,7 +179,7 @@ public:
     virtual void OnDrawItem( wxDC& dc,
                              const wxRect& rect,
                              int item,
-                             int flags ) const
+                             int flags ) const wxOVERRIDE
     {
         if ( item == wxNOT_FOUND )
             return;
@@ -233,7 +233,7 @@ public:
     }
 
     virtual void OnDrawBackground( wxDC& dc, const wxRect& rect,
-                                   int item, int flags ) const
+                                   int item, int flags ) const wxOVERRIDE
     {
 
         // If item is selected or even, or we are painting the
@@ -252,7 +252,7 @@ public:
         dc.DrawRectangle(rect);
     }
 
-    virtual wxCoord OnMeasureItem( size_t item ) const
+    virtual wxCoord OnMeasureItem( size_t item ) const wxOVERRIDE
     {
         // Simply demonstrate the ability to have variable-height items
         if ( item & 1 )
@@ -261,7 +261,7 @@ public:
             return 24;
     }
 
-    virtual wxCoord OnMeasureItemWidth( size_t WXUNUSED(item) ) const
+    virtual wxCoord OnMeasureItemWidth( size_t WXUNUSED(item) ) const wxOVERRIDE
     {
         return -1; // default - will be measured from text width
     }
@@ -279,13 +279,13 @@ class ListViewComboPopup : public wxListView, public wxComboPopup
 {
 public:
 
-    virtual void Init()
+    virtual void Init() wxOVERRIDE
     {
         m_value = -1;
         m_itemHere = -1; // hot item in list
     }
 
-    virtual bool Create( wxWindow* parent )
+    virtual bool Create( wxWindow* parent ) wxOVERRIDE
     {
         return wxListView::Create(parent,1,
                                   wxPoint(0,0),wxDefaultSize,
@@ -293,16 +293,16 @@ public:
                                   wxLC_SORT_ASCENDING|wxSIMPLE_BORDER);
     }
 
-    virtual wxWindow *GetControl() { return this; }
+    virtual wxWindow *GetControl() wxOVERRIDE { return this; }
 
-    virtual void SetStringValue( const wxString& s )
+    virtual void SetStringValue( const wxString& s ) wxOVERRIDE
     {
         int n = wxListView::FindItem(-1,s);
         if ( n >= 0 && n < GetItemCount() )
             wxListView::Select(n);
     }
 
-    virtual wxString GetStringValue() const
+    virtual wxString GetStringValue() const wxOVERRIDE
     {
         if ( m_value >= 0 )
             return wxListView::GetItemText(m_value);
@@ -351,16 +351,16 @@ protected:
     int             m_itemHere; // hot item in popup
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(ListViewComboPopup, wxListView)
+wxBEGIN_EVENT_TABLE(ListViewComboPopup, wxListView)
     EVT_MOTION(ListViewComboPopup::OnMouseMove)
     // NOTE: Left down event is used instead of left up right now
     //       since MSW wxListCtrl doesn't seem to emit left ups
     //       consistently.
     EVT_LEFT_DOWN(ListViewComboPopup::OnMouseClick)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 // ----------------------------------------------------------------------------
@@ -373,7 +373,7 @@ class TreeCtrlComboPopup : public wxTreeCtrl, public wxComboPopup
 {
 public:
 
-    virtual void Init()
+    virtual void Init() wxOVERRIDE
     {
     }
     virtual ~TreeCtrlComboPopup()
@@ -385,7 +385,7 @@ public:
         SendDestroyEvent();
     }
 
-    virtual bool Create( wxWindow* parent )
+    virtual bool Create( wxWindow* parent ) wxOVERRIDE
     {
         return wxTreeCtrl::Create(parent,1,
                                   wxPoint(0,0),wxDefaultSize,
@@ -401,12 +401,12 @@ public:
 
     virtual wxSize GetAdjustedSize( int minWidth,
                                     int WXUNUSED(prefHeight),
-                                    int maxHeight )
+                                    int maxHeight ) wxOVERRIDE
     {
         return wxSize(wxMax(300,minWidth),wxMin(250,maxHeight));
     }
 
-    virtual wxWindow *GetControl() { return this; }
+    virtual wxWindow *GetControl() wxOVERRIDE { return this; }
 
     // Needed by SetStringValue
     wxTreeItemId FindItemByText( wxTreeItemId parent, const wxString& text )
@@ -430,7 +430,7 @@ public:
         return wxTreeItemId();
     }
 
-    virtual void SetStringValue( const wxString& s )
+    virtual void SetStringValue( const wxString& s ) wxOVERRIDE
     {
         wxTreeItemId root = GetRootItem();
         if ( !root.IsOk() )
@@ -444,7 +444,7 @@ public:
         }
     }
 
-    virtual wxString GetStringValue() const
+    virtual wxString GetStringValue() const wxOVERRIDE
     {
         if ( m_value.IsOk() )
             return wxTreeCtrl::GetItemText(m_value);
@@ -489,16 +489,16 @@ protected:
     wxTreeItemId        m_itemHere; // hot item in popup
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(TreeCtrlComboPopup, wxTreeCtrl)
+wxBEGIN_EVENT_TABLE(TreeCtrlComboPopup, wxTreeCtrl)
     EVT_MOTION(TreeCtrlComboPopup::OnMouseMove)
     // NOTE: Left down event is used instead of left up right now
     //       since MSW wxTreeCtrl doesn't seem to emit left ups
     //       consistently.
     EVT_LEFT_DOWN(TreeCtrlComboPopup::OnMouseClick)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxComboCtrl with custom popup animation, using wxWindow::ShowWithEffect().
@@ -507,7 +507,7 @@ END_EVENT_TABLE()
 class wxComboCtrlWithCustomPopupAnim : public wxComboCtrl
 {
 protected:
-    virtual bool AnimateShow( const wxRect& rect, int WXUNUSED(flags) )
+    virtual bool AnimateShow( const wxRect& rect, int WXUNUSED(flags) ) wxOVERRIDE
     {
         wxWindow* win = GetPopupWindow();
         win->SetSize(rect);
@@ -572,7 +572,7 @@ public:
         SetButtonBitmaps(bmp,true);
     }
 
-    virtual void OnButtonClick()
+    virtual void OnButtonClick() wxOVERRIDE
     {
         // Show standard wxFileDialog on button click
 
@@ -590,7 +590,7 @@ public:
     }
 
     // Implement empty DoSetPopupControl to prevent assertion failure.
-    virtual void DoSetPopupControl(wxComboPopup* WXUNUSED(popup))
+    virtual void DoSetPopupControl(wxComboPopup* WXUNUSED(popup)) wxOVERRIDE
     {
     }
 

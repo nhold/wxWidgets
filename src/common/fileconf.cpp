@@ -60,10 +60,6 @@
 // constants
 // ----------------------------------------------------------------------------
 
-#ifndef MAX_PATH
-    #define MAX_PATH 512
-#endif
-
 #define FILECONF_TRACE_MASK wxT("fileconf")
 
 // ----------------------------------------------------------------------------
@@ -2060,7 +2056,7 @@ static wxString FilterOutValue(const wxString& str)
           c = wxT('"');
           break;
         }
-        //else: fall through
+        wxFALLTHROUGH;
 
       default:
         strResult += str[n];

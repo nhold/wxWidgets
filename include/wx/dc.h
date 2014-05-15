@@ -18,9 +18,8 @@
 #include "wx/object.h"          // the base class
 
 #include "wx/intl.h"            // for wxLayoutDirection
-#include "wx/cursor.h"          // we have member variables of these classes
+#include "wx/colour.h"          // we have member variables of these classes
 #include "wx/font.h"            // so we can't do without them
-#include "wx/colour.h"
 #include "wx/bitmap.h"          // for wxNullBitmap
 #include "wx/brush.h"
 #include "wx/pen.h"
@@ -243,15 +242,15 @@ class WXDLLIMPEXP_CORE wxNativeDCFactory: public wxDCFactory
 public:
     wxNativeDCFactory() {}
 
-    virtual wxDCImpl* CreateWindowDC( wxWindowDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreateClientDC( wxClientDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreatePaintDC( wxPaintDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxBitmap &bitmap );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxDC *dc );
-    virtual wxDCImpl* CreateScreenDC( wxScreenDC *owner );
+    virtual wxDCImpl* CreateWindowDC( wxWindowDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreateClientDC( wxClientDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreatePaintDC( wxPaintDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxBitmap &bitmap ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxDC *dc ) wxOVERRIDE;
+    virtual wxDCImpl* CreateScreenDC( wxScreenDC *owner ) wxOVERRIDE;
 #if wxUSE_PRINTING_ARCHITECTURE
-    virtual wxDCImpl* CreatePrinterDC( wxPrinterDC *owner, const wxPrintData &data  );
+    virtual wxDCImpl* CreatePrinterDC( wxPrinterDC *owner, const wxPrintData &data  ) wxOVERRIDE;
 #endif
 };
 

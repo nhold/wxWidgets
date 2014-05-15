@@ -2005,6 +2005,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\wx\msw\ownerdrawnbutton.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\wx\msw\ownerdrw.h"
 				>
 			</File>
@@ -3140,6 +3144,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\wx\preferences.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\wx\print.h"
 				>
 			</File>
@@ -3413,6 +3421,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\wx\tbarbase.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\wx\testing.h"
 				>
 			</File>
 			<File

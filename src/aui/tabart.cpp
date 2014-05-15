@@ -51,7 +51,7 @@ public:
     wxAuiCommandCapture() { m_lastId = 0; }
     int GetCommandId() const { return m_lastId; }
 
-    bool ProcessEvent(wxEvent& evt)
+    bool ProcessEvent(wxEvent& evt) wxOVERRIDE
     {
         if (evt.GetEventType() == wxEVT_MENU)
         {
@@ -1248,9 +1248,6 @@ void wxAuiSimpleTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.DrawRectangle(-1, -1, rect.GetWidth()+2, rect.GetHeight()+2);
 
-#if 0
-// NOTE (jens#1#): currently not needed, but might be reimplemented, if all drawing issues after the merge are fixed
-
     // draw base line
     dc.SetPen(*wxGREY_PEN);
     if (HasFlag(wxAUI_NB_LEFT))
@@ -1269,7 +1266,7 @@ void wxAuiSimpleTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const 
     {
         dc.DrawLine(0, rect.GetHeight()-1, rect.GetWidth(), rect.GetHeight()-1);
     }
-#endif
+
 }
 
 

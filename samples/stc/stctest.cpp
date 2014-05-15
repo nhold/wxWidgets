@@ -104,7 +104,7 @@ private:
     wxFrame* MinimalEditor();
 protected:
     void OnMinimalEditor(wxCommandEvent&);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // created dynamically by wxWidgets
@@ -159,7 +159,7 @@ private:
     // print preview position and size
     wxRect DeterminePrintSize ();
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 //----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ private:
     // timer
     wxTimer *m_timer;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 
@@ -193,9 +193,9 @@ private:
 IMPLEMENT_APP (App)
 
 
-BEGIN_EVENT_TABLE(App, wxApp)
+wxBEGIN_EVENT_TABLE(App, wxApp)
 EVT_MENU(myID_WINDOW_MINIMAL, App::OnMinimalEditor)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 //----------------------------------------------------------------------------
 // App
@@ -247,7 +247,7 @@ int App::OnExit () {
 // AppFrame
 //----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE (AppFrame, wxFrame)
+wxBEGIN_EVENT_TABLE (AppFrame, wxFrame)
     // common
     EVT_CLOSE (                      AppFrame::OnClose)
     // file
@@ -276,7 +276,7 @@ BEGIN_EVENT_TABLE (AppFrame, wxFrame)
                                      AppFrame::OnEdit)
     // help
     EVT_MENU (wxID_ABOUT,            AppFrame::OnAbout)
-END_EVENT_TABLE ()
+wxEND_EVENT_TABLE ()
 
 AppFrame::AppFrame (const wxString &title)
         : wxFrame ((wxFrame *)NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750,550),
@@ -546,6 +546,9 @@ void AppFrame::CreateMenu ()
     menuExtra->Append (myID_CHANGECASE, _("Change &case to .."), menuChangeCase);
     menuExtra->AppendSeparator();
     menuExtra->Append (myID_CONVERTEOL, _("Convert line &endings to .."), menuConvertEOL);
+    menuExtra->AppendCheckItem(myID_MULTIPLE_SELECTIONS, _("Toggle &multiple selections"));
+    menuExtra->AppendCheckItem(myID_MULTI_PASTE, _("Toggle multi-&paste"));
+    menuExtra->AppendCheckItem(myID_MULTIPLE_SELECTIONS_TYPING, _("Toggle t&yping on multiple selections"));
 
     // Window menu
     wxMenu *menuWindow = new wxMenu;
@@ -596,9 +599,9 @@ wxRect AppFrame::DeterminePrintSize () {
 // AppAbout
 //----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE (AppAbout, wxDialog)
+wxBEGIN_EVENT_TABLE (AppAbout, wxDialog)
     EVT_TIMER (myID_ABOUTTIMER, AppAbout::OnTimerEvent)
-END_EVENT_TABLE ()
+wxEND_EVENT_TABLE ()
 
 AppAbout::AppAbout (wxWindow *parent,
                     int milliseconds,
@@ -750,13 +753,13 @@ public:
 protected:
     void OnMarginClick(wxStyledTextEvent&);
     void OnText(wxStyledTextEvent&);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
-BEGIN_EVENT_TABLE(MinimalEditor, wxStyledTextCtrl)
+wxBEGIN_EVENT_TABLE(MinimalEditor, wxStyledTextCtrl)
     EVT_STC_MARGINCLICK(wxID_ANY, MinimalEditor::OnMarginClick)
     EVT_STC_CHANGE(wxID_ANY, MinimalEditor::OnText)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void MinimalEditor::OnMarginClick(wxStyledTextEvent &event)
 {

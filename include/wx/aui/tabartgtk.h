@@ -35,9 +35,9 @@ class WXDLLIMPEXP_AUI wxAuiGtkTabArt : public wxAuiGenericTabArt
 public:
     wxAuiGtkTabArt();
 
-    virtual wxAuiTabArt* Clone();
-    virtual void DrawBorder(wxDC& dc, wxWindow* wnd, const wxRect& rect);
-    virtual void DrawBackground(wxDC& dc, wxWindow* wnd, const wxRect& rect);
+    virtual wxAuiTabArt* Clone() wxOVERRIDE;
+    virtual void DrawBorder(wxDC& dc, wxWindow* wnd, const wxRect& rect) wxOVERRIDE;
+    virtual void DrawBackground(wxDC& dc, wxWindow* wnd, const wxRect& rect) wxOVERRIDE;
     virtual void DrawTab(wxDC& dc,
                          wxWindow* wnd,
                          const wxAuiPaneInfo& page,
@@ -53,8 +53,6 @@ public:
                          {
                              return GetBestTabSize(wnd, pages, m_requiredBitmapSize).GetHeight();
                          }
-    int GetBorderWidth(wxWindow* wnd);
-    int GetAdditionalBorderSpace(wxWindow* wnd);
     virtual wxSize GetTabSize(wxDC& dc, wxWindow* wnd, const wxString& caption,
                               const wxBitmap& bitmap, bool active,
                               int closeButtonState, int* extent);

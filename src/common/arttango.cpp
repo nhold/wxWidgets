@@ -91,7 +91,7 @@ public:
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id,
                                   const wxArtClient& client,
-                                  const wxSize& size);
+                                  const wxSize& size) wxOVERRIDE;
 
 private:
     bool m_imageHandledAdded;
@@ -265,7 +265,7 @@ wxTangoArtProvider::CreateBitmap(const wxArtID& id,
         {
             default:
                 wxFAIL_MSG( "Unsupported Tango bitmap size" );
-                // fall through
+                wxFALLTHROUGH;
 
             case TangoSize_16:
                 data = entry.data16;

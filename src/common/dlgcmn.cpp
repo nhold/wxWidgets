@@ -370,6 +370,8 @@ wxStdDialogButtonSizer *wxDialogBase::CreateStdDialogButtonSizer( long flags )
         SetAffirmativeId(wxID_OK);
     else if (flags & wxYES)
         SetAffirmativeId(wxID_YES);
+    else if (flags & wxCLOSE)
+        SetAffirmativeId(wxID_CLOSE);
 
     sizer->Realize();
 
@@ -442,7 +444,7 @@ bool wxDialogBase::SendCloseButtonClickEvent()
             if ( EmulateButtonClickIfPresent(wxID_CANCEL) )
                 return true;
             idCancel = GetAffirmativeId();
-            // fall through
+            wxFALLTHROUGH;
 
         default:
             // translate Esc to button press for the button with given id
@@ -1001,8 +1003,8 @@ class wxDialogLayoutAdapterModule: public wxModule
     DECLARE_DYNAMIC_CLASS(wxDialogLayoutAdapterModule)
 public:
     wxDialogLayoutAdapterModule() {}
-    virtual void OnExit() { delete wxDialogBase::SetLayoutAdapter(NULL); }
-    virtual bool OnInit() { wxDialogBase::SetLayoutAdapter(new wxStandardDialogLayoutAdapter); return true; }
+    virtual void OnExit() wxOVERRIDE { delete wxDialogBase::SetLayoutAdapter(NULL); }
+    virtual bool OnInit() wxOVERRIDE { wxDialogBase::SetLayoutAdapter(new wxStandardDialogLayoutAdapter); return true; }
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxDialogLayoutAdapterModule, wxModule)

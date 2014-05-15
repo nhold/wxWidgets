@@ -65,11 +65,11 @@ public:
     FontPickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~FontPickerWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_fontPicker; }
-    virtual void RecreateWidget() { RecreatePicker(); }
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_fontPicker; }
+    virtual void RecreateWidget() wxOVERRIDE { RecreatePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
 
@@ -103,7 +103,7 @@ protected:
     wxBoxSizer *m_sizer;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(FontPickerWidgetsPage)
 };
 
@@ -111,13 +111,13 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(FontPickerWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(FontPickerWidgetsPage, WidgetsPage)
     EVT_BUTTON(PickerPage_Reset, FontPickerWidgetsPage::OnButtonReset)
 
     EVT_FONTPICKER_CHANGED(PickerPage_Font, FontPickerWidgetsPage::OnFontChange)
 
     EVT_CHECKBOX(wxID_ANY, FontPickerWidgetsPage::OnCheckBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation

@@ -80,8 +80,8 @@ class DrawingDocument : public wxDocument
 public:
     DrawingDocument() : wxDocument() { }
 
-    DocumentOstream& SaveObject(DocumentOstream& stream);
-    DocumentIstream& LoadObject(DocumentIstream& stream);
+    DocumentOstream& SaveObject(DocumentOstream& stream) wxOVERRIDE;
+    DocumentIstream& LoadObject(DocumentIstream& stream) wxOVERRIDE;
 
     // add a new segment to the document
     void AddDoodleSegment(const DoodleSegment& segment);
@@ -99,7 +99,7 @@ private:
 
     DoodleSegments m_doodleSegments;
 
-    DECLARE_DYNAMIC_CLASS(DrawingDocument)
+    wxDECLARE_DYNAMIC_CLASS(DrawingDocument);
 };
 
 
@@ -138,8 +138,8 @@ public:
     {
     }
 
-    virtual bool Do() { return DoAdd(); }
-    virtual bool Undo() { return DoRemove(); }
+    virtual bool Do() wxOVERRIDE { return DoAdd(); }
+    virtual bool Undo() wxOVERRIDE { return DoRemove(); }
 };
 
 // The command for removing the last segment
@@ -151,8 +151,8 @@ public:
     {
     }
 
-    virtual bool Do() { return DoRemove(); }
-    virtual bool Undo() { return DoAdd(); }
+    virtual bool Do() wxOVERRIDE { return DoRemove(); }
+    virtual bool Undo() wxOVERRIDE { return DoAdd(); }
 };
 
 
@@ -165,21 +165,21 @@ class wxTextDocument : public wxDocument
 public:
     wxTextDocument() : wxDocument() { }
 
-    virtual bool OnCreate(const wxString& path, long flags);
+    virtual bool OnCreate(const wxString& path, long flags) wxOVERRIDE;
 
     virtual wxTextCtrl* GetTextCtrl() const = 0;
 
-    virtual bool IsModified() const;
-    virtual void Modify(bool mod);
+    virtual bool IsModified() const wxOVERRIDE;
+    virtual void Modify(bool mod) wxOVERRIDE;
 
 protected:
-    virtual bool DoSaveDocument(const wxString& filename);
-    virtual bool DoOpenDocument(const wxString& filename);
+    virtual bool DoSaveDocument(const wxString& filename) wxOVERRIDE;
+    virtual bool DoOpenDocument(const wxString& filename) wxOVERRIDE;
 
     void OnTextChange(wxCommandEvent& event);
 
     wxDECLARE_NO_COPY_CLASS(wxTextDocument);
-    DECLARE_CLASS(wxTextDocument)
+    wxDECLARE_ABSTRACT_CLASS(wxTextDocument);
 };
 
 // ----------------------------------------------------------------------------
@@ -190,10 +190,10 @@ class TextEditDocument : public wxTextDocument
 {
 public:
     TextEditDocument() : wxTextDocument() { }
-    virtual wxTextCtrl* GetTextCtrl() const;
+    virtual wxTextCtrl* GetTextCtrl() const wxOVERRIDE;
 
     wxDECLARE_NO_COPY_CLASS(TextEditDocument);
-    DECLARE_DYNAMIC_CLASS(TextEditDocument)
+    wxDECLARE_DYNAMIC_CLASS(TextEditDocument);
 };
 
 // ----------------------------------------------------------------------------
@@ -208,18 +208,18 @@ class ImageDocument : public wxDocument
 public:
     ImageDocument() : wxDocument() { }
 
-    virtual bool OnOpenDocument(const wxString& file);
+    virtual bool OnOpenDocument(const wxString& file) wxOVERRIDE;
 
     wxImage GetImage() const { return m_image; }
 
 protected:
-    virtual bool DoOpenDocument(const wxString& file);
+    virtual bool DoOpenDocument(const wxString& file) wxOVERRIDE;
 
 private:
     wxImage m_image;
 
     wxDECLARE_NO_COPY_CLASS(ImageDocument);
-    DECLARE_DYNAMIC_CLASS(ImageDocument)
+    wxDECLARE_DYNAMIC_CLASS(ImageDocument);
 };
 
 // This is a child document of ImageDocument: this document doesn't

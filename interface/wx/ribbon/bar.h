@@ -20,6 +20,21 @@ enum wxRibbonDisplayMode
 };
 
 
+    wxRIBBON_BAR_PINNED,
+
+    /**
+        The panel area is hidden: only the pages tabs remain visible.
+     */
+    wxRIBBON_BAR_MINIMIZED,
+
+    /**
+        The panel area is visible, but not pinned: it minimizes as soon as the
+        focus is lost.
+     */
+    wxRIBBON_BAR_EXPANDED
+};
+
+
 /**
     @class wxRibbonBarEvent
 
@@ -336,8 +351,8 @@ public:
     /**
         Shows or hide the panel area of the ribbon bar according to the
         given display mode.
-                       
-        @since 3.0.1
+
+        @since 3.1.0
     */
     void ShowPanels(wxRibbonDisplayMode mode);
 
@@ -348,6 +363,10 @@ public:
         be shown. This is useful for giving the user more screen space to work
         with when he/she doesn't need to see the ribbon's options.
         When the panel is shown, this method pins it.
+
+        If the panel is currently shown, this method pins it, use the other
+        overload of this method to specify the exact panel display mode to
+        avoid it.
 
         @since 2.9.2
     */
@@ -381,6 +400,16 @@ public:
     wxRibbonDisplayMode GetDisplayMode() const;
     
     
+    /**
+        Returns the current display mode of the panel area.
+
+        @see ShowPanels()
+
+        @since 3.1.0
+    */
+    wxRibbonDisplayMode GetDisplayMode() const;
+
+
     /**
         Perform initial layout and size calculations of the bar and its
         children. This must be called after all of the bar's children have been

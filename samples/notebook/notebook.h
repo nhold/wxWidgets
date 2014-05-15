@@ -26,7 +26,7 @@
 class MyApp : public wxApp
 {
 public:
-    bool OnInit();
+    bool OnInit() wxOVERRIDE;
 };
 
 DECLARE_APP(MyApp)
@@ -133,7 +133,7 @@ private:
 
     wxImageList *m_imageList;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 enum ID_COMMANDS

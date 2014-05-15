@@ -78,7 +78,7 @@ public:
         m_workerFailed = false;
     }
 
-    virtual wxEvent* Clone() const
+    virtual wxEvent* Clone() const wxOVERRIDE
     {
         return new WorkerEvent(*this);
     }
@@ -100,7 +100,7 @@ WX_DECLARE_LIST(EventWorker, EList);
 //and list of two type worker classes that serve clients
 class Server : public wxApp
 {
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 public:
     Server() : m_maxConnections(-1) {}
     ~Server() {}
@@ -112,11 +112,11 @@ private:
       EVENTS
     };
 
-    virtual bool OnInit();
-    virtual int OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
-    void OnInitCmdLine(wxCmdLineParser& pParser);
-    bool OnCmdLineParsed(wxCmdLineParser& pParser);
+    void OnInitCmdLine(wxCmdLineParser& pParser) wxOVERRIDE;
+    bool OnCmdLineParsed(wxCmdLineParser& pParser) wxOVERRIDE;
 
     void OnSocketEvent(wxSocketEvent& pEvent);
     void OnWorkerEvent(WorkerEvent& pEvent);
@@ -168,7 +168,7 @@ class ThreadWorker : public wxThread, private WorkerBase
 {
 public:
     ThreadWorker(wxSocketBase* pSocket);
-    virtual ExitCode Entry();
+    virtual ExitCode Entry() wxOVERRIDE;
 
 private:
     wxSocketBase* m_socket;
@@ -197,7 +197,7 @@ private:
     void DoWrite();
     void DoRead();
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 /******************* Implementation ******************/
@@ -473,11 +473,11 @@ void Server::OnTimerEvent(wxTimerEvent&)
 }
 
 
-BEGIN_EVENT_TABLE(Server,wxEvtHandler)
+wxBEGIN_EVENT_TABLE(Server,wxEvtHandler)
   EVT_SOCKET(wxID_ANY,Server::OnSocketEvent)
   EVT_WORKER(Server::OnWorkerEvent)
   EVT_TIMER(wxID_ANY,Server::OnTimerEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 ThreadWorker::ThreadWorker(wxSocketBase* pSocket) : wxThread(wxTHREAD_JOINABLE)
@@ -759,6 +759,6 @@ void  EventWorker::DoWrite()
     while (!m_socket->Error());
 }
 
-BEGIN_EVENT_TABLE(EventWorker,wxEvtHandler)
+wxBEGIN_EVENT_TABLE(EventWorker,wxEvtHandler)
     EVT_SOCKET(wxID_ANY,EventWorker::OnSocketEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()

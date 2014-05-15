@@ -57,6 +57,7 @@ enum wxAuiManagerOption
     wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB   = 1 << 10,
     wxAUI_MGR_NB_CLOSE_ON_ALL_TABS     = 1 << 11,
     wxAUI_MGR_NB_TAB_SPLIT             = 1 << 12,  // wxAuiNotebook only
+    wxAUI_MGR_NB_ALLOW_NOTEBOOKS       = 1 << 13,
 
     // below the flags are only wxAuiManager flags
     wxAUI_MGR_ALLOW_FLOATING           = 1 << 16,
@@ -484,9 +485,10 @@ public:
     {
         // note source is not passed by reference so we can overwrite, to keep the
         // unsafe bits of "dest"
-        source.window = window;
-        source.frame = frame;
+        source.window  = window;
+        source.frame   = frame;
         source.buttons = buttons;
+        source.icon    = icon;
         // now assign
         *this = source;
     }
@@ -819,7 +821,7 @@ public:
         dc = c.dc;
     }
 #endif
-    wxEvent *Clone() const { return new wxAuiManagerEvent(*this); }
+    wxEvent *Clone() const wxOVERRIDE { return new wxAuiManagerEvent(*this); }
 
     void SetManager(wxAuiManager* mgr) { manager = mgr; }
     void SetPane(wxAuiPaneInfo* p) { pane = p; }

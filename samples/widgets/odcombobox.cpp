@@ -90,14 +90,14 @@ class ODComboboxWidgetsPage : public ItemContainerWidgetsPage
 public:
     ODComboboxWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxControl *GetWidget() const { return m_combobox; }
-    virtual wxTextEntryBase *GetTextEntry() const
+    virtual wxControl *GetWidget() const wxOVERRIDE { return m_combobox; }
+    virtual wxTextEntryBase *GetTextEntry() const wxOVERRIDE
         { return m_combobox ? m_combobox->GetTextCtrl() : NULL; }
-    virtual wxItemContainer* GetContainer() const { return m_combobox; }
-    virtual void RecreateWidget() { CreateCombo(); }
+    virtual wxItemContainer* GetContainer() const wxOVERRIDE { return m_combobox; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateCombo(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -176,7 +176,7 @@ protected:
                *m_textDelete;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     DECLARE_WIDGETS_PAGE(ODComboboxWidgetsPage)
 };
 
@@ -184,7 +184,7 @@ private:
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(ODComboboxWidgetsPage, WidgetsPage)
+wxBEGIN_EVENT_TABLE(ODComboboxWidgetsPage, WidgetsPage)
     EVT_BUTTON(ODComboPage_Reset, ODComboboxWidgetsPage::OnButtonReset)
     EVT_BUTTON(ODComboPage_Change, ODComboboxWidgetsPage::OnButtonChange)
     EVT_BUTTON(ODComboPage_Delete, ODComboboxWidgetsPage::OnButtonDelete)
@@ -227,7 +227,7 @@ BEGIN_EVENT_TABLE(ODComboboxWidgetsPage, WidgetsPage)
 
     EVT_CHECKBOX(wxID_ANY, ODComboboxWidgetsPage::OnCheckOrRadioBox)
     EVT_RADIOBOX(wxID_ANY, ODComboboxWidgetsPage::OnCheckOrRadioBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -242,7 +242,7 @@ public:
     virtual void OnDrawItem(wxDC& dc,
                             const wxRect& rect,
                             int item,
-                            int WXUNUSED(flags)) const
+                            int WXUNUSED(flags)) const wxOVERRIDE
     {
         if ( item == wxNOT_FOUND )
             return;
@@ -268,7 +268,7 @@ public:
     }
 
     virtual void OnDrawBackground(wxDC& dc, const wxRect& rect,
-                                  int item, int flags ) const
+                                  int item, int flags ) const wxOVERRIDE
     {
 
         // If item is selected or even, or we are painting the
@@ -287,12 +287,12 @@ public:
         dc.DrawRectangle(rect);
     }
 
-    virtual wxCoord OnMeasureItem(size_t WXUNUSED(item)) const
+    virtual wxCoord OnMeasureItem(size_t WXUNUSED(item)) const wxOVERRIDE
     {
         return 48;
     }
 
-    virtual wxCoord OnMeasureItemWidth(size_t WXUNUSED(item)) const
+    virtual wxCoord OnMeasureItemWidth(size_t WXUNUSED(item)) const wxOVERRIDE
     {
         return -1; // default - will be measured from text width
     }
