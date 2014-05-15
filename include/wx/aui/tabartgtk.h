@@ -56,6 +56,9 @@ public:
     virtual wxSize GetTabSize(wxDC& dc, wxWindow* wnd, const wxString& caption,
                               const wxBitmap& bitmap, bool active,
                               int closeButtonState, int* extent);
+
+    int GetBorderWidth(wxWindow* wnd) wxOVERRIDE;
+    int GetAdditionalBorderSpace(wxWindow* wnd) wxOVERRIDE;
 };
 
 #endif  // wxUSE_AUI
