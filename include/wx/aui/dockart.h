@@ -253,6 +253,7 @@ public:
 
     void CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
     void CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
+	void MakeTabVisible(int tabPage, wxWindow* win);
 protected:
 
     virtual void Render(wxDC* dc, wxWindow* wnd);
@@ -274,8 +275,7 @@ protected:
     friend class wxAuiManager;
 };
 
-//To try and maintain backwards compatibility with any code that may have used wxAuiTabCtrl directly.
-typedef wxAuiTabContainer wxAuiTabCtrl;
+
 
 #endif // wxUSE_AUI
 #endif //_WX_DOCKART_H_
