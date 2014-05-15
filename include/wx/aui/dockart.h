@@ -253,6 +253,7 @@ public:
 
     void CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
     void CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
+	void MakeTabVisible(int tabPage, wxWindow* win);
 protected:
 
     virtual void Render(wxDC* dc, wxWindow* wnd);
