@@ -275,8 +275,7 @@ protected:
     friend class wxAuiManager;
 };
 
-//To try and maintain backwards compatibility with any code that may have used wxAuiTabCtrl directly.
-typedef wxAuiTabContainer wxAuiTabCtrl;
+
 
 #endif // wxUSE_AUI
 #endif //_WX_DOCKART_H_

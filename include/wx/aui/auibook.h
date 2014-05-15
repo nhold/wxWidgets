@@ -30,6 +30,13 @@
 #include "wx/aui/framemanager.h"
 
 
+// To try and maintain backwards compatibility with any code that may have used wxAuiTabCtrl directly.
+typedef wxAuiTabContainer wxAuiTabCtrl;
+// For backwards compatibility with old code.
+typedef wxAuiPaneInfo wxAuiNotebookPage;
+typedef wxAuiPaneInfoArray wxAuiNotebookPageArray;
+
+
 enum wxAuiNotebookOption
 {
     wxAUI_NB_TOP                 = wxAUI_MGR_NB_TOP,
