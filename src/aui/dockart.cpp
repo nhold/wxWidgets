@@ -1758,7 +1758,7 @@ bool wxAuiTabContainer::IsTabVisible(int tabPage, int tabOffset, wxDC* dc, wxWin
             return false; // haven't found the tab, and we've run out of space, so return false
 
         int extent = 0;
-        wxSize size = m_tab_art->GetTabSize(*dc,
+        m_tab_art->GetTabSize(*dc,
                             wnd,
                             page.GetCaption(),
                             page.GetIcon(),
