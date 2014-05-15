@@ -1804,6 +1804,11 @@ void wxAuiTabContainer::MakeTabVisible(int tabPage)
     }
 }
 
+void wxAuiTabContainer::MakeTabVisible(int tabPage, wxWindow* win)
+{
+	MakeTabVisible(tabPage);
+}
+
 // TabHitTest() tests if a tab was hit, passing the window pointer
 // back if that condition was fulfilled.  The function returns
 // true if a tab was hit, otherwise false
