@@ -735,8 +735,15 @@ MyFrame::MyFrame(wxWindow* parent,
     // code. For now, just hard code a frame minimum size
     SetMinSize(wxSize(400,300));
 
+	
+	// Settings pane
+    m_mgr.AddPane(new SettingsPanel(this,this), wxAuiPaneInfo().
+                  Name(wxT("settings")).Caption(wxT("Dock Manager Settings")).
+                  Dockable(false).Float().Hide());
 
 
+
+	// Left dock
     m_mgr.AddPane(CreateTextCtrl(wxT("This is a movable pane. Its dock position can be changed but it cannot be floated.")), wxAuiPaneInfo().
                   Name(wxT("move1")).Caption(wxT("Movable")).
                   Left().Layer(1).Position(0).
@@ -747,7 +754,7 @@ MyFrame::MyFrame(wxWindow* parent,
                   CloseButton(true).MaximizeButton(true));
      
 
-    //create some more panes that should form into a notebook
+    // Create some more panes that should form into a notebook.
     {
         m_mgr.AddPane(CreateTextCtrl(wxT("This is a floatable pane with a long caption, for demonstrating the difference between fixed/unfixed tab widths.")), wxAuiPaneInfo().
                   Name(wxT("float2")).Caption(wxT("Floatable pane 2 (Long Caption)")).
