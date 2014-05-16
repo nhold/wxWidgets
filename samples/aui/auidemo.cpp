@@ -663,7 +663,7 @@ MyFrame::MyFrame(wxWindow* parent,
     view_menu->Append(ID_CreateHTML, _("Create HTML Control"));
     view_menu->Append(ID_CreateTree, _("Create Tree"));
     view_menu->Append(ID_CreateGrid, _("Create Grid"));
-    view_menu->Append(ID_CreateNotebook, _("Create Notebook"));
+    view_menu->Append(ID_CreateNotebook, _("Create wxAuiNotebook"));
     view_menu->Append(ID_CreateSizeReport, _("Create Size Reporter"));
     view_menu->AppendSeparator();
     view_menu->Append(ID_GridContent, _("Use a Grid for the Content Pane"));
