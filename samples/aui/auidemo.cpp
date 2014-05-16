@@ -722,8 +722,7 @@ MyFrame::MyFrame(wxWindow* parent,
     m_perspectives_menu->Append(ID_CreatePerspective, _("Create Perspective"));
     m_perspectives_menu->Append(ID_CopyPerspectiveCode, _("Copy Perspective Data To Clipboard"));
     m_perspectives_menu->AppendSeparator();
-    m_perspectives_menu->Append(ID_FirstPerspective+0, _("Default Startup"));
-    m_perspectives_menu->Append(ID_FirstPerspective+1, _("All Panes"));
+    m_perspectives_menu->Append(ID_FirstPerspective, _("Default Startup"));
 
     wxMenu* help_menu = new wxMenu;
     help_menu->Append(wxID_ABOUT);
@@ -794,10 +793,9 @@ MyFrame::MyFrame(wxWindow* parent,
     // "commit" all changes made to wxAuiManager
     m_mgr.Update();
 
-    // make some default perspectives
-    wxString perspective_all = m_mgr.SavePerspective();
-
-    m_perspectives.Add(perspective_all);
+    // Set default perspective
+    wxString perspective_default = m_mgr.SavePerspective();
+    m_perspectives.Add(perspective_default);
 }
 
 MyFrame::~MyFrame()
@@ -1091,7 +1089,7 @@ void MyFrame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 {
     m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
-                  Caption(wxT("Notebook")).
+                  Caption(wxT("wxAuiNotebook")).
                   Float().FloatingPosition(GetStartPosition()).
                   //FloatingSize(300,200).
                   CloseButton(true).MaximizeButton(true));
