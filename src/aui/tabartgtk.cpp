@@ -130,9 +130,7 @@ void wxAuiGtkTabArt::DrawBorder(wxDC& WXUNUSED(dc), wxWindow* wnd, const wxRect&
     GdkRectangle clipRect[3];
     if (IsHorizontal())
     {
-        borderRect.x += 1;
         borderRect.height += 10;
-        borderRect.width-=1;
         clipRect[0] = clipRectLeft;
         clipRect[1] = clipRectRight;
         if (HasFlag(wxAUI_NB_TOP))
@@ -147,9 +145,7 @@ void wxAuiGtkTabArt::DrawBorder(wxDC& WXUNUSED(dc), wxWindow* wnd, const wxRect&
     }
     else
     {
-        borderRect.y += 1;
         borderRect.width += 10;
-        borderRect.height-=1;
         clipRect[0] = clipRectTop;
         clipRect[1] = clipRectBottom;
         if (HasFlag(wxAUI_NB_LEFT))
@@ -301,12 +297,12 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
     if (IsHorizontal())
     {
         gapRect.height = GetGapSize(IsHorizontal());
-        gapRect.x = 1;
-        gapRect.width = dc.GetSize().x - 1;
+        gapRect.x = 0;
+        gapRect.width = dc.GetSize().x;
 
         tabRect.width = tabSize.x;
 
-        gapStart = tabRect.x - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder / 2;
+        gapStart = 1 + tabRect.x - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder / 2;
         gapWidth = tabRect.width;
         int hborder = GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder;
 
@@ -340,12 +336,12 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
     else
     {
         gapRect.width = GetGapSize(IsHorizontal());
-        gapRect.y = 1;
-        gapRect.height = dc.GetSize().y - 1;
+        gapRect.y = 0;
+        gapRect.height = dc.GetSize().y;
 
         tabRect.height = tabSize.y;
 
-        gapStart = tabRect.y - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder / 2;
+        gapStart = 1 + tabRect.y - GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_hborder / 2;
         gapWidth = tabRect.height;
         int vborder = GTK_NOTEBOOK (wxGTKPrivate::GetNotebookWidget())->tab_vborder;
 
