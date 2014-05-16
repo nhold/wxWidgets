@@ -64,6 +64,9 @@ class MyFrame : public wxFrame
         ID_CreateHTML,
         ID_CreateNotebook,
         ID_CreateSizeReport,
+        ID_HideActivePane,
+        ID_FloatActivePane,
+        ID_DockActivePane,
         ID_CreatePerspective,
         ID_CopyPerspectiveCode,
         ID_AllowFloating,
@@ -138,6 +141,9 @@ private:
     void OnCreateNotebook(wxCommandEvent& WXUNUSED(event));
     void OnCreateText(wxCommandEvent& evt);
     void OnCreateSizeReport(wxCommandEvent& evt);
+    void OnHideActivePane(wxCommandEvent& evt);
+    void OnFloatActivePane(wxCommandEvent& evt);
+    void OnDockActivePane(wxCommandEvent& evt);
     void OnChangeContentPane(wxCommandEvent& evt);
     void OnDropDownToolbarItem(wxAuiToolBarEvent& evt);
     void OnCreatePerspective(wxCommandEvent& evt);
@@ -569,6 +575,9 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(MyFrame::ID_CreateText, MyFrame::OnCreateText)
     EVT_MENU(MyFrame::ID_CreateHTML, MyFrame::OnCreateHTML)
     EVT_MENU(MyFrame::ID_CreateSizeReport, MyFrame::OnCreateSizeReport)
+    EVT_MENU(MyFrame::ID_HideActivePane, MyFrame::OnHideActivePane)
+    EVT_MENU(MyFrame::ID_FloatActivePane, MyFrame::OnFloatActivePane)
+    EVT_MENU(MyFrame::ID_DockActivePane, MyFrame::OnDockActivePane)
     EVT_MENU(MyFrame::ID_CreateNotebook, MyFrame::OnCreateNotebook)
     EVT_MENU(MyFrame::ID_CreatePerspective, MyFrame::OnCreatePerspective)
     EVT_MENU(MyFrame::ID_CopyPerspectiveCode, MyFrame::OnCopyPerspectiveCode)
@@ -654,6 +663,11 @@ MyFrame::MyFrame(wxWindow* parent,
     view_menu->Append(ID_CreateGrid, _("Create Grid"));
     view_menu->Append(ID_CreateNotebook, _("Create wxAuiNotebook"));
     view_menu->Append(ID_CreateSizeReport, _("Create Size Reporter"));
+    view_menu->AppendSeparator();
+    view_menu->Append(ID_HideActivePane, _("Hide active pane"));
+    view_menu->Append(ID_FloatActivePane, _("Float active pane"));
+    view_menu->Append(ID_DockActivePane, _("Dock active pane"));
+
 
     wxMenu* manager_options_menu = new wxMenu;
     manager_options_menu->AppendCheckItem(ID_AllowActivePane, _("Allow Active Pane"));
@@ -1094,6 +1108,36 @@ void MyFrame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
                   Float().FloatingPosition(GetStartPosition()).
                   CloseButton(true).MaximizeButton(true));
     m_mgr.Update();
+}
+
+void MyFrame::OnHideActivePane(wxCommandEvent& WXUNUSED(event))
+{
+    int selection=m_mgr.GetActivePane(NULL);
+    if(selection!=wxNOT_FOUND)
+    {
+        m_mgr.GetPane(selection).Hide();
+        m_mgr.Update();
+    }   
+}
+
+void MyFrame::OnFloatActivePane(wxCommandEvent& WXUNUSED(event))
+{
+    int selection=m_mgr.GetActivePane(NULL);
+    if(selection!=wxNOT_FOUND)
+    {
+        m_mgr.GetPane(selection).Float();
+        m_mgr.Update();
+    }
+}
+
+void MyFrame::OnDockActivePane(wxCommandEvent& WXUNUSED(event))
+{
+    int selection=m_mgr.GetActivePane(NULL);
+    if(selection!=wxNOT_FOUND)
+    {
+        m_mgr.GetPane(selection).Dock();
+        m_mgr.Update();
+    }
 }
 
 void MyFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
