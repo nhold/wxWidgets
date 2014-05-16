@@ -64,11 +64,6 @@ class MyFrame : public wxFrame
         ID_CreateHTML,
         ID_CreateNotebook,
         ID_CreateSizeReport,
-        ID_GridContent,
-        ID_TextContent,
-        ID_TreeContent,
-        ID_HTMLContent,
-        ID_SizeReportContent,
         ID_CreatePerspective,
         ID_CopyPerspectiveCode,
         ID_AllowFloating,
@@ -608,11 +603,6 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(ID_HorizontalGradient, MyFrame::OnGradient)
     EVT_MENU(ID_Settings, MyFrame::OnSettings)
     EVT_MENU(ID_CustomizeToolbar, MyFrame::OnCustomizeToolbar)
-    EVT_MENU(ID_GridContent, MyFrame::OnChangeContentPane)
-    EVT_MENU(ID_TreeContent, MyFrame::OnChangeContentPane)
-    EVT_MENU(ID_TextContent, MyFrame::OnChangeContentPane)
-    EVT_MENU(ID_SizeReportContent, MyFrame::OnChangeContentPane)
-    EVT_MENU(ID_HTMLContent, MyFrame::OnChangeContentPane)
     EVT_MENU(wxID_EXIT, MyFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
     EVT_MENU(ID_ToggleNB, MyFrame::OnToggleNB)
@@ -628,8 +618,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_UPDATE_UI(ID_NoGradient, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_VerticalGradient, MyFrame::OnUpdateUI)
     EVT_UPDATE_UI(ID_HorizontalGradient, MyFrame::OnUpdateUI)
-    EVT_MENU_RANGE(MyFrame::ID_FirstPerspective, MyFrame::ID_FirstPerspective+1000,
-                   MyFrame::OnRestorePerspective)
+    EVT_MENU_RANGE(MyFrame::ID_FirstPerspective, MyFrame::ID_FirstPerspective+1000, MyFrame::OnRestorePerspective)
     EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, MyFrame::OnDropDownToolbarItem)
     EVT_AUI_PANE_CLOSE(MyFrame::OnPaneClose)
 END_EVENT_TABLE()
@@ -665,12 +654,6 @@ MyFrame::MyFrame(wxWindow* parent,
     view_menu->Append(ID_CreateGrid, _("Create Grid"));
     view_menu->Append(ID_CreateNotebook, _("Create wxAuiNotebook"));
     view_menu->Append(ID_CreateSizeReport, _("Create Size Reporter"));
-    view_menu->AppendSeparator();
-    view_menu->Append(ID_GridContent, _("Use a Grid for the Content Pane"));
-    view_menu->Append(ID_TextContent, _("Use a Text Control for the Content Pane"));
-    view_menu->Append(ID_HTMLContent, _("Use an HTML Control for the Content Pane"));
-    view_menu->Append(ID_TreeContent, _("Use a Tree Control for the Content Pane"));
-    view_menu->Append(ID_SizeReportContent, _("Use a Size Reporter for the Content Pane"));
 
     wxMenu* manager_options_menu = new wxMenu;
     manager_options_menu->AppendCheckItem(ID_AllowActivePane, _("Allow Active Pane"));
@@ -1110,16 +1093,6 @@ void MyFrame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
                   Caption(wxT("Client Size Reporter")).
                   Float().FloatingPosition(GetStartPosition()).
                   CloseButton(true).MaximizeButton(true));
-    m_mgr.Update();
-}
-
-void MyFrame::OnChangeContentPane(wxCommandEvent& evt)
-{
-    m_mgr.GetPane(wxT("grid_content")).Show(evt.GetId() == ID_GridContent);
-    m_mgr.GetPane(wxT("text_content")).Show(evt.GetId() == ID_TextContent);
-    m_mgr.GetPane(wxT("tree_content")).Show(evt.GetId() == ID_TreeContent);
-    m_mgr.GetPane(wxT("sizereport_content")).Show(evt.GetId() == ID_SizeReportContent);
-    m_mgr.GetPane(wxT("html_content")).Show(evt.GetId() == ID_HTMLContent);
     m_mgr.Update();
 }
 
