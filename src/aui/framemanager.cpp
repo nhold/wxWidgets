@@ -5697,15 +5697,19 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             int buttonid=0;
             if(m_actionPart->type == wxAuiDockUIPart::typePaneTab)
             {
-                wxAuiTabContainerButton* hitbutton;
-                if(m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton))
-                {
-                    passHitTest=( (hitbutton==m_hoverButton2) && (m_hoverButton2->curState==wxAUI_BUTTON_STATE_PRESSED) );
-                }
+                if (m_hoverButton2) { // Enter only if the pointer has not already fall off the action button
+
+                    wxAuiTabContainerButton* hitbutton;
+                    if(m_actionPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton))
+                    {
+                        passHitTest=( (hitbutton==m_hoverButton2) && (m_hoverButton2->curState==wxAUI_BUTTON_STATE_PRESSED) );
+                    }
                     
                     buttonid=m_hoverButton2->id;
                     m_hoverButton2->curState = wxAUI_BUTTON_STATE_NORMAL;
                     m_hoverButton2=NULL;
+
+                }
             }
             else
             {
