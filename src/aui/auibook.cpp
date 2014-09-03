@@ -305,6 +305,7 @@ bool wxAuiNotebook::SetPageText(size_t pageIndex, const wxString& text)
     }
     
     m_mgr.GetPane(pageIndex).Caption(text);
+    m_mgr.Update();
     return true;
 }
 
@@ -330,6 +331,7 @@ bool wxAuiNotebook::SetPageToolTip(size_t page_idx, const wxString& text)
     
     // update tooltip info for pane.
     m_mgr.GetPane(page_idx).ToolTip(text);
+    m_mgr.Update();
     
     // NB: we don't update the tooltip if it is already being displayed, it
     //     typically never happens, no need to code that
@@ -357,6 +359,7 @@ bool wxAuiNotebook::SetPageBitmap(size_t pageIndex, const wxBitmap& bitmap)
     }
     
     m_mgr.GetPane(pageIndex).Icon(bitmap);
+    m_mgr.Update();
     return true;
 }
 
