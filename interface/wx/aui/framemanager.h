@@ -27,31 +27,89 @@ enum wxAuiManagerDock
 */
 enum wxAuiManagerOption
 {
+    /// When a notebook is created, set the tabs on the top of the book.
+    /// @since 3.1
+    wxAUI_MGR_NB_TOP                   = 1 << 0,
+    /// When a notebook is created, set the tabs on the left of the book.
+    /// @since 3.1    
+    wxAUI_MGR_NB_LEFT                  = 1 << 1,
+    /// When a notebook is created, set the tabs on the right of the book.
+    /// @since 3.1       
+    wxAUI_MGR_NB_RIGHT                 = 1 << 2,
+    /// When a notebook is created, set the tabs at the bottom of the book.
+    /// @since 3.1       
+    wxAUI_MGR_NB_BOTTOM                = 1 << 3,
+    /// Allow to reorder tabs within notebooks by dragging them.
+    /// @since 3.1
+    wxAUI_MGR_NB_TAB_MOVE              = 1 << 4,
+    /// Allow moving panes to other managers.
+    /// @since 3.1
+    wxAUI_MGR_ALLOW_EXTERNAL_MOVE      = 1 << 5,
+    /// When this flag is set, all the tabs of a notebook have the same size.
+    /// Otherwise, the with of a tab depends on the width of it's label.
+    /// @since 3.1
+    wxAUI_MGR_NB_TAB_FIXED_WIDTH       = 1 << 6,
+    /// Show arrow buttons to scroll notebook tabs when they overflow the available space.
+    /// @since 3.1
+    wxAUI_MGR_NB_SCROLL_BUTTONS        = 1 << 7,
+    /// Show a drop down button on the notebooks that displays the list of the tabs.
+    /// @since 3.1
+    wxAUI_MGR_NB_WINDOWLIST_BUTTON     = 1 << 8,
+    /// Allow closing the selected tab of a notebook using a dedicated button placed next to the tabs.
+    /// @since 3.1
+    wxAUI_MGR_NB_CLOSE_BUTTON          = 1 << 9,
+    /// In a notebook, show the close button only on the currently selected tab.
+    /// @since 3.1
+    wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB   = 1 << 10,
+    /// In a notebook, show the close button on all tabs.
+    /// @since 3.1
+    wxAUI_MGR_NB_CLOSE_ON_ALL_TABS     = 1 << 11,
+    /// Allow to split a notebook by dragging the selected tab. 
+    /// This is for internal use inside wxAuiNotebook. Do not use.
+    /// @since 3.1
+    wxAUI_MGR_NB_TAB_SPLIT             = 1 << 12,
+    /// Always allow panes to dock over other panes and to create automatically new notebooks.
+    /// It's possible to override the default behaviour defined by this flag on a per pane basis using events to allow or veto
+    /// notebooks creation.
+    /// @since 3.1
+    wxAUI_MGR_NB_ALLOW_NOTEBOOKS       = 1 << 13,
+    
+    
     /// Allow a pane to be undocked to take the form of a wxMiniFrame.
-    wxAUI_MGR_ALLOW_FLOATING           = 1 << 0,
+    wxAUI_MGR_ALLOW_FLOATING           = 1 << 16,
     /// Change the color of the title bar of the pane when it is activated.
-    wxAUI_MGR_ALLOW_ACTIVE_PANE        = 1 << 1,
+    wxAUI_MGR_ALLOW_ACTIVE_PANE        = 1 << 17,
     /// Make the pane transparent during its movement.
-    wxAUI_MGR_TRANSPARENT_DRAG         = 1 << 2,
+    wxAUI_MGR_TRANSPARENT_DRAG         = 1 << 18,
     /// The possible location for docking is indicated by a translucent area.
-    wxAUI_MGR_TRANSPARENT_HINT         = 1 << 3,
+    wxAUI_MGR_TRANSPARENT_HINT         = 1 << 19,
     /// The possible location for docking is indicated by a gradually appearing
     /// partially transparent area.
-    wxAUI_MGR_VENETIAN_BLINDS_HINT     = 1 << 4,
+    wxAUI_MGR_VENETIAN_BLINDS_HINT     = 1 << 20,
     /// The possible location for docking is indicated by a rectangular outline.
-    wxAUI_MGR_RECTANGLE_HINT           = 1 << 5,
+    wxAUI_MGR_RECTANGLE_HINT           = 1 << 21,
     /// The translucent area where the pane could be docked appears gradually.
-    wxAUI_MGR_HINT_FADE                = 1 << 6,
+    wxAUI_MGR_HINT_FADE                = 1 << 22,
     /// Used in complement of wxAUI_MGR_VENETIAN_BLINDS_HINT to show the hint immediately.
-    wxAUI_MGR_NO_VENETIAN_BLINDS_FADE  = 1 << 7,
+    wxAUI_MGR_NO_VENETIAN_BLINDS_FADE  = 1 << 23,
     /// When a docked pane is resized, its content is refreshed in live (instead of moving
     /// the border alone and refreshing the content at the end).
-    wxAUI_MGR_LIVE_RESIZE              = 1 << 8,
-    /// Default behavior.
+    wxAUI_MGR_LIVE_RESIZE              = 1 << 24,
+    /// When the user click on a tab with the middle mouse button, close the pane.
+    /// @since 3.1
+    wxAUI_MGR_MIDDLE_CLICK_CLOSE       = 1 << 25,
+    
+    /// The default behaviour.
     wxAUI_MGR_DEFAULT = wxAUI_MGR_ALLOW_FLOATING |
                         wxAUI_MGR_TRANSPARENT_HINT |
                         wxAUI_MGR_HINT_FADE |
-                        wxAUI_MGR_NO_VENETIAN_BLINDS_FADE
+                        wxAUI_MGR_NO_VENETIAN_BLINDS_FADE |
+                        wxAUI_MGR_NB_TOP |
+                        wxAUI_MGR_NB_TAB_MOVE |
+                        wxAUI_MGR_NB_TAB_SPLIT |
+                        wxAUI_MGR_NB_SCROLL_BUTTONS |
+                        wxAUI_MGR_NB_CLOSE_ON_ACTIVE_TAB |
+                        wxAUI_MGR_MIDDLE_CLICK_CLOSE
 };
 
 /**
@@ -130,7 +188,7 @@ enum wxAuiManagerOption
     @style{wxAUI_MGR_ALLOW_FLOATING}
            Allow a pane to be undocked to take the form of a wxMiniFrame.
     @style{wxAUI_MGR_ALLOW_ACTIVE_PANE}
-           Change the color of the title bar of the pane when it is activated.
+           Change the colour of the title bar of the pane when it is activated.
     @style{wxAUI_MGR_TRANSPARENT_DRAG}
            Make the pane transparent during its movement.
     @style{wxAUI_MGR_TRANSPARENT_HINT}
@@ -150,7 +208,7 @@ enum wxAuiManagerOption
            When a docked pane is resized, its content is refreshed in live (instead of moving
            the border alone and refreshing the content at the end).
     @style{wxAUI_MGR_DEFAULT}
-           Default behavior, combines: wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_TRANSPARENT_HINT |
+           Default behaviour, combines: wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_TRANSPARENT_HINT |
            wxAUI_MGR_HINT_FADE | wxAUI_MGR_NO_VENETIAN_BLINDS_FADE.
     @endStyleTable
 
