@@ -284,15 +284,14 @@ enum wxAuiManagerOption
     @event{EVT_AUI_RENDER(func)}
         This event can be caught to override the default renderer in order to
         custom draw your wxAuiManager window (not recommended).
-    @event{wxEVT_AUI_PANE_DOCK_OVER(func)}
-        This event can be caught to override the default behaviour defined by the wxAUI_MGR_NB_ALLOW_NOTEBOOKS style flag for
-        automatic notebook creation .
+    @event{EVT_AUI_PANE_DOCK_OVER(func)}
+        This event is triggered when wxAui is about to create a notebook by docking a pane over another one. You may Allow() or Veto() it explicitly to override the default behaviour defined by the wxAUI_MGR_NB_ALLOW_NOTEBOOKS style flag.
         @since 3.1
-    @event{wxEVT_AUI_FIND_MANAGER(func)}
+    @event{EVT_AUI_FIND_MANAGER(func)}
         This event is used internally to implement the wxAuiManager::GetManager() method.
         Do not use. 
         @since 3.1
-    @event{wxEVT_AUI_ALLOW_DND(func)}   
+    @event{EVT_AUI_ALLOW_DND(func)}   
         This event can be caught to accept transferring a pane dragged from another manager.
         @since 3.1
     @endEventTable
@@ -579,7 +578,7 @@ public:
     /**
         Instructs wxAuiManager to use art provider specified by parameter
         @a art_provider for all drawing calls.
-        This allows plugable look-and-feel features. The previous art provider object,
+        This allows pluggable look-and-feel features. The previous art provider object,
         if any, will be deleted by wxAuiManager.
 
         @see wxAuiDockArt.
@@ -589,7 +588,7 @@ public:
     /**
         Instructs wxAuiManager to use art provider specified by parameter
         @a art_provider for all notebook drawing calls.
-        This allows plugable look-and-feel features. The previous tab art provider object,
+        This allows pluggable look-and-feel features. The previous tab art provider object,
         if any, will be deleted by wxAuiManager.
 
         @see wxAuiTabArt.
@@ -598,7 +597,7 @@ public:
 
     /**
         When a user creates a new dock by dragging a window into a docked position,
-        often times the large size of the window will create a dock that is unwieldly
+        often times the large size of the window will create a dock that is unwieldy
         large. wxAuiManager by default limits the size of any new dock to 1/3 of the
         window size.  For horizontal docks, this would be 1/3 of the window height.
         For vertical docks, 1/3 of the width.
@@ -711,6 +710,79 @@ public:
     */
     wxAuiPaneInfo(const wxAuiPaneInfo& c);
     
+    /**
+        The pane flags.
+        @see HasFlag(), SetFlag(), SetFlags(), GetFlags()
+        @remark In most case, you do not have to deal directly with these flags. Use the supplied 
+        methods to test the various pane states instead of testing the flags directly.
+    */
+    enum wxAuiPaneState
+    {
+        /// The pane is floating
+        optionFloating             = 1 << 0,
+        /// The pane is hidden
+        optionHidden               = 1 << 1,
+        /// The pane can be docked to the left
+        optionLeftDockable         = 1 << 2,
+        /// The pane can be docked to the right
+        optionRightDockable        = 1 << 3,
+        /// The pane can be docked to the top
+        optionTopDockable          = 1 << 4,
+        /// The pane can be docked to the bottom
+        optionBottomDockable       = 1 << 5,
+        /// The pane can be floated
+        optionFloatable            = 1 << 6,
+        /// The pane can be moved
+        optionMovable              = 1 << 7,
+        /// The pane can be resized
+        optionResizable            = 1 << 8,
+        /// The pane shall have a border
+        optionPaneBorder           = 1 << 9,
+        /// The pane has a caption
+        optionCaption              = 1 << 10,
+        /// The pane has a gripper
+        optionGripper              = 1 << 11,
+        /// The pane shall be destroyed when closed instead of being hidden
+        optionDestroyOnClose       = 1 << 12,
+        /// The pane contains a toolbar window
+        optionToolbar              = 1 << 13,
+        /// The pane is the active one
+        optionActive               = 1 << 14,
+        /// The pane gripper is on the pane's top
+        optionGripperTop           = 1 << 15,
+        /// The pane is maximized
+        optionMaximized            = 1 << 16,
+        /// The pane shall be in a fixed dock
+        optionDockFixed            = 1 << 17,
+        /// ?
+        /// @since 3.1
+        optionActiveNotebook       = 1 << 18,
+        /// The pane shall always be docked in a notebook, even if alone.
+        /// @since 3.1
+        optionAlwaysDockInNotebook = 1 << 19,
+        /// The pane can be docked to the center
+        /// @since 3.1
+        optionCenterDockable       = 1 << 20,
+        /// The pane has a close button
+        buttonClose                = 1 << 21,
+        /// The pane has a maximize button
+        buttonMaximize             = 1 << 22,
+        /// The pane has a minimize button
+        buttonMinimize             = 1 << 23,
+        /// The pane has a pin button
+        buttonPin                  = 1 << 24,
+        /// ?
+        buttonCustom1              = 1 << 26,
+        /// ?
+        buttonCustom2              = 1 << 27,
+        /// ?
+        buttonCustom3              = 1 << 28,
+        /// Used internally to save the hidden state when a pane is maximized
+        savedHiddenState           = 1 << 30, // used internally
+        /// Used internally
+        actionPane                 = 1 << 31  // used internally
+    };    
+    
     //@{
     /**
         GetInfo() serializes the layout information for this pane into a wxString.
@@ -809,10 +881,10 @@ public:
     
     //@{
     /**
-        CentrePane() specifies that the pane should adopt the default center pane
+        CentrePane() specifies that the pane should adopt the default centre pane
         settings. Centre panes usually do not have caption bars.
         This function provides an easy way of preparing a pane to be displayed in
-        the center dock position.
+        the centre dock position.
     */
     wxAuiPaneInfo& CentrePane();
     wxAuiPaneInfo& CenterPane();
@@ -866,7 +938,7 @@ public:
     /**
         DockFixed() causes the containing dock to have no resize sash.  This is useful
         for creating panes that span the entire width or height of a dock, but should
-        not be resizable in the other direction.
+        not be resizeable in the other direction.
     */
     wxAuiPaneInfo& DockFixed(bool b = true);
     
@@ -1457,6 +1529,15 @@ public:
     @event{EVT_AUI_RENDER(func)}
         This event can be caught to override the default renderer in order to
         custom draw your wxAuiManager window (not recommended).
+    @event{EVT_AUI_PANE_DOCK_OVER(func)}
+        This event is triggered when wxAui is about to create a notebook by docking a pane over another one. You may Allow() or Veto() it explicitly to override the default behaviour defined by the wxAUI_MGR_NB_ALLOW_NOTEBOOKS style flag.         
+    @event{EVT_AUI_FIND_MANAGER(func)}
+        This event is used internally to implement the wxAuiManager::GetManager() method.
+        Do not use. 
+        @since 3.1    
+    @event{EVT_AUI_ALLOW_DND(func)}
+        This event can be caught to accept transferring a pane dragged from another manager.
+        @since 3.1    
     @endEventTable
 
     @library{wxaui}
@@ -1473,38 +1554,57 @@ public:
     wxAuiManagerEvent(wxEventType type = wxEVT_NULL);
 
     /**
+        Allow (or forbid if parameter is @false) the event to be processed.
+        The use of the parameter to negate the action is strongly discouraged. Use Veto() instead.
+        @since 3.1
+    */
+    void Allow(bool allow = true);
+
+    /**
         @return @true if this event can be vetoed.
 
         @see Veto()
     */
-    bool CanVeto();
+    bool CanVeto() const;
 
     /**
         @return The ID of the button that was clicked.
     */
-    int GetButton();
+    int GetButton() const;
 
     /**
-        @todo What is this?
+        @return The device context where to draw when handling the EVT_AUI_RENDER event.
     */
-    wxDC* GetDC();
+    wxDC* GetDC() const;
 
     /**
         @return @true if this event was vetoed.
 
         @see Veto()
     */
-    bool GetVeto();
+    bool GetVeto() const;
 
     /**
         @return The wxAuiManager this event is associated with.
     */
-    wxAuiManager* GetManager();
+    wxAuiManager* GetManager() const;
 
     /**
         @return The pane this event is associated with.
     */
-    wxAuiPaneInfo* GetPane();
+    wxAuiPaneInfo* GetPane() const;
+    
+    /**
+        @return the target pane
+        @since 3.1
+    */
+    wxAuiPaneInfo* GetTargetPane() const;
+    
+    /**
+        @return @true if the event action is allowed.
+        @since 3.1
+    */
+    bool IsAllowed() const;
 
     /**
         Sets the ID of the button clicked that triggered this event.
@@ -1517,7 +1617,7 @@ public:
     void SetCanVeto(bool can_veto);
 
     /**
-        @todo What is this?
+        Set the device context where to draw when handling the EVT_AUI_RENDER event.
     */
     void SetDC(wxDC* pdc);
 
@@ -1530,9 +1630,17 @@ public:
         Sets the pane this event is associated with.
     */
     void SetPane(wxAuiPaneInfo* pane);
+    
+    /**
+        Sets the target pane onto which a pane is being dropped to 
+        create a notebook in the EVT_PANE_DOCK_OVER event.
+        @since 3.1
+    */
+    void SetTargetPane(wxAuiPaneInfo *pane);
 
     /**
         Cancels the action indicated by this event if CanVeto() is @true.
+        The use of the parameter to negate the action is strongly discouraged. Use Allow() instead.
     */
     void Veto(bool veto = true);
 };
