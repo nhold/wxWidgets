@@ -59,4 +59,14 @@ a native look and feel for all platforms. Use existing wxWidgets code where
 possible, such as sizer implementation for frame management. Use classes
 included in @ref page_libs_wxcore and @ref page_libs_wxbase only.
 
+@section Known incompatibilities and bugs in 3.1 compared to 3.0
+
+    All items listed here are subject to fixes/changes before 3.2.
+
+    @li The perspective string returned by wxAuiManager::SavePerspective() in 3.1 is not compatible with the 3.0 one.
+    @li Some of the the wxAuiManager flags have changed of number.
+    @li The wxAuiTabContainer, wxAuiNotebookPage and wxAuiNotebookPageArray classes no more actually exist and are aliased to wxAuiTabCtrl, wxAuiPaneInfo and wxAuiPaneInfoArray. These later classes have not the same interface than the former classes.
+    @li The wxAuiNotebook events wxEVT_COMMAND_AUINOTEBOOK_BG_DCLICK, wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_UP, wxEVT_AUINOTEBOOK_PAGE_CHANGING and wxEVT_AUINOTEBOOK_PAGE_CHANGED have the wxAuiNotebook itself as event object and no more the wxAuiTabCtrl (tab container).
+    @li Drop hints over floating panels are not always correctly sized.
+
 */
