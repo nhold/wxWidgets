@@ -27,16 +27,16 @@ enum wxAuiManagerDock
 */
 enum wxAuiManagerOption
 {
-    /// When a notebook is created, set the tabs on the top of the book.
+    /// When a notebook is created, set the tabs horizontally on the top of the book.
     /// @since 3.1
     wxAUI_MGR_NB_TOP                   = 1 << 0,
-    /// When a notebook is created, set the tabs on the left of the book.
+    /// When a notebook is created, set the tabs vertically on the left of the book.
     /// @since 3.1    
     wxAUI_MGR_NB_LEFT                  = 1 << 1,
-    /// When a notebook is created, set the tabs on the right of the book.
+    /// When a notebook is created, set the tabs vertically on the right of the book.
     /// @since 3.1       
     wxAUI_MGR_NB_RIGHT                 = 1 << 2,
-    /// When a notebook is created, set the tabs at the bottom of the book.
+    /// When a notebook is created, set the tabs horizontally at the bottom of the book.
     /// @since 3.1       
     wxAUI_MGR_NB_BOTTOM                = 1 << 3,
     /// Allow to reorder tabs within notebooks by dragging them.
@@ -162,7 +162,7 @@ enum wxAuiManagerOption
         the location specified by this variable.
     @li Position: More than one pane can be placed inside of a dock. Imagine
         two panes being docked on the left side of a window. One pane can be
-        placed next another. In proportionally managed docks, the pane
+        placed next to another. In proportionally managed docks, the pane
         position indicates its sequential position, starting with zero. So, in
         our scenario with two panes docked on the left side, the top pane in
         the dock would have position 0, and the second one would occupy
@@ -300,6 +300,7 @@ enum wxAuiManagerOption
     @category{aui}
 
     @see @ref overview_aui, wxAuiNotebook, wxAuiDockArt, wxAuiPaneInfo
+     
 */
 class wxAuiManager : public wxEvtHandler
 {
@@ -460,7 +461,7 @@ public:
         or by pane name, which acts as a unique id for a window pane.
         
         @since 3.1
-        The indexed overload can be used to retrieve directly a pane from it's index in the internal panes list.
+        The indexed overload can be used to retrieve directly a pane from its index in the internal panes list.
         paneIndex spans from 0 to GetPaneCount()-1.
 
         The returned wxAuiPaneInfo object may then be modified to change a pane's
@@ -760,7 +761,7 @@ public:
         /// The pane shall always be docked in a notebook, even if alone.
         /// @since 3.1
         optionAlwaysDockInNotebook = 1 << 19,
-        /// The pane can be docked to the center
+        /// The pane can be docked to the centre
         /// @since 3.1
         optionCenterDockable       = 1 << 20,
         /// The pane has a close button
@@ -873,7 +874,7 @@ public:
     //@}
 
     /**
-        CenterDockable() allows (or forbid if the parameter is @false) the pane to be docked in the centre area of the managed window.
+        CenterDockable() allows (or forbids if the parameter is @false) the pane to be docked in the centre area of the managed window.
         @since 3.1
     */
     wxAuiPaneInfo& CenterDockable(bool b = true);
@@ -1554,8 +1555,8 @@ public:
     wxAuiManagerEvent(wxEventType type = wxEVT_NULL);
 
     /**
-        Allow (or forbid if parameter is @false) the event to be processed.
-        The use of the parameter to negate the action is strongly discouraged. Use Veto() instead.
+        Allows (or forbids if parameter is @false) the event to be processed.
+        The use of the parameter with a @false argument is strongly discouraged. Use Veto() instead.
         @since 3.1
     */
     void Allow(bool allow = true);
@@ -1640,7 +1641,7 @@ public:
 
     /**
         Cancels the action indicated by this event if CanVeto() is @true.
-        The use of the parameter to negate the action is strongly discouraged. Use Allow() instead.
+        The use of the parameter with a @false argument is strongly discouraged. Use Allow() instead.
     */
     void Veto(bool veto = true);
 };
