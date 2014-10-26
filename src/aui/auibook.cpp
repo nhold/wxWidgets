@@ -222,7 +222,10 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     wxASSERT_MSG(page, wxT("page pointer must be non-NULL"));
     if (!page)
         return false;
-    
+  
+	// If the page is parented somewhere else graphical glitches will occur.
+	page->Reparent(this);
+
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
