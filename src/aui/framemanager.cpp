@@ -2714,8 +2714,10 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                             ShowWnd(pane.GetWindow(),true);
                         activenotebookpagefound = true;
                     }
-                    //else
-                        // Add a debug warning
+                    else
+                    {
+                        wxFAIL_MSG("Flag optionActiveNotebook should not be defined to several wxAuiPaneInfo");
+                    }
                 }
                 else
                 {
