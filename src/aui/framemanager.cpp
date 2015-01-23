@@ -1294,6 +1294,27 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
         }
     }
 
+    // Avoids duplicates in page numbers
+    wxAuiPaneInfo *t = &test;
+    bool increment = false;
+    for (size_t i = 0; i < m_panes.GetCount(); ++i)
+    {
+        wxAuiPaneInfo &item = m_panes.Item(i);
+        wxAuiPaneInfo *p = &item;
+        if (PaneSortFunc(&p, &t) == 1)
+        {
+            if (!increment && (p->GetPage() == t->GetPage()))
+            {
+                p->Page(p->GetPage()+1);
+                increment = true;
+            }
+            else if (increment)
+            {
+                p->Page(p->GetPage()+1);
+            }
+        }
+    }
+
     m_panes.Add(test);
 
     wxAuiPaneInfo& pinfo = m_panes.Last();
