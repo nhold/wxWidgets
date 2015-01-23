@@ -137,7 +137,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   floating_size(wxDefaultSize),
   dock_proportion(0),
   m_tooltip(wxT("")),
-  m_dock_page(0)
+  m_dock_page(wxNOT_FOUND)
 {
     DefaultPane();
 }
