@@ -751,10 +751,10 @@ MyFrame::MyFrame(wxWindow* parent,
 
 
     // Left dock
-    m_mgr.AddPane(CreateTextCtrl(wxT("This is a movable pane. Its dock position can be changed but it cannot be floated.")), wxAuiPaneInfo().
+    m_mgr.AddPane(CreateTextCtrl(wxT("This is a movable pane. Its dock position can be changed but it cannot be floated. It will also be correctly loaded in perspective if closed.")), wxAuiPaneInfo().
                   Name(wxT("move1")).Caption(wxT("Movable")).
                   Left().Layer(1).Position(0).
-                  CloseButton(true).MaximizeButton(true).Icon(wxArtProvider::GetBitmap(wxART_QUESTION)).Floatable(false).Movable(true));
+                  CloseButton(true).MaximizeButton(true).Icon(wxArtProvider::GetBitmap(wxART_QUESTION)).Floatable(false).Movable(true).DestroyOnClose(false));
     m_mgr.AddPane(CreateTextCtrl(wxT("This is a standard floatable pane, because it does not share the same position and layer as any other panes it will not form a notebook. It can become part of a notebook if you drop another pane on its caption or drop it on the caption of another pane (or into the tab area of an existing notebook)")), wxAuiPaneInfo().
                   Name(wxT("float1")).Caption(wxT("Floatable1")).
                   Left().Layer(1).Position(4).

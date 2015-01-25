@@ -27,6 +27,10 @@ Frame management provides the means to open, move and hide common controls that
 are needed to interact with the document, and allow these configurations to be
 saved into different perspectives and loaded at a later time.
 
+If you want correct loading of perspectives make sure you set wxAuiPaneInfo::DestroyOnClose(false);
+so that the pane is not destroyed when it is closed, otherwise you will be missing panes if the user
+has closed them.
+
 
 
 @section overview_aui_toolbar Toolbars
