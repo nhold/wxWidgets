@@ -279,6 +279,8 @@ public:
 
     // get/set whether a pane should be destroyed when closed, instead of the default behaviour of hiding a closed pane.
     bool HasDestroyOnClose() const { return HasFlag(optionDestroyOnClose); }
+	bool IsDestroyOnClose() const { return HasDestroyOnClose(); }
+
     wxAuiPaneInfo& DestroyOnClose(bool b = true) { return SetFlag(optionDestroyOnClose, b); }
 
     // get/set if pane displays a caption.

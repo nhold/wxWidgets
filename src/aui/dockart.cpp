@@ -1957,4 +1957,51 @@ void wxAuiTabContainer::OnChildKeyDown(wxKeyEvent& evt)
     }
     return;
 }
+
+// DoShowHide() this function shows the active window, then
+// hides all of the other windows (in that order)
+// This is backwards compatible method
+// TODO: deal with wxUSE_MDI, this is the ShowWnd method
+//#if wxUSE_MDI
+//if (wnd->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
+//{
+//	wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)wnd;
+//	cf->DoShow(show);
+//}
+//else
+//#endif
+//{
+//	wnd->Show(show);
+//}
+void wxAuiTabContainer::DoShowHide()
+{
+	wxAuiPaneInfoPtrArray& pages = GetPages();
+	size_t i, page_count = pages.GetCount();
+
+	// show new active page first
+	for (i = 0; i < page_count; ++i)
+	{
+		wxAuiPaneInfo* page = pages.Item(i);
+		if (page->IsActive())
+		{
+			// Look at ShowWnd, it doesn't really do anything different
+			page->GetWindow()->Show(true);
+			break;
+		}
+	}
+
+	// hide all other pages
+	for (i = 0; i < page_count; ++i)
+	{
+		wxAuiPaneInfo* page = pages.Item(i);
+		if (!page->IsActive())
+			page->GetWindow()->Show(false);
+	}
+}
+
+bool wxAuiTabContainer::IsDragging() const
+{
+	return false;
+}
+
 #endif // wxUSE_AUI
