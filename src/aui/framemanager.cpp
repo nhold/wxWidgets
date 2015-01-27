@@ -624,6 +624,8 @@ static void RemovePaneFromDocks(wxAuiDockInfoArray& docks, wxAuiPaneInfo& pane, 
 int wxAuiManager::SetActivePane(wxWindow* activePane)
 {
     int i, paneCount;
+    int activeIndex = wxNOT_FOUND;
+    bool tabFound = false;
     wxAuiPaneInfo* activePaneInfo = NULL;
     for (i = 0, paneCount = m_panes.GetCount(); i < paneCount; ++i)
     {
@@ -634,25 +636,46 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
             activePaneInfo = &pane;
             wxAuiTabContainer* ctrl;
             int ctrlIndex;
-            if(FindTab(pane.GetWindow(), &ctrl, &ctrlIndex))
+
+            tabFound = FindTab(pane.GetWindow(), &ctrl, &ctrlIndex);
+            if(tabFound)
             {
                 ctrl->SetActivePage(pane.GetWindow());
             }
 
             pane.SetFlag(wxAuiPaneInfo::optionActive, true);
+            activeIndex = i;
         }
     }
 
     // send the 'activated' event after all panes have been updated
     if ( activePaneInfo )
     {
+        // During the pane adding process, the tab may not have been created yet.
+        // Therefore defines manually the active tab.
+        if (!tabFound)
+        {
+            for (i = 0; i < paneCount; ++i)
+            {
+                wxAuiPaneInfo &pane = m_panes.Item(i);
+                if ((pane.GetDirection() == activePaneInfo->GetDirection()) &&
+                    (pane.GetLayer() == activePaneInfo->GetLayer()) &&
+                    (pane.GetRow() == activePaneInfo->GetRow()) &&
+                    (pane.GetPosition() == activePaneInfo->GetPosition()) )
+                {
+                    pane.SetFlag(wxAuiPaneInfo::optionActiveNotebook, false);
+                }
+            }
+            activePaneInfo->SetFlag(wxAuiPaneInfo::optionActiveNotebook, true);
+        }
+
         wxAuiManagerEvent evt(wxEVT_AUI_PANE_ACTIVATED);
         evt.SetManager(this);
         evt.SetPane(activePaneInfo);
         ProcessMgrEvent(evt);
     }
 
-    return 0;
+    return activeIndex;
 }
 
 int wxAuiManager::GetActivePane(wxWindow* focus) const
