@@ -6513,13 +6513,21 @@ void wxAuiManager::OnChildFocus(wxChildFocusEvent& evt)
     // when a child pane has its focus set, we should change the
     // pane's active state to reflect this. (this is only true if
     // active panes are allowed by the owner)
-    
-    wxAuiPaneInfo& pane = GetPane(evt.GetWindow());
-    if (pane.IsOk() && !pane.HasFlag(wxAuiPaneInfo::optionActive))
+    wxWindow *window = evt.GetWindow();
+    while (window)
     {
-        SetActivePane(evt.GetWindow());
-        if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
-            refresh = true;
+        wxAuiPaneInfo& pane = GetPane(window);
+        if (pane.IsOk())
+        {
+            if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+            {
+                SetActivePane(window);
+                if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
+                    refresh = true;
+            }
+            break;
+        }
+        window = window->GetParent();
     }
 
     if(refresh)
