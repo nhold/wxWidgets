@@ -653,8 +653,9 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
     {
         // During the pane adding process, the tab may not have been created yet.
         // Therefore defines manually the active tab.
-        if (!tabFound)
+        if (!tabFound && !m_skipping)
         {
+            long pageCount = 0;
             for (i = 0; i < paneCount; ++i)
             {
                 wxAuiPaneInfo &pane = m_panes.Item(i);
@@ -664,9 +665,13 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
                     (pane.GetPosition() == activePaneInfo->GetPosition()) )
                 {
                     pane.SetFlag(wxAuiPaneInfo::optionActiveNotebook, false);
+                    ++pageCount;
                 }
             }
-            activePaneInfo->SetFlag(wxAuiPaneInfo::optionActiveNotebook, true);
+            if (pageCount > 1)
+            {
+                activePaneInfo->SetFlag(wxAuiPaneInfo::optionActiveNotebook, true);
+            }
         }
 
         wxAuiManagerEvent evt(wxEVT_AUI_PANE_ACTIVATED);
@@ -1602,8 +1607,17 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
             if (n_pages > 1) 
             {
                 size_t cur_page = (size_t)ctrlIndex;
-                size_t new_page = cur_page == n_pages-1 ? cur_page-1 : cur_page+1;          
-                ctrl->SetActivePage(new_page);
+                size_t new_page = cur_page == n_pages-1 ? cur_page-1 : cur_page+1;
+                if (new_page != 0 || notebook)
+                {
+                    ctrl->SetActivePage(new_page);
+                }
+                else
+                {
+                    // Avoids to have several panes activated when an external pane has the focus
+                    // and the last tab becomes an activated pane.
+                    SetActivePane(ctrl->GetWindowFromIdx(new_page));
+                }
             }
         }
                      
@@ -4904,7 +4918,10 @@ void wxAuiManager::OnFloatingPaneActivated(wxWindow* wnd)
 {
     if (GetPane(wnd).IsOk())
     {
+        // Skipping the notebook page activation avoids issues in hint calculation
+        m_skipping = true;
         SetActivePane(wnd);
+        m_skipping = false;
         Repaint();
     }
 }
