@@ -846,7 +846,7 @@ bool wxAuiToolBar::Create(wxWindow* parent,
     m_windowStyle = style;
 
     m_gripperVisible  = (style & wxAUI_TB_GRIPPER) ? true : false;
-    m_overflowVisible = (style & wxAUI_TB_OVERFLOW) ? true : false;
+    m_overflowVisible = ((style & wxAUI_TB_OVERFLOW) || (style & wxAUI_TB_OVERFLOW_AUTO)) ? true : false;
 
     m_orientation = GetOrientation(style);
     if (m_orientation == wxBOTH)
@@ -892,7 +892,7 @@ void wxAuiToolBar::SetWindowStyleFlag(long style)
         m_gripperVisible = false;
 
 
-    if (m_windowStyle & wxAUI_TB_OVERFLOW)
+    if ((m_windowStyle & wxAUI_TB_OVERFLOW) || (m_windowStyle & wxAUI_TB_OVERFLOW_AUTO))
         m_overflowVisible = true;
     else
         m_overflowVisible = false;
@@ -1395,6 +1395,13 @@ void wxAuiToolBar::SetGripperVisible(bool visible)
 
 bool wxAuiToolBar::GetOverflowVisible() const
 {
+    if (m_overflowVisible && (m_windowStyle & wxAUI_TB_OVERFLOW_AUTO))
+    {
+        if (m_orientation == wxHORIZONTAL)
+            return (m_absoluteMinSize.GetWidth()  > GetSize().GetWidth());
+        else
+            return (m_absoluteMinSize.GetHeight() > GetSize().GetHeight());
+    }
     return m_overflowVisible;
 }
 
@@ -1772,7 +1779,7 @@ bool wxAuiToolBar::GetToolFitsByIndex(int tool_idx) const
     if (m_orientation == wxVERTICAL)
     {
         // take the dropdown size into account
-        if (m_overflowVisible && m_overflowSizerItem)
+        if (GetOverflowVisible() && m_overflowSizerItem)
             cli_h -= m_overflowSizerItem->GetSize().y;
 
         if (rect.y+rect.height < cli_h)
@@ -1781,7 +1788,7 @@ bool wxAuiToolBar::GetToolFitsByIndex(int tool_idx) const
     else
     {
         // take the dropdown size into account
-        if (m_overflowVisible && m_overflowSizerItem)
+        if (GetOverflowVisible() && m_overflowSizerItem)
             cli_w -= m_overflowSizerItem->GetSize().x;
 
         if (rect.x+rect.width < cli_w)
@@ -2010,15 +2017,17 @@ bool wxAuiToolBar::RealizeHelper(wxClientDC& dc, bool horizontal)
     // add drop down area
     m_overflowSizerItem = NULL;
 
-    if (m_windowStyle & wxAUI_TB_OVERFLOW)
+    if ((m_windowStyle & wxAUI_TB_OVERFLOW) || (m_windowStyle & wxAUI_TB_OVERFLOW_AUTO))
     {
         int overflow_size = m_art->GetElementSize(wxAUI_TBART_OVERFLOW_SIZE);
-        if (overflow_size > 0 && m_overflowVisible)
+        if (overflow_size > 0 && (m_overflowVisible || (m_windowStyle & wxAUI_TB_OVERFLOW_AUTO)))
         {
             if (horizontal)
                 m_overflowSizerItem = sizer->Add(overflow_size, 1, 0, wxEXPAND);
             else
                 m_overflowSizerItem = sizer->Add(1, overflow_size, 0, wxEXPAND);
+            if ((m_windowStyle & wxAUI_TB_OVERFLOW_AUTO) && !GetOverflowVisible())
+                m_overflowSizerItem->Show(false);
         }
         else
         {
@@ -2404,7 +2413,7 @@ void wxAuiToolBar::OnPaint(wxPaintEvent& WXUNUSED(evt))
         last_extent = cli_rect.width;
     else
         last_extent = cli_rect.height;
-    if (m_overflowVisible)
+    if (GetOverflowVisible())
         last_extent -= dropdown_size;
 
     // paint each individual tool
@@ -2462,7 +2471,7 @@ void wxAuiToolBar::OnPaint(wxPaintEvent& WXUNUSED(evt))
     }
 
     // paint the overflow button
-    if (dropdown_size > 0 && m_overflowSizerItem)
+    if (dropdown_size > 0 && m_overflowSizerItem && GetOverflowVisible())
     {
         wxRect dropDownRect = GetOverflowRect();
         m_art->DrawOverflowButton(dc, this, dropDownRect, m_overflowState);
@@ -2497,7 +2506,7 @@ void wxAuiToolBar::OnLeftDown(wxMouseEvent& evt)
         }
     }
 
-    if (m_overflowSizerItem && m_overflowVisible && m_art)
+    if (m_overflowSizerItem && GetOverflowVisible() && m_art)
     {
         wxRect overflow_rect = GetOverflowRect();
 
