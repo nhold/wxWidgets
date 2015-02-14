@@ -140,7 +140,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   floating_size(wxDefaultSize),
   dock_proportion(0),
   m_tooltip(wxT("")),
-  m_dock_page(0)
+  m_dock_page(wxNOT_FOUND)
 {
     DefaultPane();
 }
@@ -1297,6 +1297,27 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
             test.Window(window);
             if (test.GetWindow() != window)
                 return false;
+        }
+    }
+
+    // Avoids duplicates in page numbers
+    wxAuiPaneInfo *t = &test;
+    bool increment = false;
+    for (size_t i = 0; i < m_panes.GetCount(); ++i)
+    {
+        wxAuiPaneInfo &item = m_panes.Item(i);
+        wxAuiPaneInfo *p = &item;
+        if (PaneSortFunc(&p, &t) == 1)
+        {
+            if (!increment && (p->GetPage() == t->GetPage()))
+            {
+                p->Page(p->GetPage()+1);
+                increment = true;
+            }
+            else if (increment)
+            {
+                p->Page(p->GetPage()+1);
+            }
         }
     }
 

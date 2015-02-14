@@ -575,7 +575,7 @@ public:
 private:
 
     wxString m_tooltip;     // tooltip displayed when hovering over title/tab of window
-    int      m_dock_page;   // tab position if we are in a notebook (0 = leftmost tab)
+    int      m_dock_page;   // tab position if we are in a notebook (0 = leftmost tab, -1 rightmost tab)
 
 
 };
