@@ -1911,13 +1911,11 @@ bool wxAuiManager::LoadPerspective(const wxString& layout, bool update)
     if (part != wxT("layout2"))
         return false;
 
-    // Mark all panes currently managed as hidden. Also, dock all panes that are dockable.
+    // Mark all panes currently managed as hidden.
     int paneIndex, paneCount = m_panes.GetCount();
     for (paneIndex = 0; paneIndex < paneCount; ++paneIndex)
     {
         wxAuiPaneInfo& p = m_panes.Item(paneIndex);
-        if(p.IsDockable())
-            p.Dock();
         p.Hide();
     }
 
