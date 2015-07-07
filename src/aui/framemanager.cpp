@@ -5171,6 +5171,7 @@ void wxAuiManager::OnLeftDClick(wxMouseEvent& evt)
 
 void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
 {
+    bool skip = true;
     m_currentDragItem = -1;
 
     wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
@@ -5296,6 +5297,7 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
                     }
                 }
             }
+            skip = false;
         }
 #ifdef __WXMAC__
         else
@@ -5310,7 +5312,7 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
         evt.Skip();
     }
 #else
-    evt.Skip();
+    evt.Skip(skip);
 #endif
 }
 
