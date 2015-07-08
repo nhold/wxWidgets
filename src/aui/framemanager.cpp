@@ -5171,7 +5171,6 @@ void wxAuiManager::OnLeftDClick(wxMouseEvent& evt)
 
 void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
 {
-    bool skip = true;
     m_currentDragItem = -1;
 
     wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
@@ -5297,23 +5296,16 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
                     }
                 }
             }
-            skip = false;
         }
-#ifdef __WXMAC__
         else
         {
             evt.Skip();
         }
-#endif
     }
-#ifdef __WXMAC__
     else
     {
         evt.Skip();
     }
-#else
-    evt.Skip(skip);
-#endif
 }
 
 /// Ends a resize action, or for live update, resizes the sash
