@@ -994,8 +994,8 @@ bool wxAuiTabContainer::SetActivePage(wxWindow* wnd)
             }
             else
             {
-                page.GetWindow()->SetFocus();
                 page.GetWindow()->Show(true);
+                page.GetWindow()->SetFocus();
                 page.SetFlag(wxAuiPaneInfo::optionActive,true);
                 page.SetFlag(wxAuiPaneInfo::optionActiveNotebook,true);
                 found = true;
