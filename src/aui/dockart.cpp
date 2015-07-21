@@ -784,9 +784,11 @@ wxAuiTabContainer::wxAuiTabContainer(wxAuiTabArt* artProvider,wxAuiManager* mgr)
 wxAuiTabContainer::~wxAuiTabContainer()
 {
     unsigned int i;
-    for(i=0;i<m_pages.GetCount();i++)
+    for(i = 0; i < m_pages.GetCount(); ++i)
     {
-        m_pages[i]->GetWindow()->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown) );
+        wxWindow *window = m_pages[i]->GetWindow();
+        if (window)
+            window->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown) );
     }
 }
 
@@ -914,14 +916,18 @@ bool wxAuiTabContainer::AddPage(wxAuiPaneInfo& info)
 
 bool wxAuiTabContainer::InsertPage(wxWindow* page, wxAuiPaneInfo& info, size_t idx)
 {
-    info.GetWindow()->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown)  ,NULL,this);
+    if (info.GetWindow())
+        info.GetWindow()->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler(wxAuiTabContainer::OnChildKeyDown)  ,NULL,this);
 
     info.Window(page);
 
-    if (idx >= m_pages.GetCount()) {
+    if (idx >= m_pages.GetCount())
+    {
         info.Page(m_pages.size());
         m_pages.Add(&info);        
-    } else {
+    }
+    else
+    {
         m_pages.Insert(&info, idx);
         for(size_t i=idx; i < m_pages.GetCount(); i++)
             m_pages[i]->Page(i);
@@ -960,7 +966,7 @@ bool wxAuiTabContainer::RemovePage(wxWindow* wnd)
     for (i = 0; i < pageCount; ++i)
     {
         wxAuiPaneInfo& page = *m_pages.Item(i);
-        if (page.GetWindow() == wnd)
+        if (wnd && page.GetWindow() == wnd)
         {
             m_pages.RemoveAt(i);
 
@@ -986,6 +992,9 @@ bool wxAuiTabContainer::SetActivePage(wxWindow* wnd)
     for (i = 0; i < pageCount; ++i)
     {
         wxAuiPaneInfo& page = *m_pages.Item(i);
+        if (!page.GetWindow())
+            continue;
+
         if (page.GetWindow() == wnd)
         {
             if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && page.GetWindow()->IsShown())
@@ -1804,7 +1813,7 @@ void wxAuiTabContainer::MakeTabVisible(int tabPage)
     }
 }
 
-void wxAuiTabContainer::MakeTabVisible(int tabPage, wxWindow* win)
+void wxAuiTabContainer::MakeTabVisible(int tabPage, wxWindow* WXUNUSED(win))
 {
 	MakeTabVisible(tabPage);
 }
@@ -1957,4 +1966,51 @@ void wxAuiTabContainer::OnChildKeyDown(wxKeyEvent& evt)
     }
     return;
 }
+
+// DoShowHide() this function shows the active window, then
+// hides all of the other windows (in that order)
+// This is backwards compatible method
+// TODO: deal with wxUSE_MDI, this is the ShowWnd method
+//#if wxUSE_MDI
+//if (wnd->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
+//{
+//	wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)wnd;
+//	cf->DoShow(show);
+//}
+//else
+//#endif
+//{
+//	wnd->Show(show);
+//}
+void wxAuiTabContainer::DoShowHide()
+{
+	wxAuiPaneInfoPtrArray& pages = GetPages();
+	size_t i, page_count = pages.GetCount();
+
+	// show new active page first
+	for (i = 0; i < page_count; ++i)
+	{
+		wxAuiPaneInfo* page = pages.Item(i);
+		if (page->IsActive())
+		{
+			// Look at ShowWnd, it doesn't really do anything different
+			page->GetWindow()->Show(true);
+			break;
+		}
+	}
+
+	// hide all other pages
+	for (i = 0; i < page_count; ++i)
+	{
+		wxAuiPaneInfo* page = pages.Item(i);
+		if (!page->IsActive())
+			page->GetWindow()->Show(false);
+	}
+}
+
+bool wxAuiTabContainer::IsDragging() const
+{
+	return false;
+}
+
 #endif // wxUSE_AUI

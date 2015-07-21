@@ -92,6 +92,9 @@ IMPLEMENT_CLASS(wxAuiManager, wxEvtHandler)
 // as the Show() method on this class is "unplugged"
 static void ShowWnd(wxWindow* wnd, bool show)
 {
+    if (!wnd)
+        return;
+
 #if wxUSE_MDI
     if (wxDynamicCast(wnd,wxAuiMDIChildFrame))
     {
@@ -137,7 +140,7 @@ wxAuiPaneInfo::wxAuiPaneInfo()
   floating_size(wxDefaultSize),
   dock_proportion(0),
   m_tooltip(wxT("")),
-  m_dock_page(0)
+  m_dock_page(wxNOT_FOUND)
 {
     DefaultPane();
 }
@@ -1041,6 +1044,9 @@ bool wxAuiManager_HasLiveResize(wxAuiManager& manager)
 // need to be managed by the manager itself.
 wxAuiManager* wxAuiManager::GetManager(wxWindow* window)
 {
+    if (!window)
+        return NULL;
+
     wxAuiManagerEvent evt(wxEVT_AUI_FIND_MANAGER);
     evt.SetManager(NULL);
     evt.SetEventObject(window);
@@ -1291,6 +1297,27 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
             test.Window(window);
             if (test.GetWindow() != window)
                 return false;
+        }
+    }
+
+    // Avoids duplicates in page numbers
+    wxAuiPaneInfo *t = &test;
+    bool increment = false;
+    for (size_t i = 0; i < m_panes.GetCount(); ++i)
+    {
+        wxAuiPaneInfo &item = m_panes.Item(i);
+        wxAuiPaneInfo *p = &item;
+        if (PaneSortFunc(&p, &t) == 1)
+        {
+            if (!increment && (p->GetPage() == t->GetPage()))
+            {
+                p->Page(p->GetPage()+1);
+                increment = true;
+            }
+            else if (increment)
+            {
+                p->Page(p->GetPage()+1);
+            }
         }
     }
 
@@ -1911,13 +1938,11 @@ bool wxAuiManager::LoadPerspective(const wxString& layout, bool update)
     if (part != wxT("layout2"))
         return false;
 
-    // Mark all panes currently managed as hidden. Also, dock all panes that are dockable.
+    // Mark all panes currently managed as hidden.
     int paneIndex, paneCount = m_panes.GetCount();
     for (paneIndex = 0; paneIndex < paneCount; ++paneIndex)
     {
         wxAuiPaneInfo& p = m_panes.Item(paneIndex);
-        if(p.IsDockable())
-            p.Dock();
         p.Hide();
     }
 
@@ -2397,6 +2422,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 {
     wxSizerItem* sizerItem;
     wxAuiDockUIPart part;
+    part.pane = NULL;
 
     int sashSize = m_art->GetMetric(wxAUI_DOCKART_SASH_SIZE);
     int orientation = dock.IsHorizontal() ? wxHORIZONTAL : wxVERTICAL;
@@ -2707,15 +2733,17 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                             ShowWnd(pane.GetWindow(),true);
                         activenotebookpagefound = true;
                     }
-                    //else
-                        // Add a debug warning
+                    else
+                    {
+                        wxFAIL_MSG("Flag optionActiveNotebook should not be defined to several wxAuiPaneInfo");
+                    }
                 }
                 else
                 {
                     // Only hide the window if it belongs to us.
                     // It might not belong to us if we are in the middle of a drop calculation for
                     // a floating frame, hiding it in this case would make the floating frame blank.
-                    if(pane.GetWindow()->GetParent()==m_frame)
+                    if(pane.GetWindow() && pane.GetWindow()->GetParent()==m_frame)
                     {
                         // Don't ever hide or show a window during hint calculation as this can affect display of windows other than the hint one.
                         if(!m_doingHintCalculation)
@@ -2825,7 +2853,7 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
                         // Only hide the window if it belongs to us.
                         // It might not belong to us if we are in the middle of a drop calculation for
                         // a floating frame, hiding it in this case would make the floating frame blank.
-                        if(pane.GetWindow()->GetParent()==m_frame)
+                        if(pane.GetWindow() && pane.GetWindow()->GetParent()==m_frame)
                         {
                             // Don't ever hide or show a window during hint calculation as this can affect display of windows other than the hint one.
                             if(!m_doingHintCalculation)
@@ -3380,7 +3408,7 @@ void wxAuiManager::Update()
     {
         wxAuiPaneInfo& p = m_panes.Item(i);
 
-        if (!p.IsFloating() && p.GetFrame())
+        if (!p.IsFloating() && p.GetFrame() && p.GetWindow())
         {
             // because the pane is no longer in a floating, we need to
             // reparent it to m_frame and destroy the floating frame
@@ -3484,7 +3512,7 @@ void wxAuiManager::Update()
         }
         else
         {
-            if (p.GetWindow()->IsShown() != p.IsShown())
+            if (p.GetWindow() && p.GetWindow()->IsShown() != p.IsShown())
             {
                 // Hide windows we are sure are hidden
                 // Other panes will be processed later
@@ -4713,7 +4741,7 @@ void wxAuiManager::OnFloatingPaneMoving(wxWindow* wnd, wxDirection dir)
 
     // calculate the offset from the upper left-hand corner
     // of the frame to the mouse pointer
-    wxPoint framePos = pane.GetFrame()->GetPosition();
+    wxPoint framePos = pane.GetFrame() ? pane.GetFrame()->GetPosition() : wxPoint(0,0);
     wxPoint actionOffset(pt.x-framePos.x, pt.y-framePos.y);
 
     // no hint for toolbar floating windows
@@ -4813,7 +4841,7 @@ void wxAuiManager::OnFloatingPaneMoved(wxWindow* wnd, wxDirection dir)
 
     // calculate the offset from the upper left-hand corner
     // of the frame to the mouse pointer
-    wxPoint framePos = pane.GetFrame()->GetPosition();
+    wxPoint framePos = pane.GetFrame() ? pane.GetFrame()->GetPosition() : wxPoint(0,0);
     wxPoint actionOffset(pt.x-framePos.x, pt.y-framePos.y);
 
     // if a key modifier is pressed while dragging the frame,
@@ -6504,13 +6532,21 @@ void wxAuiManager::OnChildFocus(wxChildFocusEvent& evt)
     // when a child pane has its focus set, we should change the
     // pane's active state to reflect this. (this is only true if
     // active panes are allowed by the owner)
-    
-    wxAuiPaneInfo& pane = GetPane(evt.GetWindow());
-    if (pane.IsOk() && !pane.HasFlag(wxAuiPaneInfo::optionActive))
+    wxWindow *window = evt.GetWindow();
+    while (window)
     {
-        SetActivePane(evt.GetWindow());
-        if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
-            refresh = true;
+        wxAuiPaneInfo& pane = GetPane(window);
+        if (pane.IsOk())
+        {
+            if (!pane.HasFlag(wxAuiPaneInfo::optionActive))
+            {
+                SetActivePane(window);
+                if (HasFlag(wxAUI_MGR_ALLOW_ACTIVE_PANE))
+                    refresh = true;
+            }
+            break;
+        }
+        window = window->GetParent();
     }
 
     if(refresh)

@@ -23,6 +23,8 @@
     The appearance of this class is configurable and can be changed by calling
     wxAuiNotebook::SetArtProvider(). By default, native art provider is used if
     available (currently only in wxGTK) and wxAuiGenericTabArt otherwise.
+    
+    Since version 3.1, this is mostly a wrapper around the standard notebook management features built in the wxAuiManager class.
 
     @beginStyleTable
     @style{wxAUI_NB_DEFAULT_STYLE}

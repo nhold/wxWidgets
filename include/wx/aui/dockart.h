@@ -254,6 +254,11 @@ public:
     void CalculateRequiredWidth(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
     void CalculateRequiredHeight(wxDC& dc,wxWindow* wnd,int& totalSize,int& visibleSize) const;
 	void MakeTabVisible(int tabPage, wxWindow* win);
+
+	// Added for backwards compatibility for wxPython
+	void DoShowHide();
+	// Added for backwards compatibility for wxPython
+	bool IsDragging() const;
 protected:
 
     virtual void Render(wxDC* dc, wxWindow* wnd);

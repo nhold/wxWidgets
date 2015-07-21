@@ -53,6 +53,7 @@ wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                         (pane.HasMaximizeButton()?wxMAXIMIZE_BOX:0) |
                         (pane.IsFixed()?0:wxRESIZE_BORDER)
                         )
+                , m_paneWindow(NULL)
 {
     m_ownerMgr = owner_mgr;
     m_moving = false;
@@ -83,6 +84,9 @@ wxAuiFloatingFrame::~wxAuiFloatingFrame()
 
 void wxAuiFloatingFrame::SetPaneWindow(const wxAuiPaneInfo& pane)
 {
+    if (!pane.GetWindow())
+        return;
+
     m_paneWindow = pane.GetWindow();
     m_paneWindow->Reparent(this);
 

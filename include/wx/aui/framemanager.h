@@ -279,6 +279,8 @@ public:
 
     // get/set whether a pane should be destroyed when closed, instead of the default behaviour of hiding a closed pane.
     bool HasDestroyOnClose() const { return HasFlag(optionDestroyOnClose); }
+	bool IsDestroyOnClose() const { return HasDestroyOnClose(); }
+
     wxAuiPaneInfo& DestroyOnClose(bool b = true) { return SetFlag(optionDestroyOnClose, b); }
 
     // get/set if pane displays a caption.
@@ -453,12 +455,12 @@ public:
        test.state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-                 optionCaption | optionPaneBorder | buttonClose;
+                 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
         wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");
         this->state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-                 optionCaption | optionPaneBorder | buttonClose;
+				 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
         return *this;
     }
 
@@ -573,7 +575,7 @@ public:
 private:
 
     wxString m_tooltip;     // tooltip displayed when hovering over title/tab of window
-    int      m_dock_page;   // tab position if we are in a notebook (0 = leftmost tab)
+    int      m_dock_page;   // tab position if we are in a notebook (0 = leftmost tab, -1 rightmost tab)
 
 
 };
