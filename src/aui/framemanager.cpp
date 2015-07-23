@@ -5325,21 +5325,15 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
                 }
             }
         }
-#ifdef __WXMAC__
         else
         {
             evt.Skip();
         }
-#endif
     }
-#ifdef __WXMAC__
     else
     {
         evt.Skip();
     }
-#else
-    evt.Skip();
-#endif
 }
 
 /// Ends a resize action, or for live update, resizes the sash
