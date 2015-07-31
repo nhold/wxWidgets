@@ -61,12 +61,19 @@ WX_DEFINE_OBJARRAY(wxAuiSizerItemPointerArray)
 
 wxAuiPaneInfo wxAuiNullPaneInfo;
 wxAuiDockInfo wxAuiNullDockInfo;
+
 wxDEFINE_EVENT( wxEVT_AUI_PANE_BUTTON, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_BG_DCLICK, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CAPTION_DCLICK, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CAPTION_MIDDLE_UP, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CAPTION_RIGHT_UP, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_RENDER, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_FIND_MANAGER, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_ALLOW_DND, wxAuiManagerEvent );
@@ -1207,16 +1214,16 @@ wxAuiTabArt* wxAuiManager::GetTabArtProvider() const
     return m_tab_art;
 }
 
-void wxAuiManager::ProcessMgrEvent(wxAuiManagerEvent& evt)
+bool wxAuiManager::ProcessMgrEvent(wxAuiManagerEvent& evt)
 {
     // first, give the owner frame a chance to override
     if (m_frame)
     {
         if (m_frame->GetEventHandler()->ProcessEvent(evt))
-            return;
+            return true;
     }
 
-    ProcessEvent(evt);
+    return ProcessEvent(evt);
 }
 
 // SetArtProvider() instructs wxAuiManager to use the
@@ -5175,26 +5182,112 @@ void wxAuiManager::UpdateButtonOnScreen(wxAuiDockUIPart* buttonUIPart, const wxM
     }
 }
 
-void wxAuiManager::OnLeftDClick(wxMouseEvent& evt)
+bool wxAuiManager::ProcessAuiPaneEvent(const wxMouseEvent& evt, wxAuiPaneInfo **pane)
 {
-    wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
-    if(part)
+    wxAuiDockUIPart* hitPart = HitTest(evt.GetX(), evt.GetY());
+    if(!hitPart)
+        return false;
+
+    if (pane)
+        *pane = hitPart->pane;
+
+    int evtId = wxID_ANY;
+    wxAuiPaneInfo* hitPane = NULL;
+    wxAuiTabContainerButton* hitButton = NULL;
+    bool isManagedNotebook = (wxDynamicCast(GetManagedWindow(),wxAuiNotebook) != NULL);
+    bool isOnCaption = false;
+    if (hitPart->type == wxAuiDockUIPart::typePaneTab)
     {
-        if(part->type == wxAuiDockUIPart::typePaneTab)
+        hitPart->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane);
+        hitPart->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitButton);
+        if (hitPane)
         {
-            wxAuiPaneInfo* hitPane;
-            wxAuiTabContainerButton* hitbutton;
-            if(!part->m_tab_container->ButtonHitTest(evt.m_x,evt.m_y,&hitbutton) && !part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
-            {
-                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-                {
-                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_BG_DCLICK, GetManagedWindow()->GetId());
-                    e.SetEventObject(GetManagedWindow());
-                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
-                }
-            }
+            isOnCaption = !hitButton;
+            if (pane)
+                *pane = hitPane;
         }
     }
+    else if (hitPart->type == wxAuiDockUIPart::typeCaption)
+    {
+        hitPane = hitPart->pane;
+        isOnCaption = true;
+    }
+
+    if (evt.ButtonDClick(wxMOUSE_BTN_LEFT))
+    {
+        if (isManagedNotebook)
+        {
+            if (!isOnCaption)
+                evtId = wxEVT_COMMAND_AUINOTEBOOK_BG_DCLICK;
+        }
+        else
+        {
+            if (isOnCaption)
+                evtId  = wxEVT_AUI_PANE_CAPTION_DCLICK;
+            else
+                evtId = wxEVT_AUI_PANE_BG_DCLICK;
+        }
+    }
+    else if (evt.ButtonDown(wxMOUSE_BTN_RIGHT) && isOnCaption)
+    {
+        if (isManagedNotebook)
+            evtId = wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_DOWN;
+        else
+            evtId = wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN;
+    }
+    else if (evt.ButtonUp(wxMOUSE_BTN_RIGHT) && isOnCaption)
+    {
+        if (isManagedNotebook)
+            evtId = wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_UP;
+        else
+            evtId = wxEVT_AUI_PANE_CAPTION_RIGHT_UP;
+    }
+    else if (evt.ButtonDown(wxMOUSE_BTN_MIDDLE) && isOnCaption)
+    {
+        if (isManagedNotebook)
+            evtId = wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_DOWN;
+        else
+            evtId = wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN;
+    }
+    else if (evt.ButtonUp(wxMOUSE_BTN_MIDDLE) && isOnCaption)
+    {
+        if (isManagedNotebook)
+            evtId = wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP;
+        else
+            evtId = wxEVT_AUI_PANE_CAPTION_MIDDLE_UP;
+    }
+
+    if (evtId != wxID_ANY)
+    {
+        if (isManagedNotebook)
+        {
+            wxAuiNotebookEvent e(evtId, GetManagedWindow()->GetId());
+            e.SetEventObject(GetManagedWindow());
+            if (hitPane)
+                e.SetSelection(GetAllPanes().Index(*hitPane));
+            if (GetManagedWindow()->GetEventHandler()->ProcessEvent(e))
+                return false;
+            return e.IsAllowed();
+        }
+        else
+        {
+            wxAuiManagerEvent e(evtId);
+            e.SetManager(this);
+            // Since there is no 'hit pane' related to the event wxEVT_AUI_PANE_BG_DCLICK,
+            // the first pane found in the logical notebook area responsible of the event is set in the event object
+            // to allow the user to retrieve the position needed to add a new pane.
+            e.SetPane(hitPane ? hitPane : hitPart->pane);
+            if (ProcessMgrEvent(e))
+                return false;
+            return e.IsAllowed();
+        }
+    }
+    return false;
+}
+
+void wxAuiManager::OnLeftDClick(wxMouseEvent& evt)
+{
+    ProcessAuiPaneEvent(evt);
 }
 
 void wxAuiManager::OnLeftDown(wxMouseEvent& evt)
@@ -5950,116 +6043,35 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
 
 void wxAuiManager::OnRightDown(wxMouseEvent& evt)
 {
-    wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
-    if(part)
-    {
-        if(part->type == wxAuiDockUIPart::typePaneTab)
-        {
-            wxAuiPaneInfo* hitPane;
-            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
-            {
-                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-                {
-                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_DOWN, GetManagedWindow()->GetId());
-                    e.SetEventObject(GetManagedWindow());
-                    e.SetSelection(GetAllPanes().Index(*hitPane));
-                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
-                }
-            }
-        }
-    }
+    ProcessAuiPaneEvent(evt);
 }
 
 void wxAuiManager::OnRightUp(wxMouseEvent& evt)
 {
-    wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
-    if(part)
-    {
-        if(part->type == wxAuiDockUIPart::typePaneTab)
-        {
-            wxAuiPaneInfo* hitPane;
-            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
-            {
-                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-                {
-                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_RIGHT_UP, GetManagedWindow()->GetId());
-                    e.SetEventObject(GetManagedWindow());
-                    e.SetSelection(GetAllPanes().Index(*hitPane));
-                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
-                }
-            }
-        }
-    }
+    ProcessAuiPaneEvent(evt);
 }
 
 void wxAuiManager::OnMiddleDown(wxMouseEvent& evt)
 {
-    wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
-    if(part)
-    {
-        if(part->type == wxAuiDockUIPart::typePaneTab)
-        {
-            wxAuiPaneInfo* hitPane;
-            if(part->m_tab_container->TabHitTest(evt.m_x,evt.m_y,&hitPane))
-            {
-                if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-                {
-                    wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_DOWN, GetManagedWindow()->GetId());
-                    e.SetEventObject(GetManagedWindow());
-                    e.SetSelection(GetAllPanes().Index(*hitPane));
-                    GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
-                }
-            }
-        }
-    }
+    ProcessAuiPaneEvent(evt);
 }
 
 void wxAuiManager::OnMiddleUp(wxMouseEvent& evt)
 {
-
+    wxAuiPaneInfo *pane;
     // if the wxAUI_NB_MIDDLE_CLICK_CLOSE is specified, middle
     // click should act like a tab close action.  However, first
     // give the owner an opportunity to handle the middle up event
-    // for custom action
-
-    wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
-    if(!part||!part->pane)
+    // for custom action and to veto it
+    if (ProcessAuiPaneEvent(evt, &pane) && HasFlag(wxAUI_MGR_MIDDLE_CLICK_CLOSE))
     {
-        evt.Skip();
-        return;
+        // simulate the user pressing the close button on the tab
+        wxAuiManagerEvent e(wxEVT_AUI_PANE_BUTTON);
+        e.SetEventObject(this);
+        e.SetPane(pane);
+        e.SetButton(wxAUI_BUTTON_CLOSE);
+        OnPaneButton(e);
     }
-    if (part && part->type == wxAuiDockUIPart::typePaneTab)
-    {
-        wxAuiPaneInfo* hitPane=NULL;
-        if(part->m_tab_container->TabHitTest(evt.GetX(),evt.GetY(),&hitPane))
-        {
-            part->pane = hitPane;
-        }
-    }
-
-    // check if we are supposed to close on middle-up
-    if (!HasFlag(wxAUI_MGR_MIDDLE_CLICK_CLOSE) == 0)
-        return;
-
-
-    // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP event and give the user an opportunity to veto it.
-    if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
-    {
-        wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP, GetManagedWindow()->GetId());
-        e.SetSelection(GetAllPanes().Index(*part->pane));
-        e.SetEventObject(GetManagedWindow());
-        if (GetManagedWindow()->GetEventHandler()->ProcessEvent(e))
-            return;
-        if (!e.IsAllowed())
-            return;
-    }
-
-    // simulate the user pressing the close button on the tab
-    wxAuiManagerEvent e(wxEVT_AUI_PANE_BUTTON);
-    e.SetEventObject(this);
-    e.SetPane(part->pane);
-    e.SetButton(wxAUI_BUTTON_CLOSE);
-    OnPaneButton(e);
 }
 
 
