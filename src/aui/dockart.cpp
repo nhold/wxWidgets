@@ -1978,7 +1978,7 @@ void wxAuiTabContainer::DoShowHide()
 
     bool activePageFound = false;
 
-	// show new active page first
+	// show the first actibe page, hide everything else.
     for (i = 0; i < page_count; ++i)
     {
         bool showWindow = false;
