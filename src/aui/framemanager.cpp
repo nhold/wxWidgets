@@ -5778,6 +5778,8 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             e.SetSelection(GetAllPanes().Index(GetPane(m_actionWindow)));
             e.SetEventObject(GetManagedWindow());
             GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+
+            wxDynamicCast(GetManagedWindow(),wxAuiNotebook)->GetActiveTabCtrl()->m_dragging = false;
         }
 
         m_frame->ReleaseMouse();
@@ -5800,6 +5802,8 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             e.SetSelection(GetAllPanes().Index(GetPane(m_actionWindow)));
             e.SetEventObject(GetManagedWindow());
             GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+
+            wxDynamicCast(GetManagedWindow(),wxAuiNotebook)->GetActiveTabCtrl()->m_dragging = false;
         }
 
         // Try to find the pane.
@@ -5903,6 +5907,8 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
             e.SetSelection(GetAllPanes().Index(GetPane(m_actionWindow)));
             e.SetEventObject(GetManagedWindow());
             GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+
+            wxDynamicCast(GetManagedWindow(),wxAuiNotebook)->GetActiveTabCtrl()->m_dragging = false;
         }
     }
     else if (m_action == actionDragToolbarPane)
@@ -6180,6 +6186,8 @@ void wxAuiManager::OnMotion(wxMouseEvent& evt)
                     e.SetSelection(GetAllPanes().Index(*paneInfo));
                     e.SetEventObject(GetManagedWindow());
                     GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+
+                    wxDynamicCast(GetManagedWindow(),wxAuiNotebook)->GetActiveTabCtrl()->m_dragging = true;
                 }
 
                 // If it is a notebook pane then we don't want to float it unless we have left the notebook tab bar.
