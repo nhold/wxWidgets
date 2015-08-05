@@ -1973,21 +1973,21 @@ void wxAuiTabContainer::OnChildKeyDown(wxKeyEvent& evt)
 
 void wxAuiTabContainer::DoShowHide()
 {
-	wxAuiPaneInfoPtrArray& pages = GetPages();
-	size_t i, page_count = pages.GetCount();
+    wxAuiPaneInfoPtrArray& pages = GetPages();
+    size_t i, page_count = pages.GetCount();
 
     bool activePageFound = false;
 
 	// show new active page first
-	for (i = 0; i < page_count; ++i)
-	{
+    for (i = 0; i < page_count; ++i)
+    {
         bool showWindow = false;
-		wxAuiPaneInfo* page = pages.Item(i);
-		if (page->IsActive() && !activePageFound)
-		{
-			activePageFound = true;
+        wxAuiPaneInfo* page = pages.Item(i);
+        if (page->IsActive() && !activePageFound)
+        {
+            activePageFound = true;
             showWindow = true;
-		}
+        }
         #if wxUSE_MDI
         if (page->GetWindow()->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
         {
@@ -1999,7 +1999,7 @@ void wxAuiTabContainer::DoShowHide()
         {
             page->GetWindow()->Show(showWindow);
         }
-	}
+    }
 }
 
 
