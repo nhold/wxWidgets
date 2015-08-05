@@ -256,6 +256,8 @@ protected:
     DECLARE_CLASS(wxAuiNotebook)
     DECLARE_EVENT_TABLE()
 #endif
+
+    friend class wxAuiManager;
 };
 
 

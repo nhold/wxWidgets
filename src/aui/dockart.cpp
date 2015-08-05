@@ -769,6 +769,7 @@ WX_DEFINE_OBJARRAY(wxAuiTabContainerButtonArray)
 // which can be used as a tab control in the normal sense.
 wxAuiTabContainer::wxAuiTabContainer(wxAuiTabArt* artProvider,wxAuiManager* mgr)
 : m_focus(false)
+, m_dragging(false)
 , m_mgr(mgr)
 , m_tab_art(artProvider)
 {
@@ -1970,50 +1971,36 @@ void wxAuiTabContainer::OnChildKeyDown(wxKeyEvent& evt)
     return;
 }
 
-// DoShowHide() this function shows the active window, then
-// hides all of the other windows (in that order)
-// This is backwards compatible method
-// TODO: deal with wxUSE_MDI, this is the ShowWnd method
-//#if wxUSE_MDI
-//if (wnd->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
-//{
-//	wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)wnd;
-//	cf->DoShow(show);
-//}
-//else
-//#endif
-//{
-//	wnd->Show(show);
-//}
 void wxAuiTabContainer::DoShowHide()
 {
-	wxAuiPaneInfoPtrArray& pages = GetPages();
-	size_t i, page_count = pages.GetCount();
+    wxAuiPaneInfoPtrArray& pages = GetPages();
+    size_t i, page_count = pages.GetCount();
 
-	// show new active page first
-	for (i = 0; i < page_count; ++i)
-	{
-		wxAuiPaneInfo* page = pages.Item(i);
-		if (page->IsActive())
-		{
-			// Look at ShowWnd, it doesn't really do anything different
-			page->GetWindow()->Show(true);
-			break;
-		}
-	}
+    bool activePageFound = false;
 
-	// hide all other pages
-	for (i = 0; i < page_count; ++i)
-	{
-		wxAuiPaneInfo* page = pages.Item(i);
-		if (!page->IsActive())
-			page->GetWindow()->Show(false);
-	}
+	// show the first actibe page, hide everything else.
+    for (i = 0; i < page_count; ++i)
+    {
+        bool showWindow = false;
+        wxAuiPaneInfo* page = pages.Item(i);
+        if (page->IsActive() && !activePageFound)
+        {
+            activePageFound = true;
+            showWindow = true;
+        }
+        #if wxUSE_MDI
+        if (page->GetWindow()->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
+        {
+            wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)page->GetWindow();
+            cf->DoShow(showWindow);
+        }
+        else
+        #endif
+        {
+            page->GetWindow()->Show(showWindow);
+        }
+    }
 }
 
-bool wxAuiTabContainer::IsDragging() const
-{
-	return false;
-}
 
 #endif // wxUSE_AUI
