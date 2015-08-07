@@ -258,7 +258,7 @@ public:
 	// Added for backwards compatibility for wxPython
 	void DoShowHide();
 	// Added for backwards compatibility for wxPython
-	bool IsDragging() const;
+	bool IsDragging() const { return m_dragging; };
 protected:
 
     virtual void Render(wxDC* dc, wxWindow* wnd);
@@ -268,6 +268,7 @@ protected:
 
 protected:
     bool m_focus;
+    bool m_dragging;
     wxAuiManager* m_mgr;
     wxAuiTabArt* m_tab_art;
     wxAuiPaneInfoPtrArray m_pages;
