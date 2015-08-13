@@ -1332,7 +1332,7 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
     // if the pane's name identifier is blank, create a random string
     if (pinfo.GetName().empty() || alreadyExists)
     {
-        pinfo.GetName().Printf(wxT("%08lx%08x%08x%08lx"),
+        pinfo.Name(wxString::Format(wxT("%08lx%08x%08x%08lx"),
              (unsigned long)wxPtrToUInt(pinfo.GetWindow()) & 0xffffffff,
              (unsigned int)time(NULL),
 #ifdef __WXWINCE__
@@ -1340,7 +1340,8 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
 #else
              (unsigned int)clock(),
 #endif
-             (unsigned long)m_panes.GetCount());
+             (unsigned long)m_panes.GetCount()));
+        
     }
 
     // set initial proportion (if not already set)
