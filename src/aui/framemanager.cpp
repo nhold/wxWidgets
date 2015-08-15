@@ -627,6 +627,8 @@ static void RemovePaneFromDocks(wxAuiDockInfoArray& docks, wxAuiPaneInfo& pane, 
 int wxAuiManager::SetActivePane(wxWindow* activePane)
 {
     int i, paneCount;
+    int activeIndex = wxNOT_FOUND;
+    bool tabFound = false;
     wxAuiPaneInfo* activePaneInfo = NULL;
     for (i = 0, paneCount = m_panes.GetCount(); i < paneCount; ++i)
     {
@@ -637,25 +639,51 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
             activePaneInfo = &pane;
             wxAuiTabContainer* ctrl;
             int ctrlIndex;
-            if(FindTab(pane.GetWindow(), &ctrl, &ctrlIndex))
+
+            tabFound = FindTab(pane.GetWindow(), &ctrl, &ctrlIndex);
+            if(tabFound)
             {
                 ctrl->SetActivePage(pane.GetWindow());
             }
 
             pane.SetFlag(wxAuiPaneInfo::optionActive, true);
+            activeIndex = i;
         }
     }
 
     // send the 'activated' event after all panes have been updated
     if ( activePaneInfo )
     {
+        // During the pane adding process, the tab may not have been created yet.
+        // Therefore defines manually the active tab.
+        if (!tabFound && !m_skipping)
+        {
+            long pageCount = 0;
+            for (i = 0; i < paneCount; ++i)
+            {
+                wxAuiPaneInfo &pane = m_panes.Item(i);
+                if ((pane.GetDirection() == activePaneInfo->GetDirection()) &&
+                    (pane.GetLayer() == activePaneInfo->GetLayer()) &&
+                    (pane.GetRow() == activePaneInfo->GetRow()) &&
+                    (pane.GetPosition() == activePaneInfo->GetPosition()) )
+                {
+                    pane.SetFlag(wxAuiPaneInfo::optionActiveNotebook, false);
+                    ++pageCount;
+                }
+            }
+            if (pageCount > 1)
+            {
+                activePaneInfo->SetFlag(wxAuiPaneInfo::optionActiveNotebook, true);
+            }
+        }
+
         wxAuiManagerEvent evt(wxEVT_AUI_PANE_ACTIVATED);
         evt.SetManager(this);
         evt.SetPane(activePaneInfo);
         ProcessMgrEvent(evt);
     }
 
-    return 0;
+    return activeIndex;
 }
 
 int wxAuiManager::GetActivePane(wxWindow* focus) const
@@ -1607,8 +1635,17 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
             if (n_pages > 1) 
             {
                 size_t cur_page = (size_t)ctrlIndex;
-                size_t new_page = cur_page == n_pages-1 ? cur_page-1 : cur_page+1;          
-                ctrl->SetActivePage(new_page);
+                size_t new_page = cur_page == n_pages-1 ? cur_page-1 : cur_page+1;
+                if (new_page != 0 || notebook)
+                {
+                    ctrl->SetActivePage(new_page);
+                }
+                else
+                {
+                    // Avoids to have several panes activated when an external pane has the focus
+                    // and the last tab becomes an activated pane.
+                    SetActivePane(ctrl->GetWindowFromIdx(new_page));
+                }
             }
         }
                      
@@ -4910,7 +4947,10 @@ void wxAuiManager::OnFloatingPaneActivated(wxWindow* wnd)
 {
     if (GetPane(wnd).IsOk())
     {
+        // Skipping the notebook page activation avoids issues in hint calculation
+        m_skipping = true;
         SetActivePane(wnd);
+        m_skipping = false;
         Repaint();
     }
 }
