@@ -188,11 +188,14 @@ enum wxAuiManagerOption
         Tab position will be decided based on the Page values of the panes with
         those that have a lower value appearing on the left, with 0 being the
         absolute left. By default, pages are not enabled.
+		This behaviour can be controlled using the wxAUI_MGR_NB_ALLOW_NOTEBOOKS
+		flag as well as EVT_AUI_PANE_DOCK_OVER
         @since 3.1
-        You can use the wxHAS_AUI_DYNAMIC_NOTEBOOK define to test if you are on a version
-        This behaviour can be controlled using the wxAUI_MGR_NB_ALLOW_NOTEBOOKS flag as well as EVT_AUI_PANE_DOCK_OVER
+        You can use the wxHAS_AUI_DYNAMIC_NOTEBOOK define to test if you are on a 
+		version that supports the dynamic notebook behaviour.
+        
 
-        that supports this behaviour or not.
+        
 
     @beginStyleTable
     @style{wxAUI_MGR_ALLOW_FLOATING}
