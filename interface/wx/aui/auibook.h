@@ -24,7 +24,12 @@
     wxAuiNotebook::SetArtProvider(). By default, native art provider is used if
     available (currently only in wxGTK) and wxAuiGenericTabArt otherwise.
     
-    Since version 3.1, this is mostly a wrapper around the standard notebook management features built in the wxAuiManager class.
+    Since version 3.1, this is mostly implemented as a wrapper around the standard notebook
+    management features built in the wxAuiManager class.
+
+    Note: The default behaviour of wxAuiNotebook is to destroy pages when they
+    are closed and not hide them, this is contradictory to the behaviour of wxAuiManager
+    which by default destroys pages on close.
 
     @beginStyleTable
     @style{wxAUI_NB_DEFAULT_STYLE}
