@@ -455,12 +455,12 @@ public:
        test.state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-                 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
+                 optionCaption | optionPaneBorder | buttonClose;
         wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");
         this->state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-				 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
+				 optionCaption | optionPaneBorder | buttonClose;
         return *this;
     }
 
