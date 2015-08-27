@@ -775,10 +775,10 @@ MyFrame::MyFrame(wxWindow* parent,
                   Name(wxT("float4")).Caption(wxT("Floatable4")).
                   Left().Layer(1).Position(1).
                   CloseButton(true).MaximizeButton(true).Page(2).SetFlag(wxAuiPaneInfo::optionActiveNotebook,true));
-        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().CenterPane().
-                  Name(wxT("float5")).Caption(wxT("Floatable5")).
+        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().Center().
+                  Name(wxT("float5")).Caption(wxT("Floatable5 (Center)")).
                   CloseButton(true).MaximizeButton(true).Page(1).Floatable(true).Dockable(true).CenterDockable(true));
-        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().CenterPane().Name(wxT("toolTip1")).Caption(wxT("ToolTip1")).ToolTip(wxT("lorem ipsem")).
+        m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().Center().Name(wxT("toolTip1")).Caption(wxT("ToolTip1 (Center)")).ToolTip(wxT("lorem ipsem")).
                   CloseButton(true).MaximizeButton(true).Page(2).Floatable(true).Dockable(true).CenterDockable(true));
     }
 

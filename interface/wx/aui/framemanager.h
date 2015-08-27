@@ -895,8 +895,9 @@ public:
     
     //@{
     /**
-        CentrePane() specifies that the pane should adopt the default centre pane
-        settings. Centre panes usually do not have caption bars.
+        CentrePane() specifies that the pane should adopt the default centre pane settings.
+        Centre panes usually do not have caption bars, thus a pane dragged manually over it
+        will not be combined in a notebook. Please use the Center() method to allow that.
         This function provides an easy way of preparing a pane to be displayed in
         the centre dock position.
     */
