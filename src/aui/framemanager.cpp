@@ -5262,9 +5262,9 @@ bool wxAuiManager::ProcessAuiPaneEvent(const wxMouseEvent& evt, wxAuiPaneInfo **
         if (isManagedNotebook)
         {
             wxAuiNotebookEvent e(evtId, GetManagedWindow()->GetId());
-            e.SetEventObject(GetManagedWindow());
+            e.SetEventObject(hitPart->m_tab_container);
             if (hitPane)
-                e.SetSelection(GetAllPanes().Index(*hitPane));
+                e.SetSelection(hitPart->m_tab_container->GetIdxFromWindow(hitPane->GetWindow()));
             if (GetManagedWindow()->GetEventHandler()->ProcessEvent(e))
                 return false;
             return e.IsAllowed();
