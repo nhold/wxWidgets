@@ -627,6 +627,7 @@ static void RemovePaneFromDocks(wxAuiDockInfoArray& docks, wxAuiPaneInfo& pane, 
 int wxAuiManager::SetActivePane(wxWindow* activePane)
 {
     int i, paneCount;
+    int activeIndex = wxNOT_FOUND;
     wxAuiPaneInfo* activePaneInfo = NULL;
     for (i = 0, paneCount = m_panes.GetCount(); i < paneCount; ++i)
     {
@@ -643,6 +644,7 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
             }
 
             pane.SetFlag(wxAuiPaneInfo::optionActive, true);
+            activeIndex = i;
         }
     }
 
@@ -655,7 +657,7 @@ int wxAuiManager::SetActivePane(wxWindow* activePane)
         ProcessMgrEvent(evt);
     }
 
-    return 0;
+    return activeIndex;
 }
 
 int wxAuiManager::GetActivePane(wxWindow* focus) const

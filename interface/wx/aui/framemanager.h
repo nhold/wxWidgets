@@ -554,7 +554,8 @@ public:
     /** 
         SetActivePane() sets the pane handling the given window as active, as well as cycles through
         every other pane and makes sure that all others' active flags
-        are turned off. It always returns 0.
+        are turned off.
+        @return The index of the activated pane in the array of panes structures (@see GetAllPanes()).
         @since 3.1
     */
     int SetActivePane(wxWindow* activePane);
