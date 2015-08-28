@@ -699,7 +699,7 @@ protected:
     wxAuiDockUIPart* GetPanePart(wxWindow* pane);
     int GetDockPixelOffset(wxAuiPaneInfo& test);
 
-    void ProcessMgrEvent(wxAuiManagerEvent& event);
+    bool ProcessMgrEvent(wxAuiManagerEvent& event);
     void UpdateButtonOnScreen(wxAuiDockUIPart* buttonUiPart, const wxMouseEvent& event);
     void GetPanePositionsAndSizes(wxAuiDockInfo& dock, wxArrayInt& positions, wxArrayInt& sizes);
 
@@ -741,6 +741,7 @@ protected:
     void OnHintFadeTimer(wxTimerEvent& evt);
     void OnFindManager(wxAuiManagerEvent& evt);
 
+    bool ProcessAuiPaneEvent(const wxMouseEvent &evt, wxAuiPaneInfo **pane = NULL);
 
     enum
     {
@@ -982,6 +983,12 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_MAXIMIZE, wxAuiManager
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_BG_DCLICK, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CAPTION_DCLICK, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CAPTION_MIDDLE_UP, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CAPTION_RIGHT_UP, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_RENDER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_FIND_MANAGER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_ALLOW_DND, wxAuiManagerEvent );
@@ -1004,6 +1011,18 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(func))
 #define EVT_AUI_PANE_DOCK_OVER(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_DOCK_OVER, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_BG_DCLICK(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_BG_DCLICK, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_CAPTION_DCLICK(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CAPTION_DCLICK, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_CAPTION_MIDDLE_UP(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CAPTION_MIDDLE_UP, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_CAPTION_MIDDLE_DOWN(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_CAPTION_RIGHT_UP(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CAPTION_RIGHT_UP, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_CAPTION_RIGHT_DOWN(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN, wxAuiManagerEventHandler(func))
 #define EVT_AUI_RENDER(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_RENDER, wxAuiManagerEventHandler(func))
 #define EVT_AUI_FIND_MANAGER(func) \
@@ -1019,6 +1038,12 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
 %constant wxEventType wxEVT_AUI_PANE_RESTORE;
 %constant wxEventType wxEVT_AUI_PANE_ACTIVATED;
 %constant wxEventType wxEVT_AUI_PANE_DOCK_OVER;
+%constant wxEventType wxEVT_AUI_PANE_BG_DCLICK;
+%constant wxEventType wxEVT_AUI_PANE_CAPTION_DCLICK;
+%constant wxEventType wxEVT_AUI_PANE_CAPTION_MIDDLE_UP;
+%constant wxEventType wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN;
+%constant wxEventType wxEVT_AUI_PANE_CAPTION_RIGHT_UP;
+%constant wxEventType wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN;
 %constant wxEventType wxEVT_AUI_RENDER;
 %constant wxEventType wxEVT_AUI_FIND_MANAGER;
 %constant wxEventType wxEVT_AUI_ALLOW_DND;
@@ -1030,6 +1055,12 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
     EVT_AUI_PANE_RESTORE = wx.PyEventBinder( wxEVT_AUI_PANE_RESTORE )
     EVT_AUI_PANE_ACTIVATED = wx.PyEventBinder( wxEVT_AUI_PANE_ACTIVATED )
     EVT_AUI_PANE_DOCK_OVER = wx.PyEventBinder( wxEVT_AUI_PANE_DOCK_OVER )
+    EVT_AUI_PANE_BG_DCLICK = wx.PyEventBinder( wxEVT_AUI_PANE_BG_DCLICK )
+    EVT_AUI_PANE_CAPTION_DCLICK = wx.PyEventBinder( wxEVT_AUI_PANE_CAPTION_DCLICK )
+    EVT_AUI_PANE_CAPTION_MIDDLE_UP = wx.PyEventBinder( wxEVT_AUI_PANE_CAPTION_MIDDLE_UP )
+    EVT_AUI_PANE_CAPTION_MIDDLE_DOWN = wx.PyEventBinder( wxEVT_AUI_PANE_CAPTION_MIDDLE_DOWN )
+    EVT_AUI_PANE_CAPTION_RIGHT_UP = wx.PyEventBinder( wxEVT_AUI_PANE_CAPTION_RIGHT_UP )
+    EVT_AUI_PANE_CAPTION_RIGHT_DOWN = wx.PyEventBinder( wxEVT_AUI_PANE_CAPTION_RIGHT_DOWN )
     EVT_AUI_RENDER = wx.PyEventBinder( wxEVT_AUI_RENDER )
     EVT_AUI_FIND_MANAGER = wx.PyEventBinder( wxEVT_AUI_FIND_MANAGER )
     EVT_AUI_ALLOW_DND = wx.PyEventBinder( wxEVT_AUI_ALLOW_DND )
