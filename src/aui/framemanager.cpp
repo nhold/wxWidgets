@@ -5803,11 +5803,16 @@ void wxAuiManager::OnLeftUp(wxMouseEvent& evt)
         // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_END_DRAG event to notify user of change.
         if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
         {
-            wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_END_DRAG, GetManagedWindow()->GetId());
-            e.SetSelection(m_actionPart->m_tab_container->GetIdxFromWindow(m_actionWindow));
-            e.SetOldSelection(m_actionPart->m_tab_container->GetActivePage());
-            e.SetEventObject(m_actionPart->m_tab_container);
-            GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+            wxAuiTabContainer* ctrl;
+            int ctrlIndex;
+            if (FindTab(m_actionWindow, &ctrl, &ctrlIndex))
+            {
+                wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_END_DRAG, GetManagedWindow()->GetId());
+                e.SetSelection(ctrlIndex);
+                e.SetOldSelection(ctrl->GetActivePage());
+                e.SetEventObject(ctrl);
+                GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
+            }
         }
     }
     else if (m_action == actionDragMovablePane)
@@ -6047,6 +6052,7 @@ void wxAuiManager::OnMiddleUp(wxMouseEvent& evt)
     // for custom action
 
     wxAuiDockUIPart* part = HitTest(evt.GetX(), evt.GetY());
+    wxAuiPaneInfo* hitPane = NULL;
     if(!part||!part->pane)
     {
         evt.Skip();
@@ -6054,7 +6060,6 @@ void wxAuiManager::OnMiddleUp(wxMouseEvent& evt)
     }
     if (part && part->type == wxAuiDockUIPart::typePaneTab)
     {
-        wxAuiPaneInfo* hitPane=NULL;
         if(part->m_tab_container->TabHitTest(evt.GetX(),evt.GetY(),&hitPane))
         {
             part->pane = hitPane;
@@ -6067,20 +6072,15 @@ void wxAuiManager::OnMiddleUp(wxMouseEvent& evt)
 
 
     // If we are a wxAuiNotebook then we must fire off a wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP event and give the user an opportunity to veto it.
-    if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook))
+    if(wxDynamicCast(GetManagedWindow(),wxAuiNotebook) && hitPane)
     {
-        wxAuiTabContainer* ctrl;
-        int ctrlIndex;
-        if (FindTab(part->pane->GetWindow(), &ctrl, &ctrlIndex))
-        {
-            wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP, GetManagedWindow()->GetId());
-            e.SetSelection(ctrlIndex);
-            e.SetEventObject(ctrl);
-            if (GetManagedWindow()->GetEventHandler()->ProcessEvent(e))
-                return;
-            if (!e.IsAllowed())
-                return;
-        }
+        wxAuiNotebookEvent e(wxEVT_COMMAND_AUINOTEBOOK_TAB_MIDDLE_UP, GetManagedWindow()->GetId());
+        e.SetSelection(part->m_tab_container->GetIdxFromWindow(hitPane->GetWindow()));
+        e.SetEventObject(part->m_tab_container);
+        if (GetManagedWindow()->GetEventHandler()->ProcessEvent(e))
+            return;
+        if (!e.IsAllowed())
+            return;
     }
 
     // simulate the user pressing the close button on the tab
