@@ -64,6 +64,7 @@ wxAuiDockInfo wxAuiNullDockInfo;
 
 wxDEFINE_EVENT( wxEVT_AUI_PANE_BUTTON, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEvent );
+wxDEFINE_EVENT( wxEVT_AUI_PANE_CLOSED, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
 wxDEFINE_EVENT( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
@@ -1670,6 +1671,10 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
         e.SetEventObject(GetManagedWindow());
         GetManagedWindow()->GetEventHandler()->ProcessEvent(e);
     }
+
+    wxAuiManagerEvent e2(wxEVT_AUI_PANE_CLOSED);
+    e2.SetPane(&paneInfo);
+    ProcessMgrEvent(e2);
     
     return true;
 }
