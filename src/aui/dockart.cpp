@@ -1352,6 +1352,22 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
 
     }
 
+
+    // prepare the tab-close-button array
+    // make sure tab button entries which aren't used are marked as hidden
+    for (i = pageCount; i < m_tabCloseButtons.GetCount(); ++i)
+        m_tabCloseButtons.Item(i).curState = wxAUI_BUTTON_STATE_HIDDEN;
+
+    // make sure there are enough tab button entries to accommodate all tabs
+    while (m_tabCloseButtons.GetCount() < pageCount)
+    {
+        wxAuiTabContainerButton tempbtn;
+        tempbtn.id = wxAUI_BUTTON_CLOSE;
+        tempbtn.location = wxCENTER;
+        tempbtn.curState = wxAUI_BUTTON_STATE_HIDDEN;
+        m_tabCloseButtons.Add(tempbtn);
+    }
+
     // find out if size of tabs is larger than can be
     // afforded on screen
     int totalSize = 0;
@@ -1485,23 +1501,6 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
 
     if (offset == 0)
         offset += m_tab_art->GetIndentSize();
-
-
-    // prepare the tab-close-button array
-    // make sure tab button entries which aren't used are marked as hidden
-    for (i = pageCount; i < m_tabCloseButtons.GetCount(); ++i)
-        m_tabCloseButtons.Item(i).curState = wxAUI_BUTTON_STATE_HIDDEN;
-
-    // make sure there are enough tab button entries to accommodate all tabs
-    while (m_tabCloseButtons.GetCount() < pageCount)
-    {
-        wxAuiTabContainerButton tempbtn;
-        tempbtn.id = wxAUI_BUTTON_CLOSE;
-        tempbtn.location = wxCENTER;
-        tempbtn.curState = wxAUI_BUTTON_STATE_HIDDEN;
-        m_tabCloseButtons.Add(tempbtn);
-    }
-
 
     // buttons before the tab offset must be set to hidden
     for (i = 0; i < finalOffset; ++i)

@@ -238,6 +238,7 @@ public:
     void AddButton(int id, int location, const wxBitmap& normalBitmap = wxNullBitmap, const wxBitmap& disabledBitmap = wxNullBitmap);
 
     size_t GetTabOffset() const;
+    // Set the number of hidden tabs at the left of tabs control
     void SetTabOffset(size_t offset);
 
     bool HasFocus(){ return m_focus; };
