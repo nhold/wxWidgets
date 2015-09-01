@@ -150,8 +150,13 @@ enum wxAuiManagerOption
     m_mgr.GetPane(text1).Float();
     @endcode
 
+    Note: The default behaviour of wxAuiManager is to hide panes when they
+    are closed and not destroy them, as this allows the loading and saving of
+    perspectives to function. This is contradictory to the behaviour of wxAuiNotebook
+    which by default destroys pages on close.   
 
-    @section auimanager_layers Layers, Rows and Directions, Positions
+
+    @section auimanager_layers Layers, Rows and Directions, Positions, Pages
 
     Inside wxAUI, the docking layout is figured out by checking several pane
     parameters. Five of these are important for determining where a pane will
@@ -183,6 +188,14 @@ enum wxAuiManagerOption
         Tab position will be decided based on the Page values of the panes with
         those that have a lower value appearing on the left, with 0 being the
         absolute left. By default, pages are not enabled.
+		This behaviour can be controlled using the wxAUI_MGR_NB_ALLOW_NOTEBOOKS
+		flag as well as EVT_AUI_PANE_DOCK_OVER
+        @since 3.1
+        You can use the wxHAS_AUI_DYNAMIC_NOTEBOOK define to test if you are on a 
+		version that supports the dynamic notebook behaviour.
+        
+
+        
 
     @beginStyleTable
     @style{wxAUI_MGR_ALLOW_FLOATING}
@@ -882,8 +895,9 @@ public:
     
     //@{
     /**
-        CentrePane() specifies that the pane should adopt the default centre pane
-        settings. Centre panes usually do not have caption bars.
+        CentrePane() specifies that the pane should adopt the default centre pane settings.
+        Centre panes usually do not have caption bars, thus a pane dragged manually over it
+        will not be combined in a notebook. Please use the Center() method to allow that.
         This function provides an easy way of preparing a pane to be displayed in
         the centre dock position.
     */

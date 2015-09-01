@@ -256,6 +256,8 @@ protected:
     DECLARE_CLASS(wxAuiNotebook)
     DECLARE_EVENT_TABLE()
 #endif
+
+    friend class wxAuiManager;
 };
 
 
@@ -280,6 +282,7 @@ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_AUI, wxEVT_AUINOTEBOOK_TAB_RIGHT_DOWN, wxAu
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_AUI, wxEVT_AUINOTEBOOK_TAB_RIGHT_UP, wxAuiNotebookEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_AUI, wxEVT_AUINOTEBOOK_DRAG_DONE, wxAuiNotebookEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_AUI, wxEVT_AUINOTEBOOK_BG_DCLICK, wxAuiNotebookEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_AUI, wxEVT_AUINOTEBOOK_CANCEL_DRAG, wxAuiNotebookEvent);
 
 typedef void (wxEvtHandler::*wxAuiNotebookEventFunction)(wxAuiNotebookEvent&);
 
@@ -316,6 +319,8 @@ typedef void (wxEvtHandler::*wxAuiNotebookEventFunction)(wxAuiNotebookEvent&);
     wx__DECLARE_EVT1(wxEVT_AUINOTEBOOK_TAB_RIGHT_UP, winid, wxAuiNotebookEventHandler(fn))
 #define EVT_AUINOTEBOOK_BG_DCLICK(winid, fn) \
     wx__DECLARE_EVT1(wxEVT_AUINOTEBOOK_BG_DCLICK, winid, wxAuiNotebookEventHandler(fn))
+#define EVT_AUINOTEBOOK_CANCEL_DRAG(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_AUINOTEBOOK_CANCEL_DRAG, winid, wxAuiNotebookEventHandler(fn))
 #else
 
 // wxpython/swig event work
@@ -334,6 +339,7 @@ typedef void (wxEvtHandler::*wxAuiNotebookEventFunction)(wxAuiNotebookEvent&);
 %constant wxEventType wxEVT_AUINOTEBOOK_TAB_RIGHT_DOWN;
 %constant wxEventType wxEVT_AUINOTEBOOK_TAB_RIGHT_UP;
 %constant wxEventType wxEVT_AUINOTEBOOK_BG_DCLICK;
+%constant wxEventType wxEVT_AUINOTEBOOK_CANCEL_DRAG;
 
 %pythoncode {
     EVT_AUINOTEBOOK_PAGE_CLOSE = wx.PyEventBinder( wxEVT_AUINOTEBOOK_PAGE_CLOSE, 1 )
@@ -351,6 +357,7 @@ typedef void (wxEvtHandler::*wxAuiNotebookEventFunction)(wxAuiNotebookEvent&);
     EVT__AUINOTEBOOK_TAB_RIGHT_DOWN = wx.PyEventBinder( wxEVT_AUINOTEBOOK_TAB_RIGHT_DOWN, 1 )
     EVT__AUINOTEBOOK_TAB_RIGHT_UP = wx.PyEventBinder( wxEVT_AUINOTEBOOK_TAB_RIGHT_UP, 1 )
     EVT_AUINOTEBOOK_BG_DCLICK = wx.PyEventBinder( wxEVT_AUINOTEBOOK_BG_DCLICK, 1 )
+    EVT_AUINOTEBOOK_CANCEL_DRAG = wx.PyEventBinder( wxEVT_AUINOTEBOOK_CANCEL_DRAG, 1 )
 }
 #endif
 

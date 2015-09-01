@@ -229,11 +229,17 @@ bool wxAuiNotebook::InsertPage(size_t pageIndex, wxWindow* page, const wxString&
     // Shift other panes so that this one can go in between them if necessary
     wxAuiDoInsertPage(m_mgr.GetAllPanes(),1,0,1,0,pageIndex);
     
-    m_mgr.AddPane(page, wxAuiPaneInfo().Centre().Layer(0).Position(0).Caption(caption).Floatable(false).Movable().Page(pageIndex).Icon(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).CloseButton(false).AlwaysDockInNotebook());
-    
-    // Change the selection if explicitly requested, or if the page is the first one; for the later case, it ensures that there is a current page in the notebook   
+    m_mgr.AddPane(page, wxAuiPaneInfo().Centre().Layer(0).Position(0).Caption(caption).Floatable(false).Movable().Page(pageIndex).Icon(bitmap).Dockable(m_mgr.HasFlag(wxAUI_NB_TAB_SPLIT)).CloseButton(false).AlwaysDockInNotebook().DestroyOnClose());
+
+    // Change the selection if explicitly requested, or if the page is the first one; for the later case, it ensures that there is a current page in the notebook.
     if (select || GetPageCount() == 1)
+    {
+        // Note - the double 'Update()' call here is intentional, unfortunately due to the way things work, the pane only actually becomes part of a notebook after Update calculates everything.
+        // So without the 'Update()' call 'SetSelection()' has no effect.
+        // An alternative here that we could explore is to instead change 'SetSelection' to work more like 'wxAuiDoInsertPage()'
+        m_mgr.Update();
         SetSelection(pageIndex);
+    }
     
     m_mgr.Update();
     
@@ -719,10 +725,11 @@ int wxAuiNotebook::DoModifySelection(size_t n, bool events)
     {
         wxWindow* wnd = m_mgr.GetPane(n).GetWindow();
         m_mgr.SetActivePane(wnd);
+        
         m_mgr.Update();
         
         // program allows the page change
-        if(events)
+        if (events)
         {
             evt.SetEventType(wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED);
             (void)GetEventHandler()->ProcessEvent(evt);

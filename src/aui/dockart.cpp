@@ -769,6 +769,7 @@ WX_DEFINE_OBJARRAY(wxAuiTabContainerButtonArray)
 // which can be used as a tab control in the normal sense.
 wxAuiTabContainer::wxAuiTabContainer(wxAuiTabArt* artProvider,wxAuiManager* mgr)
 : m_focus(false)
+, m_dragging(false)
 , m_mgr(mgr)
 , m_tab_art(artProvider)
 {
@@ -999,12 +1000,15 @@ bool wxAuiTabContainer::SetActivePage(wxWindow* wnd)
         {
             if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && page.GetWindow()->IsShown())
             {
-                SetFocus(true);
+                if (page.GetWindow()->IsDescendant(wxWindow::FindFocus()))
+                    SetFocus(true);
+                else
+                    page.GetWindow()->SetFocus();
             }
             else
             {
-                page.GetWindow()->SetFocus();
                 page.GetWindow()->Show(true);
+                page.GetWindow()->SetFocus();
                 page.SetFlag(wxAuiPaneInfo::optionActive,true);
                 page.SetFlag(wxAuiPaneInfo::optionActiveNotebook,true);
                 found = true;
@@ -1364,8 +1368,9 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
         btn_size = backwButtonsSize;
     }
     // ensure, we show as max tabs as possible
-    while (m_tabOffset > 0 && IsTabVisible(pageCount-1, m_tabOffset-1, &dc, wnd) )
-            --m_tabOffset;
+    int finalOffset = m_tabOffset;
+    while (finalOffset > 0 && IsTabVisible(pageCount-1, finalOffset-1, &dc, wnd) )
+            --finalOffset;
 
     // show up/down buttons
     for (i = 0; i < buttonCount; ++i)
@@ -1373,7 +1378,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
         wxAuiTabContainerButton& button = m_buttons.Item(i);
         if (button.id == idBtnArrowRightUp || button.id == idBtnLeftBottom)
         {
-            if (totalSize > (testSize - btn_size - m_tab_art->GetIndentSize()) || m_tabOffset != 0)
+            if (totalSize > (testSize - btn_size - m_tab_art->GetIndentSize()) || finalOffset != 0)
                 button.curState &= ~wxAUI_BUTTON_STATE_HIDDEN;
             else
                 button.curState |= wxAUI_BUTTON_STATE_HIDDEN;
@@ -1386,7 +1391,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
         wxAuiTabContainerButton& button = m_buttons.Item(i);
         if (button.id == wxAUI_BUTTON_LEFT || button.id == wxAUI_BUTTON_UP)
         {
-            if (m_tabOffset == 0)
+            if (finalOffset == 0)
                 button.curState |= wxAUI_BUTTON_STATE_DISABLED;
             else
                 button.curState &= ~wxAUI_BUTTON_STATE_DISABLED;
@@ -1499,7 +1504,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
 
 
     // buttons before the tab offset must be set to hidden
-    for (i = 0; i < m_tabOffset; ++i)
+    for (i = 0; i < finalOffset; ++i)
     {
         m_tabCloseButtons.Item(i).curState = wxAUI_BUTTON_STATE_HIDDEN;
     }
@@ -1544,7 +1549,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
         rect.width = m_rect.width;
     }
 
-    for (i = m_tabOffset; i < pageCount; ++i)
+    for (i = finalOffset; i < pageCount; ++i)
     {
         wxAuiPaneInfo& page = *m_pages.Item(i);
         wxAuiTabContainerButton& tab_button = m_tabCloseButtons.Item(i);
@@ -1610,7 +1615,7 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
 
 
     // draw the active tab again so it stands in the foreground
-    if (active >= m_tabOffset && active < m_pages.GetCount())
+    if (active >= finalOffset && active < m_pages.GetCount())
     {
         wxAuiPaneInfo& page = *m_pages.Item(active);
 
@@ -1967,50 +1972,36 @@ void wxAuiTabContainer::OnChildKeyDown(wxKeyEvent& evt)
     return;
 }
 
-// DoShowHide() this function shows the active window, then
-// hides all of the other windows (in that order)
-// This is backwards compatible method
-// TODO: deal with wxUSE_MDI, this is the ShowWnd method
-//#if wxUSE_MDI
-//if (wnd->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
-//{
-//	wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)wnd;
-//	cf->DoShow(show);
-//}
-//else
-//#endif
-//{
-//	wnd->Show(show);
-//}
 void wxAuiTabContainer::DoShowHide()
 {
-	wxAuiPaneInfoPtrArray& pages = GetPages();
-	size_t i, page_count = pages.GetCount();
+    wxAuiPaneInfoPtrArray& pages = GetPages();
+    size_t i, page_count = pages.GetCount();
 
-	// show new active page first
-	for (i = 0; i < page_count; ++i)
-	{
-		wxAuiPaneInfo* page = pages.Item(i);
-		if (page->IsActive())
-		{
-			// Look at ShowWnd, it doesn't really do anything different
-			page->GetWindow()->Show(true);
-			break;
-		}
-	}
+    bool activePageFound = false;
 
-	// hide all other pages
-	for (i = 0; i < page_count; ++i)
-	{
-		wxAuiPaneInfo* page = pages.Item(i);
-		if (!page->IsActive())
-			page->GetWindow()->Show(false);
-	}
+	// show the first actibe page, hide everything else.
+    for (i = 0; i < page_count; ++i)
+    {
+        bool showWindow = false;
+        wxAuiPaneInfo* page = pages.Item(i);
+        if (page->IsActive() && !activePageFound)
+        {
+            activePageFound = true;
+            showWindow = true;
+        }
+        #if wxUSE_MDI
+        if (page->GetWindow()->IsKindOf(CLASSINFO(wxAuiMDIChildFrame)))
+        {
+            wxAuiMDIChildFrame* cf = (wxAuiMDIChildFrame*)page->GetWindow();
+            cf->DoShow(showWindow);
+        }
+        else
+        #endif
+        {
+            page->GetWindow()->Show(showWindow);
+        }
+    }
 }
 
-bool wxAuiTabContainer::IsDragging() const
-{
-	return false;
-}
 
 #endif // wxUSE_AUI

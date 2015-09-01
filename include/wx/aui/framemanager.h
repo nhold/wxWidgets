@@ -27,6 +27,9 @@
 #include "wx/sizer.h"
 #include "wx/bitmap.h"
 
+// This define allows users to test if they are on a version of wx that has the new dynamic notebook behaviour or not.
+#define wxHAS_AUI_DYNAMIC_NOTEBOOK 1
+
 enum wxAuiManagerDock
 {
     wxAUI_DOCK_NONE = 0,
@@ -455,12 +458,12 @@ public:
        test.state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-                 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
+                 optionCaption | optionPaneBorder | buttonClose;
         wxCHECK_MSG(test.IsValid(), *this, "window settings and pane settings are incompatible");
         this->state |= optionTopDockable | optionBottomDockable |
                  optionLeftDockable | optionRightDockable |
                  optionFloatable | optionMovable | optionResizable |
-				 optionCaption | optionPaneBorder | buttonClose | optionDestroyOnClose;
+				 optionCaption | optionPaneBorder | buttonClose;
         return *this;
     }
 
