@@ -521,10 +521,10 @@ void wxAuiDoInsertPane(wxAuiPaneInfoArray& panes, int dockDirection, int dockLay
     }
 }
 
-// wxAuiDoInsertPane() is an internal function that inserts a space for
-// another notebook page by incrementing all existing page values by one
-void wxAuiDoInsertPage(wxAuiPaneInfoArray& panes, int dockDirection, int dockLayer, int dockRow, int dockPos, int dockPage)
+void DoIncrementPage(wxAuiPaneInfoArray& panes, int dockDirection, int dockLayer, int dockRow, int dockPos, int dockPage, int incr)
 {
+    if (incr == 0)
+        return;
     int i, paneCount;
     for (i = 0, paneCount = panes.GetCount(); i < paneCount; ++i)
     {
@@ -534,12 +534,24 @@ void wxAuiDoInsertPage(wxAuiPaneInfoArray& panes, int dockDirection, int dockLay
             pane.GetLayer() == dockLayer &&
             pane.GetRow() == dockRow &&
             pane.GetPosition() == dockPos &&
-            pane.GetPage() >= dockPage)
+            ((incr < 0) ? pane.GetPage() > dockPage : pane.GetPage() >= dockPage))
             {
-                pane.Page(pane.GetPage()+1);
+                pane.Page(pane.GetPage()+incr);
             }
     }
 }
+
+// wxAuiDoInsert/RemovePane() is an internal function that inserts or removes a space for/of
+// another notebook page by incrementing/decrementing all existing page values by one
+void wxAuiDoInsertPage(wxAuiPaneInfoArray& panes, int dockDirection, int dockLayer, int dockRow, int dockPos, int dockPage)
+{
+    DoIncrementPage(panes, dockDirection, dockLayer, dockRow, dockPos, dockPage, 1);
+}
+void wxAuiDoRemovePage(wxAuiPaneInfoArray& panes, int dockDirection, int dockLayer, int dockRow, int dockPos, int dockPage)
+{
+    DoIncrementPage(panes, dockDirection, dockLayer, dockRow, dockPos, dockPage, -1);
+}
+
 
 // FindDocks() is an internal function that returns a list of docks which meet
 // the specified conditions in the parameters and returns a sorted array
@@ -1307,7 +1319,7 @@ bool wxAuiManager::AddPane(wxWindow* window, const wxAuiPaneInfo& paneInfo)
     {
         wxAuiPaneInfo &item = m_panes.Item(i);
         wxAuiPaneInfo *p = &item;
-        if (PaneSortFunc(&p, &t) == 1)
+        if ((PaneSortFunc(&p, &t) == 1) && p->IsShown())
         {
             if (!increment && (p->GetPage() == t->GetPage()))
             {
@@ -1553,7 +1565,10 @@ bool wxAuiManager::DetachPane(wxWindow* window)
                 } 
 
                 if (part.m_tab_container)
+                {
                     part.m_tab_container->RemovePage(window);
+                    wxAuiDoRemovePage(m_panes, p.GetDirection(), p.GetLayer(), p.GetRow(), p.GetPosition(), p.GetPage());
+                }
 
             }
 
@@ -1656,6 +1671,8 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
     else
     {
         paneInfo.Hide();
+        wxAuiDoRemovePage(m_panes, paneInfo.GetDirection(), paneInfo.GetLayer(), paneInfo.GetRow(), paneInfo.GetPosition(), paneInfo.GetPage());
+        paneInfo.Page(wxNOT_FOUND);
     }
 
     // If we are a wxAuiNotebook then we must fire off a EVT_AUINOTEBOOK_PAGE_CLOSED event to notify user of change.
@@ -2574,9 +2591,11 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if( MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(*dock.panes.Item(paneIndex+1), pane)) )
+                wxAuiPaneInfo* nextPane = paneIndex<paneCount-1 ? dock.panes.Item(paneIndex+1) : NULL;
+                if( MustDockInNotebook(pane) || (nextPane && CanDockOver(*nextPane, pane)) )
                 {
-                    firstPaneInNotebook = &pane;
+                    // If the tabs container is not yet initialized, nextPane if the first pane
+                    firstPaneInNotebook = pane.GetPage() == wxNOT_FOUND ? nextPane : &pane;
                     
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
                     // Left/Right notebook
@@ -2815,9 +2834,11 @@ void wxAuiManager::LayoutAddDock(wxSizer* cont, wxAuiDockInfo& dock, wxAuiDockUI
 
                 // If the next pane has the same position as us then we are the first page in a notebook.
                 // Create a new notebook container and add it as a part.
-                if(MustDockInNotebook(pane) || (paneIndex<paneCount-1 && CanDockOver(*dock.panes.Item(paneIndex+1), pane)) )
+                wxAuiPaneInfo* nexPane = paneIndex<paneCount-1 ? dock.panes.Item(paneIndex+1) : NULL;
+                if(MustDockInNotebook(pane) || (nexPane && CanDockOver(*nexPane, pane)) )
                 {
-                    firstPaneInNotebook = &pane;
+                    // If the tabs container is not yet initialized, nextPane if the first pane
+                    firstPaneInNotebook = pane.GetPage() == wxNOT_FOUND ? nexPane : &pane;
                     notebookContainer =  new wxAuiTabContainer(m_tab_art,this);
                     // Left/Right notebook
                     if(HasFlag(wxAUI_MGR_NB_LEFT)||HasFlag(wxAUI_MGR_NB_RIGHT))
@@ -4030,7 +4051,11 @@ bool wxAuiManager::DoDrop(wxAuiDockInfoArray& docks, wxAuiPaneInfoArray& panes, 
 
         wxAuiDoInsertPage(panes, hitPane->GetDirection(), hitPane->GetLayer(), hitPane->GetRow(), hitPane->GetPosition(), page);
         drop.Dock().Direction(hitPane->GetDirection()).Layer(hitPane->GetLayer()).Row(hitPane->GetRow()).Position(hitPane->GetPosition()).Page(page);
-        return ProcessDockResult(target, drop);
+        bool processed = ProcessDockResult(target, drop);
+        // Remove the space added if the page has not moved
+        if (target.GetPage() == drop.GetPage())
+            wxAuiDoRemovePage(panes, hitPane->GetDirection(), hitPane->GetLayer(), hitPane->GetRow(), hitPane->GetPosition(), page);
+        return processed;
     }
     else if(part->type == wxAuiDockUIPart::typeCaption)
     {
@@ -6290,6 +6315,8 @@ void wxAuiManager::OnMotion(wxMouseEvent& evt)
                     if(m_actionPart->type == wxAuiDockUIPart::typePaneTab)
                     {
                         m_actionPart->m_tab_container->RemovePage(paneInfo->GetWindow());
+                        wxAuiDoRemovePage(m_panes, paneInfo->GetDirection(), paneInfo->GetLayer(), paneInfo->GetRow(), paneInfo->GetPosition(), paneInfo->GetPage());
+                        paneInfo->Page(wxNOT_FOUND);
                     }
                     // float the window
                     if (paneInfo->IsMaximized())
