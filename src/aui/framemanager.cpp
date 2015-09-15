@@ -1671,7 +1671,8 @@ bool wxAuiManager::ClosePane(wxAuiPaneInfo& paneInfo)
     else
     {
         paneInfo.Hide();
-        wxAuiDoRemovePage(m_panes, paneInfo.GetDirection(), paneInfo.GetLayer(), paneInfo.GetRow(), paneInfo.GetPosition(), paneInfo.GetPage());
+        if (!paneInfo.IsFloating())
+            wxAuiDoRemovePage(m_panes, paneInfo.GetDirection(), paneInfo.GetLayer(), paneInfo.GetRow(), paneInfo.GetPosition(), paneInfo.GetPage());
         paneInfo.Page(wxNOT_FOUND);
     }
 
