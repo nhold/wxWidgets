@@ -1567,7 +1567,8 @@ bool wxAuiManager::DetachPane(wxWindow* window)
                 if (part.m_tab_container)
                 {
                     part.m_tab_container->RemovePage(window);
-                    wxAuiDoRemovePage(m_panes, p.GetDirection(), p.GetLayer(), p.GetRow(), p.GetPosition(), p.GetPage());
+                    if (!p.IsFloating())
+                        wxAuiDoRemovePage(m_panes, p.GetDirection(), p.GetLayer(), p.GetRow(), p.GetPosition(), p.GetPage());
                 }
 
             }
