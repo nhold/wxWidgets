@@ -5222,14 +5222,14 @@ bool wxAuiManager::ProcessAuiPaneEvent(const wxMouseEvent& evt, wxAuiPaneInfo **
     {
         if (isManagedNotebook)
         {
-            if (!isOnCaption)
+            if (!isOnCaption && !hitButton)
                 evtId = wxEVT_COMMAND_AUINOTEBOOK_BG_DCLICK;
         }
         else
         {
             if (isOnCaption)
                 evtId  = wxEVT_AUI_PANE_CAPTION_DCLICK;
-            else
+            else if (!hitButton)
                 evtId = wxEVT_AUI_PANE_BG_DCLICK;
         }
     }
