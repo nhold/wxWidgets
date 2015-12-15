@@ -4900,13 +4900,16 @@ void wxAuiManager::OnFloatingPaneResized(wxWindow* wnd, const wxRect& rect)
 }
 
 
-void wxAuiManager::OnFloatingPaneClosed(wxWindow* wnd, wxCloseEvent& WXUNUSED(evt))
+void wxAuiManager::OnFloatingPaneClosed(wxWindow* wnd, wxCloseEvent& evt)
 {
     // try to find the pane
     wxAuiPaneInfo& pane = GetPane(wnd);
     wxASSERT_MSG(pane.IsOk(), wxT("Pane window not found"));
 
-    ClosePane(pane);
+    if (!ClosePane(pane))
+    {
+        evt.Veto();
+    }
 }
 
 
