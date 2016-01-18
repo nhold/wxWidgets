@@ -1008,9 +1008,10 @@ bool wxAuiTabContainer::SetActivePage(wxWindow* wnd)
             else
             {
                 page.GetWindow()->Show(true);
-                page.GetWindow()->SetFocus();
+                // set active flag before focus to avoid reentry from wxAuiManager::OnChildFocus()
                 page.SetFlag(wxAuiPaneInfo::optionActive,true);
                 page.SetFlag(wxAuiPaneInfo::optionActiveNotebook,true);
+                page.GetWindow()->SetFocus();
                 found = true;
                 MakeTabVisible(i);
             }
