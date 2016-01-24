@@ -447,7 +447,6 @@ public:
     wxAuiPaneInfo& CentrePane() { return CenterPane(); }
     wxAuiPaneInfo& CenterPane()
     {
-        state = 0;
         return Center().PaneBorder().Resizable();
     }
 
