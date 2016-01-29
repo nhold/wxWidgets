@@ -24,24 +24,25 @@ class WXDLLIMPEXP_FWD_AUI wxAuiPaneInfo;
 
 enum wxAuiToolBarStyle
 {
-    wxAUI_TB_TEXT          = 1 << 0,
-    wxAUI_TB_NO_TOOLTIPS   = 1 << 1,
-    wxAUI_TB_NO_AUTORESIZE = 1 << 2,
-    wxAUI_TB_GRIPPER       = 1 << 3,
-    wxAUI_TB_OVERFLOW      = 1 << 4,
+    wxAUI_TB_TEXT               = 1 << 0,
+    wxAUI_TB_NO_TOOLTIPS        = 1 << 1,
+    wxAUI_TB_NO_AUTORESIZE      = 1 << 2,
+    wxAUI_TB_GRIPPER            = 1 << 3,
+    wxAUI_TB_OVERFLOW           = 1 << 4,
+    wxAUI_TB_OVERFLOW_AUTO      = 1 << 5,
     // using this style forces the toolbar to be vertical and
     // be only dockable to the left or right sides of the window
     // whereas by default it can be horizontal or vertical and
     // be docked anywhere
-    wxAUI_TB_VERTICAL      = 1 << 5,
-    wxAUI_TB_HORZ_LAYOUT   = 1 << 6,
+    wxAUI_TB_VERTICAL           = 1 << 6,
+    wxAUI_TB_HORZ_LAYOUT        = 1 << 7,
     // analogous to wxAUI_TB_VERTICAL, but forces the toolbar
     // to be horizontal
-    wxAUI_TB_HORIZONTAL    = 1 << 7,
-    wxAUI_TB_PLAIN_BACKGROUND = 1 << 8,
-    wxAUI_TB_HORZ_TEXT     = (wxAUI_TB_HORZ_LAYOUT | wxAUI_TB_TEXT),
-    wxAUI_ORIENTATION_MASK = (wxAUI_TB_VERTICAL | wxAUI_TB_HORIZONTAL),
-    wxAUI_TB_DEFAULT_STYLE = 0
+    wxAUI_TB_HORIZONTAL         = 1 << 8,
+    wxAUI_TB_PLAIN_BACKGROUND   = 1 << 9,
+    wxAUI_TB_HORZ_TEXT          = (wxAUI_TB_HORZ_LAYOUT | wxAUI_TB_TEXT),
+    wxAUI_ORIENTATION_MASK      = (wxAUI_TB_VERTICAL | wxAUI_TB_HORIZONTAL),
+    wxAUI_TB_DEFAULT_STYLE      = 0
 };
 
 enum wxAuiToolBarArtSetting
