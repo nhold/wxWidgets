@@ -1441,6 +1441,15 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     if (textOffset < tabX + tabHeight)
         textOffset = tabX + tabHeight;
 
+    if (page.GetIcon().IsOk())
+    {
+        // draw bitmap
+        dc.DrawBitmap(page.GetIcon(),
+                      textOffset - page.GetIcon().GetWidth() + 2, tabY + (tabHeight - texty) / 2,
+                      true);
+        textOffset += 4;
+    }
+
     if (HasFlag(wxAUI_NB_RIGHT))
         textOffset -= tabHeight;
     // chop text if necessary
@@ -1510,7 +1519,7 @@ int wxAuiSimpleTabArt::GetAdditionalBorderSpace(wxWindow* wnd)
     return GetBorderWidth(wnd);
 }
 
-wxSize wxAuiSimpleTabArt::GetTabSize(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxString& caption, const wxBitmap& WXUNUSED(bitmap), bool WXUNUSED(active), int closeButtonState, int* extent)
+wxSize wxAuiSimpleTabArt::GetTabSize(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxString& caption, const wxBitmap& bitmap, bool WXUNUSED(active), int closeButtonState, int* extent)
 {
     wxCoord measuredTextX, measuredTextY, tmp;
 
@@ -1521,6 +1530,10 @@ wxSize wxAuiSimpleTabArt::GetTabSize(wxDC& dc, wxWindow* WXUNUSED(wnd), const wx
 
     wxCoord tabHeight = measuredTextY + 4;
     wxCoord tabWidth = measuredTextX + tabHeight + 5;
+
+    if (bitmap.IsOk()) {
+        tabWidth += bitmap.GetWidth() + 6;
+    }
 
     if (closeButtonState != wxAUI_BUTTON_STATE_HIDDEN)
         tabWidth += m_activeCloseBmp.GetWidth();
