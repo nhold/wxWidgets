@@ -412,12 +412,21 @@ void wxAuiGtkTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& page,
                           gapBoxPos, gapStart , gapWidth);
     }
     gtk_paint_extension(styleNotebook, window,
-                       page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) ? GTK_STATE_NORMAL : GTK_STATE_ACTIVE, GTK_SHADOW_OUT,
+                       page.HasFlag(wxAuiPaneInfo::optionActive) ? GTK_STATE_NORMAL : GTK_STATE_ACTIVE, GTK_SHADOW_OUT,
                        &area, widget,
                        const_cast<char*>("tab"),
                        tabRect.x, tabRect.y,
                        tabRect.width, tabRect.height,
                        gapPos);
+    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && !page.HasFlag(wxAuiPaneInfo::optionActive))
+    {
+        gtk_paint_box(styleNotebook, window,
+                      GTK_STATE_NORMAL, GTK_SHADOW_OUT,
+                      &area, widget,
+                      const_cast<char*>("tab"),
+                      tabRect.x+2, tabRect.y+2,
+                      tabRect.width-4, tabRect.height-2);
+    }
 
     wxCoord textX = tabRect.x + padding + styleNotebook->xthickness;
 

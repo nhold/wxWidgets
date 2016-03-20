@@ -74,9 +74,16 @@ private:
 // be moved to a new utility cpp file
 wxBitmap wxAuiBitmapFromBits(const unsigned char bits[], int w, int h, const wxColour& color);
 wxString wxAuiChopText(wxDC& dc, const wxString& text, int maxSize);
+int wxAuiBrightness(const wxColour &colour)
+{
+    // Nir Dobovizki's algorithm
+    return (int)sqrt(colour.Red()   * colour.Red()   * .241 + 
+                     colour.Green() * colour.Green() * .691 + 
+                     colour.Blue()  * colour.Blue()  * .068  );
+}
 
 
-static void DrawButtons(wxDC& dc, const wxRect& _rect, const wxBitmap& bmp, const wxColour& bkcolour, int buttonState)
+static void DrawButtons(wxDC& dc, const wxRect& _rect, const wxBitmap& bmp, const wxBrush& bkBrush, const wxPen& bkPen, int buttonState)
 {
     wxRect rect = _rect;
 
@@ -88,8 +95,8 @@ static void DrawButtons(wxDC& dc, const wxRect& _rect, const wxBitmap& bmp, cons
 
     if (buttonState == wxAUI_BUTTON_STATE_HOVER || buttonState == wxAUI_BUTTON_STATE_PRESSED)
     {
-        dc.SetBrush(wxBrush(bkcolour.ChangeLightness(120)));
-        dc.SetPen(wxPen(bkcolour.ChangeLightness(75)));
+        dc.SetBrush(bkBrush);
+        dc.SetPen(bkPen);
 
         // draw the background behind the button
         dc.DrawRectangle(rect.x, rect.y, 15, 15);
@@ -186,31 +193,45 @@ wxAuiGenericTabArt::wxAuiGenericTabArt()
         baseColour = baseColour.ChangeLightness(92);
     }
 
-    m_activeColour = baseColour;
+    m_activeColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
+    wxColour activeLightColour = m_activeColour.ChangeLightness(120);
+    m_activeFgColour = (wxAuiBrightness(activeLightColour) < 130) ? *wxWHITE : *wxBLACK;
+
+    m_normalFgColour = wxSystemSettings::GetColour(wxSYS_COLOUR_CAPTIONTEXT);
+    m_selectedColour = baseColour;
     m_baseColour = baseColour;
-    wxColor borderColour = baseColour.ChangeLightness(75);
+    wxColour borderColour = baseColour.ChangeLightness(75);
+
 
     m_borderPen = wxPen(borderColour);
     m_baseColourPen = wxPen(m_baseColour);
     m_baseColourBrush = wxBrush(m_baseColour);
+    m_activeColourPen = wxPen(m_activeColour.ChangeLightness(98));
+    m_activeColourBrush = wxBrush(activeLightColour);
 
-    m_activeCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, *wxBLACK);
-    m_disabledCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, wxColour(128,128,128));
+    m_activeCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, m_activeFgColour);
+    m_selectedCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, m_normalFgColour);
+    m_disabledCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, borderColour);
 
-    m_activeLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, *wxBLACK);
-    m_disabledLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, wxColour(128,128,128));
+    m_activeLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, m_activeFgColour);
+    m_selectedLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, m_normalFgColour);
+    m_disabledLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, borderColour);
 
-    m_activeUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, *wxBLACK);
-    m_disabledUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, wxColour(128,128,128));
+    m_activeUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, m_activeFgColour);
+    m_selectedUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, m_normalFgColour);
+    m_disabledUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, borderColour);
 
-    m_activeDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, *wxBLACK);
-    m_disabledDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, wxColour(128,128,128));
+    m_activeDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, m_activeFgColour);
+    m_selectedDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, m_normalFgColour);
+    m_disabledDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, borderColour);
 
-    m_activeRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, *wxBLACK);
-    m_disabledRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, wxColour(128,128,128));
+    m_activeRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, m_activeFgColour);
+    m_selectedRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, m_normalFgColour);
+    m_disabledRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, borderColour);
 
-    m_activeWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, *wxBLACK);
-    m_disabledWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, wxColour(128,128,128));
+    m_activeWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, m_activeFgColour);
+    m_selectedWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, m_normalFgColour);
+    m_disabledWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, borderColour);
 
     m_flags = 0;
 }
@@ -348,7 +369,7 @@ void wxAuiGenericTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const
     else if (HasFlag(wxAUI_NB_LEFT))
     {
         bgRect = wxRect(rect.x, rect.y, rect.width - 3, rect.height);
-        baseRect = wxRect(w - 5, -1, w, y + 2);
+        baseRect = wxRect(w - 4, -1, 4, y + 2);
         d = wxEAST;
     }
     else if (HasFlag(wxAUI_NB_RIGHT))
@@ -364,8 +385,16 @@ void wxAuiGenericTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const
         d = wxSOUTH;
     }
 
-    dc.SetPen(m_borderPen);
-    dc.SetBrush(m_baseColourBrush);
+    if (HasActiveTab())
+    {
+        dc.SetPen(m_activeColourPen);
+        dc.SetBrush(m_activeColourBrush);
+    }
+    else
+    {
+        dc.SetPen(m_borderPen);
+        dc.SetBrush(m_baseColourBrush);
+    }
     dc.GradientFillLinear(bgRect, topColor, bottomColor,d);
     dc.DrawRectangle(baseRect);
 }
@@ -432,10 +461,8 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         tabHeight += 1;
         tabWidth = inRect.width - 4;
         tabY = inRect.y - 1;
-        tabX += 3;
+        tabX += 4;
     }
-    if (HasFlag(wxAUI_NB_BOTTOM))
-        tabY += 2;
 
     caption = page.GetCaption();
 
@@ -465,7 +492,7 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     ++clipWidth;
     ++clipHeight;
 
-    // since the above code above doesn't play well with WXDFB or WXCOCOA,
+    // since the code above doesn't play well with WXDFB or WXCOCOA,
     // we'll just use a rectangle for the clipping region for now --
     dc.SetClippingRegion(tabX, tabY, clipWidth+1, clipHeight+1);
 
@@ -475,30 +502,30 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     if (HasFlag(wxAUI_NB_BOTTOM))
     {
         borderPoints[0] = wxPoint(tabX,             tabY);
-        borderPoints[1] = wxPoint(tabX,             tabY+tabHeight-6);
-        borderPoints[2] = wxPoint(tabX+2,           tabY+tabHeight-4);
-        borderPoints[3] = wxPoint(tabX+tabWidth-2, tabY+tabHeight-4);
-        borderPoints[4] = wxPoint(tabX+tabWidth,   tabY+tabHeight-6);
-        borderPoints[5] = wxPoint(tabX+tabWidth,   tabY);
+        borderPoints[1] = wxPoint(tabX,             tabY+tabHeight-5);
+        borderPoints[2] = wxPoint(tabX+2,           tabY+tabHeight-3);
+        borderPoints[3] = wxPoint(tabX+tabWidth-2,  tabY+tabHeight-3);
+        borderPoints[4] = wxPoint(tabX+tabWidth,    tabY+tabHeight-5);
+        borderPoints[5] = wxPoint(tabX+tabWidth,    tabY-1);
         direction = wxNORTH;
     }
     else  if (HasFlag(wxAUI_NB_LEFT))
     {
-        borderPoints[0] = wxPoint(tabX+tabWidth, tabY);
-        borderPoints[1] = wxPoint(tabX+2,         tabY);
-        borderPoints[2] = wxPoint(tabX,           tabY+2);
-        borderPoints[3] = wxPoint(tabX,           tabY+tabHeight-2);
-        borderPoints[4] = wxPoint(tabX+2,         tabY+tabHeight);
-        borderPoints[5] = wxPoint(tabX+tabWidth, tabY+tabHeight);
+        borderPoints[0] = wxPoint(tabX+tabWidth,    tabY);
+        borderPoints[1] = wxPoint(tabX+5,           tabY);
+        borderPoints[2] = wxPoint(tabX+3,           tabY+2);
+        borderPoints[3] = wxPoint(tabX+3,           tabY+tabHeight-2);
+        borderPoints[4] = wxPoint(tabX+5,           tabY+tabHeight);
+        borderPoints[5] = wxPoint(tabX+tabWidth,    tabY+tabHeight);
         direction = wxEAST;
     }
     else  if (HasFlag(wxAUI_NB_RIGHT))
     {
         borderPoints[0] = wxPoint(tabX,             tabY);
-        borderPoints[1] = wxPoint(tabX+tabWidth-2, tabY);
-        borderPoints[2] = wxPoint(tabX+tabWidth,   tabY+2);
-        borderPoints[3] = wxPoint(tabX+tabWidth,   tabY+tabHeight-2);
-        borderPoints[4] = wxPoint(tabX+tabWidth-2, tabY+tabHeight);
+        borderPoints[1] = wxPoint(tabX+tabWidth-5,  tabY);
+        borderPoints[2] = wxPoint(tabX+tabWidth-3,  tabY+2);
+        borderPoints[3] = wxPoint(tabX+tabWidth-3,  tabY+tabHeight-2);
+        borderPoints[4] = wxPoint(tabX+tabWidth-5,  tabY+tabHeight);
         borderPoints[5] = wxPoint(tabX,             tabY+tabHeight);
         direction = wxWEST;
     }
@@ -507,9 +534,9 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         borderPoints[0] = wxPoint(tabX,             tabY+tabHeight-4);
         borderPoints[1] = wxPoint(tabX,             tabY+2);
         borderPoints[2] = wxPoint(tabX+2,           tabY);
-        borderPoints[3] = wxPoint(tabX+tabWidth-2, tabY);
-        borderPoints[4] = wxPoint(tabX+tabWidth,   tabY+2);
-        borderPoints[5] = wxPoint(tabX+tabWidth,   tabY+tabHeight-4);
+        borderPoints[3] = wxPoint(tabX+tabWidth-2,  tabY);
+        borderPoints[4] = wxPoint(tabX+tabWidth,    tabY+2);
+        borderPoints[5] = wxPoint(tabX+tabWidth,    tabY+tabHeight-3);
         direction = wxSOUTH;
     }
 
@@ -525,45 +552,67 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
 
     if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
     {
-        // draw active tab
+        // draw active or selected tab
 
         // draw base background color
         wxRect r(tabX, tabY, tabWidth, tabHeight);
-        dc.SetPen(wxPen(m_activeColour));
-        dc.SetBrush(wxBrush(m_activeColour));
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            dc.SetPen(wxPen(m_activeColour.ChangeLightness(120)));
+            dc.SetBrush(m_activeColourBrush);
+        }
+        else
+        {
+            dc.SetPen(wxPen(m_selectedColour));
+            dc.SetBrush(wxBrush(m_selectedColour));
+        }
         if (HasFlag(wxAUI_NB_RIGHT))
-            dc.DrawRectangle(r.x, r.y+1, r.width, r.height-1);
+            dc.DrawRectangle(r.x, r.y+1, r.width-3, r.height-1);
         else if (HasFlag(wxAUI_NB_LEFT))
-            dc.DrawRectangle(r.x+1, r.y+1, r.width, r.height-1);
-        else // must be wxAUI_NB_TOP or wxAUI_NB_BOTTOM
+            dc.DrawRectangle(r.x+4, r.y+1, r.width-3, r.height-1);
+        else if (HasFlag(wxAUI_NB_BOTTOM))
+            dc.DrawRectangle(r.x+1, r.y, r.width-1, r.height-3);
+        else // wxAUI_NB_TOP
             dc.DrawRectangle(r.x+1, r.y+1, r.width-1, r.height-4);
 
-        // this white helps fill out the gradient at the top of the tab
-        dc.SetPen(*wxWHITE_PEN);
-        dc.SetBrush(*wxWHITE_BRUSH);
+        // fill out the gradient at the top of the tab
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            dc.SetPen(wxPen(m_activeColour.ChangeLightness(150)));
+            dc.SetBrush(wxBrush(m_activeColour.ChangeLightness(170)));
+        }
+        else
+        {
+            dc.SetPen(*wxWHITE_PEN);
+            dc.SetBrush(*wxWHITE_BRUSH);
+        }
         if (HasFlag(wxAUI_NB_RIGHT))
-            dc.DrawRectangle(r.x+1, r.y+1, r.width-2, r.height-1);
+            dc.DrawRectangle(r.x+1, r.y+2, r.width-4, r.height-3);
         else if (HasFlag(wxAUI_NB_LEFT))
-            dc.DrawRectangle(r.x+2, r.y+1, r.width-2, r.height-1);
+            dc.DrawRectangle(r.x+4, r.y+2, r.width-4, r.height-3);
         else // must be wxAUI_NB_TOP or wxAUI_NB_BOTTOM
             dc.DrawRectangle(r.x+2, r.y+1, r.width-3, r.height-4);
 
         // these two points help the rounded corners appear more antialiased
-        dc.SetPen(wxPen(m_activeColour));
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+            dc.SetPen(m_activeColourPen);
+        else
+            dc.SetPen(m_borderPen);
+
         if (HasFlag(wxAUI_NB_RIGHT))
         {
-            dc.DrawPoint(r.x+r.width-2, r.y+1);
-            dc.DrawPoint(r.x+r.width-2, r.y+r.height-1);
+            dc.DrawPoint(r.x+r.width-4, r.y+1);
+            dc.DrawPoint(r.x+r.width-4, r.y+r.height-1);
         }
         else if (HasFlag(wxAUI_NB_LEFT))
         {
-            dc.DrawPoint(r.x+2, r.y+1);
-            dc.DrawPoint(r.x+2, r.y+r.height-1);
+            dc.DrawPoint(r.x+5, r.y+1);
+            dc.DrawPoint(r.x+5, r.y+r.height-1);
         }
         else if (HasFlag(wxAUI_NB_BOTTOM))
         {
-            dc.DrawPoint(r.x+2, r.y+r.height-5);
-            dc.DrawPoint(r.x+r.width-2, r.y+r.height-5);
+            dc.DrawPoint(r.x+2, r.y+r.height-4);
+            dc.DrawPoint(r.x+r.width-2, r.y+r.height-4);
         }
         else // must be wxAUI_NB_TOP
         {
@@ -575,16 +624,16 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         {
             // set rectangle down a bit for gradient drawing
             r.SetWidth(r.GetWidth()/2);
-            r.y += 1;
-            r.height -= 1;
+            r.y += 2;
+            r.height -= 3;
         }
         else if (HasFlag(wxAUI_NB_LEFT))
         {
             // set rectangle down a bit for gradient drawing
             r.SetWidth(r.GetWidth()/2);
-            r.y += 1;
-            r.height -= 1;
-            r.x += r.width;
+            r.y += 2;
+            r.height -= 3;
+            r.x += r.width+3;
         }
         else if (HasFlag(wxAUI_NB_BOTTOM))
         {
@@ -603,25 +652,60 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         }
 
         // draw gradient background
-        wxColor topColor = *wxWHITE;
-        wxColor bottomColor = m_activeColour;
+        wxColor topColor;
+        wxColor bottomColor;
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            topColor = m_activeColour.ChangeLightness(150);
+            bottomColor = m_activeColour.ChangeLightness(120);
+        }
+        else
+        {
+            topColor = *wxWHITE;
+            bottomColor = m_selectedColour;
+        }
         dc.GradientFillLinear(r, topColor, bottomColor, direction);
     }
     else
     {
         // draw inactive tab
 
-        wxRect rTop(tabX, tabY+1, tabWidth, tabHeight-3);
-        wxRect rBase;
+        // draw base background color
+        wxRect r(tabX, tabY, tabWidth, tabHeight);
+        if (!IsHorizontal())
+        {
+            r.height--;
+            r.width--;
+            if (!page.GetIcon().IsOk())
+                r.y++;
+        }
 
-        // start the gradent up a bit and leave the inside border inset
+        dc.SetPen(wxPen(m_baseColour));
+        dc.SetBrush(wxBrush(m_baseColour));
+
+        if (HasFlag(wxAUI_NB_RIGHT))
+            dc.DrawRectangle(r.x+1, r.y+1, r.width-3, r.height-1);
+        else if (HasFlag(wxAUI_NB_LEFT))
+            dc.DrawRectangle(r.x+4, r.y+1, r.width-3, r.height-1);
+        else if (HasFlag(wxAUI_NB_BOTTOM))
+            dc.DrawRectangle(r.x+1, r.y+1, r.width-1, r.height-4);
+        else // must be wxAUI_NB_TOP
+            dc.DrawRectangle(r.x+1, r.y+1, r.width-1, r.height-5);
+
+
+        wxRect rBase;
+        wxRect rTop(r);
+        rTop.y++;
+        rTop.height -= 3;
+
+        // start the gradient up a bit and leave the inside border inset
         // by a pixel for a 3D look.  Only the top half of the inactive
         // tab will have a slight gradient
         if (IsHorizontal())
         {
-            rTop.x += 3;
+            rTop.x += 2;
             rTop.y++;
-            rTop.width -= 4;
+            rTop.width -= 3;
             rTop.height /= 2;
             rTop.height--;
 
@@ -630,33 +714,34 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
             if (HasFlag(wxAUI_NB_BOTTOM))
             {
                 rTop.y += rTop.height;
-                rTop.y--;
+                rTop.height--;
+                rBase.y --;
+                rBase.height++;
             }
             else // must be wxAUI_NB_TOP
             {
                 rBase.y += rBase.height;
-                rBase.y--;
+                rBase.y --;
             }
         }
         else
         {
             rTop.x += 2;
-            rTop.y++;
-            rTop.width -= 2;
-            rTop.height += 2;
+            rTop.y += 1;
             rTop.width /= 2;
 
             rBase = rTop;
 
             if (HasFlag(wxAUI_NB_RIGHT))
             {
-                 rTop.x += rTop.width;
-                 rTop.x--;
+                rTop.x += rTop.width;
+                rTop.x -= 4;
+                rBase.x --;
             }
             else // must be wxAUI_NB_LEFT
             {
                 rBase.x += rBase.width;
-                rBase.x--;
+                rTop.x  += 3;
             }
         }
 
@@ -669,49 +754,17 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         topColor = m_baseColour;
         bottomColor = m_baseColour;
         dc.GradientFillLinear(rBase, topColor, bottomColor, direction);
-
-
     }
 
     // draw tab outline
-    dc.SetPen(m_borderPen);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawPolygon(WXSIZEOF(borderPoints), borderPoints);
-
-    // there are two horizontal grey lines at the bottom of the tab control,
-    // this gets rid of the top one of those lines in the tab control
-    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
-    {
-        dc.SetPen(m_baseColourPen);
-
-        if (IsHorizontal())
-        {
-            dc.DrawLine(borderPoints[0].x+1,
-                        borderPoints[0].y,
-                        borderPoints[5].x,
-                        borderPoints[5].y);
-        }
-        else
-        {
-            dc.DrawLine(borderPoints[0].x,
-                        borderPoints[0].y,
-                        borderPoints[5].x,
-                        borderPoints[5].y+1);
-        }
-    }
+    if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        dc.SetPen(m_activeColourPen);
     else
-    {
-        dc.SetPen(m_baseColourPen);
-
-        if (!IsHorizontal())
-        {
-            dc.DrawLine(borderPoints[0].x,
-                        borderPoints[0].y,
-                        borderPoints[5].x,
-                        borderPoints[5].y+1);
-        }
-
-    }
+        dc.SetPen(m_borderPen);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawLines(WXSIZEOF(borderPoints) - 1, borderPoints);
+    dc.DrawLine(borderPoints[WXSIZEOF(borderPoints)-2].x, borderPoints[WXSIZEOF(borderPoints)-2].y,
+                borderPoints[WXSIZEOF(borderPoints)-1].x, borderPoints[WXSIZEOF(borderPoints)-1].y);
 
 
     int textOffset = tabX + 8;
@@ -745,10 +798,14 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
     wxString drawText = wxAuiChopText(dc, caption, tabWidth - (textOffset-tabX) - closeButtonWidth);
 
     // draw tab text
+    if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        dc.SetTextForeground(m_activeFgColour);
+    else
+        dc.SetTextForeground(m_normalFgColour);
     dc.DrawText(drawText, textOffset, drawnTabYOff + (drawnTabHeight)/2 - (texty/2) - 1);
 
     // draw focus rectangle
-    if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && haveFocus)
+    if (page.HasFlag(wxAuiPaneInfo::optionActive) && haveFocus)
     {
         wxRect focusRectText(textOffset, (drawnTabYOff + (drawnTabHeight)/2 - (texty/2) - 1),
             selectedTextX, selectedTextY);
@@ -780,7 +837,10 @@ void wxAuiGenericTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& p
         if (closeButtonState == wxAUI_BUTTON_STATE_HOVER ||
             closeButtonState == wxAUI_BUTTON_STATE_PRESSED)
         {
-            bmp = m_activeCloseBmp;
+            if (page.HasFlag(wxAuiPaneInfo::optionActive))
+                bmp = m_activeCloseBmp;
+            else
+                bmp = m_selectedCloseBmp;
         }
 
         int offsetY = tabY-1;
@@ -851,7 +911,7 @@ wxSize wxAuiGenericTabArt::GetTabSize(wxDC& dc, wxWindow* WXUNUSED(wnd), const w
     if (bitmap.IsOk())
     {
         tabWidth += bitmap.GetWidth();
-        tabWidth += 3; // right side bitmap padding
+        tabWidth += 2; // right side bitmap padding
         tabHeight = wxMax(tabHeight, bitmap.GetHeight());
     }
 
@@ -892,7 +952,7 @@ void wxAuiGenericTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxR
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledCloseBmp;
             else
-                bmp = m_activeCloseBmp;
+                bmp = m_selectedCloseBmp;
             rect.x = inRect.x + inRect.width - bmp.GetWidth();
             if (HasFlag(wxAUI_NB_LEFT))
                 rect.x -= 5;
@@ -902,26 +962,26 @@ void wxAuiGenericTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxR
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledLeftBmp;
             else
-                bmp = m_activeLeftBmp;
+                bmp = m_selectedLeftBmp;
             break;
         case wxAUI_BUTTON_UP:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledUpBmp;
             else
-                bmp = m_activeUpBmp;
+                bmp = m_selectedUpBmp;
             rect.x = ((rect.x + rect.width)/2) - (bmp.GetWidth()/2);
             break;
         case wxAUI_BUTTON_DOWN:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledDownBmp;
             else
-                bmp = m_activeDownBmp;
+                bmp = m_selectedDownBmp;
             break;
         case wxAUI_BUTTON_RIGHT:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledRightBmp;
             else
-                bmp = m_activeRightBmp;
+                bmp = m_selectedRightBmp;
             if (HasFlag(wxAUI_NB_WINDOWLIST_BUTTON))
                 xOffset += m_activeWindowListBmp.GetWidth();
             if (HasFlag(wxAUI_NB_CLOSE_BUTTON))
@@ -931,7 +991,7 @@ void wxAuiGenericTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxR
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledWindowListBmp;
             else
-                bmp = m_activeWindowListBmp;
+                bmp = m_selectedWindowListBmp;
             rect.x = inRect.x + inRect.width - bmp.GetWidth();
             if (HasFlag(wxAUI_NB_CLOSE_BUTTON))
                 xOffset += m_activeCloseBmp.GetWidth();
@@ -1085,11 +1145,15 @@ void wxAuiGenericTabArt::SetColour(const wxColour& colour)
     m_borderPen = wxPen(m_baseColour.ChangeLightness(75));
     m_baseColourPen = wxPen(m_baseColour);
     m_baseColourBrush = wxBrush(m_baseColour);
+    m_normalFgColour = (wxAuiBrightness(m_baseColour) < 130) ? *wxWHITE : *wxBLACK;
 }
 
 void wxAuiGenericTabArt::SetActiveColour(const wxColour& colour)
 {
     m_activeColour = colour;
+    m_activeColourPen = wxPen(m_activeColour);
+    m_activeColourBrush = wxBrush(m_activeColour.ChangeLightness(120));
+    m_activeFgColour = (wxAuiBrightness(m_baseColour) < 130) ? *wxWHITE : *wxBLACK;    
 }
 
 wxSize wxAuiGenericTabArt::GetRequiredBitmapSize() const
@@ -1110,35 +1174,49 @@ wxAuiSimpleTabArt::wxAuiSimpleTabArt()
     m_flags = 0;
     m_fixedTabSize = 20;
 
-    wxColour baseColour = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
+    wxColour normalColour = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
+    m_normalFgColour = wxSystemSettings::GetColour(wxSYS_COLOUR_CAPTIONTEXT);
+    
+    wxColour activeColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
+    wxColour activeLightColour = activeColour.ChangeLightness(120);
+    m_activeFgColour = (wxAuiBrightness(activeLightColour) < 130) ? *wxWHITE : *wxBLACK;
 
-    wxColour backgroundColour = baseColour;
-    wxColour normaltabColour = baseColour;
-    wxColour selectedtabColour = *wxWHITE;
+    wxColour backgroundColour = normalColour;
+    wxColour foregroundColour = normalColour.ChangeLightness(55);
+    wxColour selectedtabColour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+
 
     m_bkBrush = wxBrush(backgroundColour);
-    m_normalBkBrush = wxBrush(normaltabColour);
-    m_normalBkPen = wxPen(normaltabColour);
+    m_normalBkBrush = wxBrush(backgroundColour);
+    m_normalBkPen = wxPen(foregroundColour);
     m_selectedBkBrush = wxBrush(selectedtabColour);
-    m_selectedBkPen = wxPen(selectedtabColour);
+    m_selectedBkPen = wxPen(selectedtabColour.ChangeLightness(55));
+    m_activeBkBrush = wxBrush(activeLightColour);
+    m_activeBkPen = wxPen(activeColour.ChangeLightness(98));
 
-    m_activeCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, *wxBLACK);
-    m_disabledCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, wxColour(128,128,128));
+    m_activeCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, m_activeFgColour);
+    m_selectedCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, m_normalFgColour);
+    m_disabledCloseBmp = wxAuiBitmapFromBits(close_bits, 16, 16, foregroundColour);
 
-    m_activeLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, *wxBLACK);
-    m_disabledLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, wxColour(128,128,128));
+    m_activeLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, m_activeFgColour);
+    m_selectedLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, m_normalFgColour);
+    m_disabledLeftBmp = wxAuiBitmapFromBits(left_bits, 16, 16, foregroundColour);
 
-    m_activeUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, *wxBLACK);
-    m_disabledUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, wxColour(128,128,128));
+    m_activeUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, m_activeFgColour);
+    m_selectedUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, m_normalFgColour);
+    m_disabledUpBmp = wxAuiBitmapFromBits(up_bits, 16, 16, foregroundColour);
 
-    m_activeDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, *wxBLACK);
-    m_disabledDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, wxColour(128,128,128));
+    m_activeDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, m_activeFgColour);
+    m_selectedDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, m_normalFgColour);
+    m_disabledDownBmp = wxAuiBitmapFromBits(down_bits, 16, 16, foregroundColour);
 
-    m_activeRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, *wxBLACK);
-    m_disabledRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, wxColour(128,128,128));
+    m_activeRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, m_activeFgColour);
+    m_selectedRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, m_normalFgColour);
+    m_disabledRightBmp = wxAuiBitmapFromBits(right_bits, 16, 16, foregroundColour);
 
-    m_activeWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, *wxBLACK);
-    m_disabledWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, wxColour(128,128,128));
+    m_activeWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, m_activeFgColour);
+    m_selectedWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, m_normalFgColour);
+    m_disabledWindowListBmp = wxAuiBitmapFromBits(list_bits, 16, 16, foregroundColour);
 
 }
 
@@ -1218,15 +1296,19 @@ void wxAuiSimpleTabArt::SetSizingInfo(const wxSize& tabCtrlSize, size_t tabCount
 
 void wxAuiSimpleTabArt::SetColour(const wxColour& colour)
 {
-    m_bkBrush = wxBrush(colour);
-    m_normalBkBrush = wxBrush(colour);
     m_normalBkPen = wxPen(colour);
+    wxColour lightColour = colour.ChangeLightness(150);
+    m_bkBrush = wxBrush(lightColour);
+    m_normalBkBrush = wxBrush(lightColour);
+    m_normalFgColour = (wxAuiBrightness(lightColour) < 130) ? *wxWHITE : *wxBLACK;
 }
 
 void wxAuiSimpleTabArt::SetActiveColour(const wxColour& colour)
 {
-    m_selectedBkBrush = wxBrush(colour);
-    m_selectedBkPen = wxPen(colour);
+    m_activeBkPen = wxPen(colour);
+    wxColour lightColour = colour.ChangeLightness(150);
+    m_activeBkBrush = wxBrush(lightColour);
+    m_activeFgColour = (wxAuiBrightness(lightColour) < 130) ? *wxWHITE : *wxBLACK;    
 }
 
 void wxAuiSimpleTabArt::DrawBorder(wxDC& dc, wxWindow* wnd, const wxRect& rect)
@@ -1249,18 +1331,21 @@ void wxAuiSimpleTabArt::DrawBackground(wxDC& dc, wxWindow* WXUNUSED(wnd), const 
     dc.DrawRectangle(-1, -1, rect.GetWidth()+2, rect.GetHeight()+2);
 
     // draw base line
-    dc.SetPen(*wxGREY_PEN);
+    if (HasActiveTab())
+        dc.SetPen(m_activeBkPen);
+    else
+        dc.SetPen(m_normalBkPen);
     if (HasFlag(wxAUI_NB_LEFT))
     {
-        dc.DrawLine(rect.GetWidth(), 0, rect.GetWidth()-1, rect.GetHeight());
+        dc.DrawLine(rect.GetWidth()-1, 0, rect.GetWidth()-1, rect.GetHeight());
     }
     else if (HasFlag(wxAUI_NB_RIGHT))
     {
-        dc.DrawLine(1, 0, 1, rect.GetHeight());
+        dc.DrawLine(0, 0, 0, rect.GetHeight());
     }
     else if (HasFlag(wxAUI_NB_BOTTOM))
     {
-        dc.DrawLine(0, 1, rect.GetWidth(), 1);
+        dc.DrawLine(0, 0, rect.GetWidth(), 0);
     }
     else // must be wxAUI_NB_TOP
     {
@@ -1322,8 +1407,16 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
 
     if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
     {
-        dc.SetPen(m_selectedBkPen);
-        dc.SetBrush(m_selectedBkBrush);
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            dc.SetPen(m_activeBkPen);
+            dc.SetBrush(m_activeBkBrush);
+        }
+        else
+        {
+            dc.SetPen(m_selectedBkPen);
+            dc.SetBrush(m_selectedBkBrush);
+        }
         dc.SetFont(m_selectedFont);
         textx = selectedTextX;
         texty = selectedTextY;
@@ -1341,33 +1434,33 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     wxPoint points[7];
     if (HasFlag(wxAUI_NB_LEFT))
     {
-        points[0].x = tabX;
+        points[0].x = tabX + tabWidth-1;
         points[0].y = tabY + tabHeight;
         points[1].x = tabX;
-        points[1].y = tabY + tabHeight - 2;
-        points[2].x = tabX + tabHeight - 4;
-        points[2].y = tabY + 2;
-        points[3].x = tabX + tabHeight + 2;
-        points[3].y = tabY;
-        points[4].x = tabX + tabWidth-1;
+        points[1].y = tabY + tabHeight;
+        points[2].x = tabX;
+        points[2].y = tabY + tabHeight - 1;
+        points[3].x = tabX + tabHeight - 3;
+        points[3].y = tabY + 2;
+        points[4].x = tabX + tabHeight + 3;
         points[4].y = tabY;
         points[5].x = tabX + tabWidth-1;
-        points[5].y = tabY + tabHeight;
+        points[5].y = tabY;
         points[6] = points[0];
     }
     else if (HasFlag(wxAUI_NB_RIGHT))
     {
         points[0].x = tabX;
-        points[0].y = tabY + tabHeight;
-        points[1].x = tabX;
+        points[0].y = tabY;
+        points[1].x = tabX + tabWidth - tabHeight - 3;
         points[1].y = tabY;
-        points[2].x = tabX + tabWidth - tabHeight - 3;
-        points[2].y = tabY;
-        points[3].x = tabX + tabWidth - tabHeight + 3;
-        points[3].y = tabY + 2;
+        points[2].x = tabX + tabWidth - tabHeight + 3;
+        points[2].y = tabY + 2;
+        points[3].x = tabX + tabWidth;
+        points[3].y = tabY + tabHeight - 1;
         points[4].x = tabX + tabWidth;
-        points[4].y = tabY + tabHeight - 2;
-        points[5].x = tabX + tabWidth;
+        points[4].y = tabY + tabHeight;
+        points[5].x = tabX;
         points[5].y = tabY + tabHeight;
         points[6] = points[0];
     }
@@ -1419,9 +1512,19 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
 
     dc.DrawPolygon(WXSIZEOF(points) - 1, points);
 
-    dc.SetPen(*wxGREY_PEN);
+    if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        dc.SetPen(m_activeBkPen);
+    else
+        dc.SetPen(m_normalBkPen);
 
-    dc.DrawLines(WXSIZEOF(points), points);
+    dc.DrawLines(WXSIZEOF(points) - 1, points);
+
+    if (HasActiveTab())
+        dc.SetPen(m_activeBkPen);
+    else
+        dc.SetPen(m_normalBkPen);
+
+    dc.DrawLine(points[WXSIZEOF(points)-2].x, points[WXSIZEOF(points)-2].y, points[WXSIZEOF(points)-1].x, points[WXSIZEOF(points)-1].y);
 
 
     int textOffset;
@@ -1447,7 +1550,15 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     wxString drawText = wxAuiChopText(dc, caption, tabWidth - (HasFlag(wxAUI_NB_RIGHT)&&HasFlag(wxAUI_MGR_NB_TAB_FIXED_WIDTH)?tabHeight:0) - (textOffset-tabX) - closeButtonWidth);
 
     // draw tab text
-    dc.DrawText(drawText, textOffset, tabY + (tabHeight - texty) / 2 + 1);
+    if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        dc.SetTextForeground(m_activeFgColour);
+    else
+        dc.SetTextForeground(m_normalFgColour);
+
+    wxCoord textY = tabY + (tabHeight - texty) / 2 + 1;
+    if (HasFlag(wxAUI_NB_BOTTOM))
+        textY--;
+    dc.DrawText(drawText, textOffset, textY);
 
     // draw focus rectangle
     if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook) && haveFocus)
@@ -1464,8 +1575,10 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
     if (closeButtonState != wxAUI_BUTTON_STATE_HIDDEN)
     {
         wxBitmap bmp;
-        if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
             bmp = m_activeCloseBmp;
+        else if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
+            bmp = m_selectedCloseBmp;
         else
             bmp = m_disabledCloseBmp;
 
@@ -1477,7 +1590,24 @@ void wxAuiSimpleTabArt::DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiPaneInfo& pa
         if (HasFlag(wxAUI_NB_RIGHT))
             rect.x -= tabHeight;
 
-        DrawButtons(dc, rect, bmp, *wxWHITE, closeButtonState);
+        wxBrush bkBrush;
+        wxPen bkPen;
+        if (page.HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            bkBrush = m_activeBkBrush;
+            bkPen = (m_activeFgColour == *wxWHITE) ? *wxWHITE_PEN : m_activeBkPen;
+        }
+        else if (page.HasFlag(wxAuiPaneInfo::optionActiveNotebook))
+        {
+            bkBrush = m_selectedBkBrush;
+            bkPen = m_selectedBkPen;
+        }
+        else
+        {
+            bkBrush = m_normalBkBrush;
+            bkPen = m_normalBkPen;
+        }
+        DrawButtons(dc, rect, bmp, bkBrush, bkPen, closeButtonState);
 
         *outButtonRect = rect;
     }
@@ -1557,33 +1687,33 @@ void wxAuiSimpleTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxRe
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledCloseBmp;
             else
-                bmp = m_activeCloseBmp;
+                bmp = m_selectedCloseBmp;
             rect.x = inRect.x + inRect.width - bmp.GetWidth();
             break;
         case wxAUI_BUTTON_UP:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledUpBmp;
             else
-                bmp = m_activeUpBmp;
+                bmp = m_selectedUpBmp;
             rect.x = ((rect.x + rect.width)/2) - (bmp.GetWidth()/2);
             break;
         case wxAUI_BUTTON_DOWN:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledDownBmp;
             else
-                bmp = m_activeDownBmp;
+                bmp = m_selectedDownBmp;
             break;
         case wxAUI_BUTTON_LEFT:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledLeftBmp;
             else
-                bmp = m_activeLeftBmp;
+                bmp = m_selectedLeftBmp;
             break;
         case wxAUI_BUTTON_RIGHT:
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledRightBmp;
             else
-                bmp = m_activeRightBmp;
+                bmp = m_selectedRightBmp;
             if (HasFlag(wxAUI_NB_WINDOWLIST_BUTTON))
                 xOffset += m_activeWindowListBmp.GetWidth();
             if (HasFlag(wxAUI_NB_CLOSE_BUTTON))
@@ -1593,7 +1723,7 @@ void wxAuiSimpleTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxRe
             if (buttonState & wxAUI_BUTTON_STATE_DISABLED)
                 bmp = m_disabledWindowListBmp;
             else
-                bmp = m_activeWindowListBmp;
+                bmp = m_selectedWindowListBmp;
             rect.x = inRect.x + inRect.width - bmp.GetWidth();
             if (HasFlag(wxAUI_NB_CLOSE_BUTTON))
                 xOffset += m_activeCloseBmp.GetWidth();
@@ -1632,7 +1762,7 @@ void wxAuiSimpleTabArt::DrawButton(wxDC& dc, wxWindow* WXUNUSED(wnd), const wxRe
 
     rect.x -= xOffset;
 
-    DrawButtons(dc, rect, bmp, *wxWHITE, buttonState);
+    DrawButtons(dc, rect, bmp, m_normalBkBrush, m_normalBkPen, buttonState);
 
     *outRect = rect;
 }

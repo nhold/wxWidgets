@@ -192,7 +192,7 @@ wxAuiDefaultDockArt::wxAuiDefaultDockArt()
     m_activeCaptionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
     m_inactiveCaptionColour = darker1Colour;
     m_inactiveCaptionGradientColour = baseColour.ChangeLightness(97);
-    m_inactiveCaptionTextColour = *wxBLACK;
+    m_inactiveCaptionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_CAPTIONTEXT);
 
     m_sashBrush = wxBrush(baseColour);
     m_backgroundBrush = wxBrush(baseColour);
@@ -1283,6 +1283,17 @@ void wxAuiTabContainer::Render(wxDC* rawDC, wxWindow* wnd)
 
     if (!dc.IsOk())
         return;
+
+    bool hasActiveTab = false;
+    for (i = m_tabOffset; i < pageCount; ++i)
+    {
+        if (m_pages.Item(i)->HasFlag(wxAuiPaneInfo::optionActive))
+        {
+            hasActiveTab = true;
+            break;
+        }
+    }
+    m_tab_art->SetHasActiveTab(hasActiveTab);
 
     // draw background
     m_tab_art->DrawBackground(dc, wnd, m_rect);

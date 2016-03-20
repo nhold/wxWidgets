@@ -45,7 +45,7 @@ class WXDLLIMPEXP_AUI wxAuiTabArt
 {
 public:
 
-    wxAuiTabArt() { }
+    wxAuiTabArt() : m_hasActiveTab(false) { }
     virtual ~wxAuiTabArt() { }
 
     virtual wxAuiTabArt* Clone() = 0;
@@ -130,10 +130,16 @@ public:
     virtual wxSize GetRequestedSize() const = 0;
     virtual wxSize GetRequiredBitmapSize() const = 0;
 
+    void SetHasActiveTab(bool hasActiveTab) { m_hasActiveTab = hasActiveTab; }
+    bool HasActiveTab() { return m_hasActiveTab; }
+
     int m_fixedTabSize;
     int m_tabCtrlHeight;
     int m_tabCtrlWidth;
     unsigned int m_flags;
+
+protected:
+    bool m_hasActiveTab;
 };
 
 
@@ -236,22 +242,33 @@ protected:
     wxFont m_normalFont;
     wxFont m_selectedFont;
     wxFont m_measuringFont;
+    wxColour m_normalFgColour;
+    wxColour m_activeFgColour;
     wxColour m_baseColour;
     wxPen m_baseColourPen;
+    wxPen m_activeColourPen;
     wxPen m_borderPen;
     wxBrush m_baseColourBrush;
+    wxBrush m_activeColourBrush;
     wxColour m_activeColour;
+    wxColour m_selectedColour;
     wxBitmap m_activeCloseBmp;
+    wxBitmap m_selectedCloseBmp;
     wxBitmap m_disabledCloseBmp;
     wxBitmap m_activeLeftBmp;
+    wxBitmap m_selectedLeftBmp;
     wxBitmap m_disabledLeftBmp;
     wxBitmap m_activeUpBmp;
+    wxBitmap m_selectedUpBmp;
     wxBitmap m_disabledUpBmp;
     wxBitmap m_activeDownBmp;
+    wxBitmap m_selectedDownBmp;
     wxBitmap m_disabledDownBmp;
     wxBitmap m_activeRightBmp;
+    wxBitmap m_selectedRightBmp;
     wxBitmap m_disabledRightBmp;
     wxBitmap m_activeWindowListBmp;
+    wxBitmap m_selectedWindowListBmp;
     wxBitmap m_disabledWindowListBmp;
 };
 
@@ -354,22 +371,32 @@ protected:
     wxFont m_normalFont;
     wxFont m_selectedFont;
     wxFont m_measuringFont;
+    wxColour m_normalFgColour;
+    wxColour m_activeFgColour;
     wxPen m_normalBkPen;
     wxPen m_selectedBkPen;
+    wxPen m_activeBkPen;
     wxBrush m_normalBkBrush;
     wxBrush m_selectedBkBrush;
+    wxBrush m_activeBkBrush;
     wxBrush m_bkBrush;
     wxBitmap m_activeCloseBmp;
+    wxBitmap m_selectedCloseBmp;
     wxBitmap m_disabledCloseBmp;
     wxBitmap m_activeLeftBmp;
+    wxBitmap m_selectedLeftBmp;
     wxBitmap m_disabledLeftBmp;
     wxBitmap m_activeUpBmp;
+    wxBitmap m_selectedUpBmp;
     wxBitmap m_disabledUpBmp;
     wxBitmap m_activeDownBmp;
+    wxBitmap m_selectedDownBmp;
     wxBitmap m_disabledDownBmp;
     wxBitmap m_activeRightBmp;
+    wxBitmap m_selectedRightBmp;
     wxBitmap m_disabledRightBmp;
     wxBitmap m_activeWindowListBmp;
+    wxBitmap m_selectedWindowListBmp;
     wxBitmap m_disabledWindowListBmp;
 };
 
